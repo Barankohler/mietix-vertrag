@@ -53,7 +53,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--rot);outline-off
 .vorgang .fällig{color:var(--rot);font-weight:800}
 .leer{color:var(--grau);text-align:center;padding:30px 10px}
 .ergebnis{background:var(--hell);border-radius:14px;padding:12px;margin-top:10px;font-weight:700}
-.versteckt{display:none}
+.versteckt{display:none!important}
 details summary{cursor:pointer;font-weight:800;color:var(--grau);font-size:14px;margin-top:6px}
 .meldung{position:fixed;left:16px;right:16px;bottom:96px;background:var(--gruen);color:#fff;border-radius:14px;
   padding:14px;font-weight:800;text-align:center;z-index:9;display:none}
@@ -183,7 +183,8 @@ details summary{cursor:pointer;font-weight:800;color:var(--grau);font-size:14px;
       <label>Fotos gemacht</label><div class="chips" data-gruppe="r_fotos"><div class="chip an" data-v="ja">ja</div><div class="chip" data-v="nein">nein</div></div>
       <label>Bemerkung</label><textarea id="rBem"></textarea>
     </div>
-    <div class="knopf" id="nochmalVertrag">Vertrag + Übergabe nochmal drucken</div>
+    <div class="knopf" id="nochmalVertrag">Mietvertrag drucken</div>
+    <div class="knopf" id="nochmalUebergabe">Übergabeprotokoll drucken</div>
     <div class="knopf" id="zurueckListe">Zurück zur Liste</div>
   </div>
 </section>
@@ -200,8 +201,18 @@ details summary{cursor:pointer;font-weight:800;color:var(--grau);font-size:14px;
   </div>
 </section>
 </main>
-<div class="leiste"><button id="haupt">Vertrag + Übergabe drucken</button></div>
+<div class="leiste"><button id="haupt">Speichern und drucken</button></div>
 <div class="meldung" id="meldung"></div>
+<div id="druck" class="versteckt" style="position:fixed;inset:0;background:rgba(46,46,48,.45);z-index:20;display:flex;align-items:flex-end">
+  <div style="background:#fff;width:100%;border-radius:22px 22px 0 0;padding:20px 16px calc(20px + env(safe-area-inset-bottom))">
+    <div style="max-width:680px;margin:0 auto">
+      <div style="font-weight:900;font-size:18px" id="druckKopf">Gespeichert</div>
+      <div class="hinweis">Antippen, was du drucken willst. Jedes öffnet sich einzeln zum Drucken.</div>
+      <div class="knopf" id="dVertrag">Mietvertrag drucken</div>
+      <div class="knopf" id="dUebergabe">Übergabeprotokoll drucken</div>
+      <div class="knopf" id="dRueck">Rückgabeprotokoll drucken</div>
+      <div class="knopf" id="dZu" style="border-color:var(--rand);color:var(--grau)">Fertig</div>
+    </div></div></div>
 
 <script>!function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"function"==typeof define&&define.amd?define(["exports"],e):e((t=t||self).PDFLib={})}(this,(function(t){"use strict";
 /*! *****************************************************************************
@@ -241,6 +252,7 @@ const de=s=>s?s.split("-").reverse().join("."):"";
 const zahl=v=>{if(v===null||v===undefined)return null;const s=String(v).trim();if(!s)return null;
   const n=parseFloat(s.indexOf(",")>=0?s.replace(/\./g,"").replace(",","."):s);return isNaN(n)?null:n};
 const eur=n=>(n||0).toLocaleString("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2});
+const wie=n=>n%1===0?n.toLocaleString("de-DE"):eur(n);   // wie in der Vorlage: 1.950 und 7.500 ohne ,00
 const heuteDe=()=>{const d=new Date();return pad(d.getDate())+"."+pad(d.getMonth()+1)+"."+d.getFullYear()};
 function meldung(t){const m=$("meldung");m.textContent=t;m.style.display="block";setTimeout(()=>m.style.display="none",2600)}
 
@@ -371,6 +383,11 @@ async function fuelleRueckgabe(v){
   X(f,"r_fotos_ja",r.fotos==="ja");X(f,"r_fotos_nein",r.fotos==="nein");X(f,"r_auffaellig_ja",r.auff==="ja");X(f,"r_auffaellig_nein",r.auff==="nein");
   T(f,"r_bemerkung",r.bem);T(f,"r_ort_datum",heuteDe());
   f.flatten();return doc.save()}
+async function seite(machen,i){const voll=await PDFLib.PDFDocument.load(await machen());
+  const neu=await PDFLib.PDFDocument.create();const[p]=await neu.copyPages(voll,[i]);neu.addPage(p);return neu.save()}
+const druckVertrag=v=>oeffnen(()=>seite(()=>fuelleVertrag(v),0));
+const druckUebergabe=v=>oeffnen(()=>seite(()=>fuelleVertrag(v),1));
+const druckRueckgabe=v=>oeffnen(()=>fuelleRueckgabe(v));
 async function oeffnen(machen){
   const fenster=window.open("","_blank");   // sofort öffnen, sonst blockt das iPhone
   if(fenster)fenster.document.write("<p style='font:18px -apple-system,sans-serif;padding:30px'>Wird erstellt …</p>");
@@ -395,8 +412,8 @@ function sammle(){
     preis1:p1===null?"":eur(p1),zf:$("zf").value.trim(),preis2:p2===null?"":eur(p2),gesamt:g?eur(g):"",
     freikm:$("freikm").value.trim(),mehrkm:$("mehrkm").value.trim(),
     anzahlung:anz===null?"":eur(anz),rest:anz===null?(g?eur(g):""):eur(g-anz),zahlart:chipWert($("zahlart")),
-    kaution:zahl($("kaution").value)===null?"":eur(zahl($("kaution").value)),kautionArt:chipWert($("kautionArt")),kfz:$("kfz").value.trim(),
-    sb:zahl($("sb").value)===null?"":eur(zahl($("sb").value)),
+    kaution:zahl($("kaution").value)===null?"":wie(zahl($("kaution").value)),kautionArt:chipWert($("kautionArt")),kfz:$("kfz").value.trim(),
+    sb:zahl($("sb").value)===null?"":wie(zahl($("sb").value)),
     aussen:chipWert(gruppe("aussen")),innen:chipWert(gruppe("innen")),tank:chipWert(gruppe("tank")),reifen:chipWert(gruppe("reifen")),
     felgen:chipWert(gruppe("felgen")),gegen:chipWert(gruppe("gegen")),fotos:chipWert(gruppe("fotos")),ubem:$("ubem").value.trim(),
     uort:$("uort").value.trim(),status:"unterwegs"}}
@@ -422,7 +439,7 @@ function oeffneRueck(nr){const v=vorgaenge().find(x=>x.nr===nr);if(!v)return;OFF
   $("rKopf").textContent=v.name+", "+v.auto+(v.kz?" ("+v.kz+")":"")+", "+v.nr;
   const r=v.rueck||{},j=new Date();$("rD").value=r.datum||iso(j);$("rU").value=r.uhr||(pad(j.getHours())+":"+pad(j.getMinutes()));
   $("rKm").value=r.km||"";$("rKmAb").value=v.km||"";$("rBem").value=r.bem||"";rRechne();
-  $("haupt").textContent="Rückgabeprotokoll drucken";window.scrollTo(0,0)}
+  $("haupt").textContent="Rückgabe speichern und drucken";window.scrollTo(0,0)}
 function rRechne(){const v=vorgaenge().find(x=>x.nr===OFFEN_ID);if(!v)return null;
   const km=zahl($("rKm").value),ab=zahl($("rKmAb").value),frei=zahl(v.freikm)||0,satz=zahl(v.mehrkm)||0;
   if(km===null||ab===null){$("rErgebnis").textContent="km-Stand eintragen, der Rest rechnet sich.";return{gefahren:"",mehrkm:""}}
@@ -431,11 +448,20 @@ function rRechne(){const v=vorgaenge().find(x=>x.nr===OFFEN_ID);if(!v)return nul
   return{gefahren:String(gef),mehrkm:String(mehr)}}
 ["rKm","rKmAb"].forEach(i=>$(i).addEventListener("input",rRechne));
 $("zurueckListe").onclick=()=>{OFFEN_ID=null;zeige("rueck")};
-$("nochmalVertrag").onclick=()=>{const v=vorgaenge().find(x=>x.nr===OFFEN_ID);if(v)oeffnen(()=>fuelleVertrag(v))};
+$("nochmalVertrag").onclick=()=>{const v=vorgaenge().find(x=>x.nr===OFFEN_ID);if(v)druckVertrag(v)};
+$("nochmalUebergabe").onclick=()=>{const v=vorgaenge().find(x=>x.nr===OFFEN_ID);if(v)druckUebergabe(v)};
+let DRUCK=null;
+function druckAuswahl(v,rueck){DRUCK=v;$("druckKopf").textContent="Gespeichert: "+v.name+", "+v.nr;
+  $("dVertrag").classList.toggle("versteckt",!!rueck);$("dUebergabe").classList.toggle("versteckt",!!rueck);
+  $("dRueck").classList.toggle("versteckt",!rueck);$("druck").classList.remove("versteckt")}
+$("dVertrag").onclick=()=>DRUCK&&druckVertrag(DRUCK);
+$("dUebergabe").onclick=()=>DRUCK&&druckUebergabe(DRUCK);
+$("dRueck").onclick=()=>DRUCK&&druckRueckgabe(DRUCK);
+$("dZu").onclick=()=>{$("druck").classList.add("versteckt");if(SICHT==="neu")leeren();else{OFFEN_ID=null;zeige("rueck")}};
 
 /* ---------- Hauptknopf ---------- */
 $("haupt").onclick=()=>{
-  if(SICHT==="neu"){const v=sammle();if(!v)return;merke(v);oeffnen(()=>fuelleVertrag(v));meldung("Gespeichert: "+v.nr);setTimeout(leeren,800);return}
+  if(SICHT==="neu"){const v=sammle();if(!v)return;merke(v);druckAuswahl(v,false);return}
   if(SICHT==="rueck"&&OFFEN_ID){const l=vorgaenge(),v=l.find(x=>x.nr===OFFEN_ID);if(!v)return;
     if(!$("rKm").value.trim()){alert("Bitte den km-Stand bei Rückgabe eintragen.");return}
     const e=rRechne();v.km=$("rKmAb").value.trim()||v.km;
@@ -444,8 +470,7 @@ $("haupt").onclick=()=>{
       auff:chipWert(gruppe("r_auff")),fotos:chipWert(gruppe("r_fotos")),bem:$("rBem").value.trim()};
     v.status="zurück";schreib("mietixVorgaenge",l);
     const fz=lies("mietixFahrzeuge",{});fz[v.auto]=Object.assign(fz[v.auto]||{},{km:v.rueck.km});schreib("mietixFahrzeuge",fz);
-    oeffnen(()=>fuelleRueckgabe(v));meldung("Rückgabe gespeichert");zaehle();
-    setTimeout(()=>{OFFEN_ID=null;zeige("rueck")},800);return}
+    zaehle();druckAuswahl(v,true);return}
   if(SICHT==="rueck")meldung("Erst einen Vorgang antippen.")};
 
 /* ---------- Alle und Sicherung ---------- */
@@ -463,8 +488,8 @@ $("einlesen").onclick=()=>{let s=null;try{s=JSON.parse($("sicherung").value)}cat
 function zeige(s){SICHT=s;["neu","rueck","alle"].forEach(x=>$("s_"+x).classList.toggle("versteckt",x!==s));
   [...$("reiter").children].forEach(c=>c.classList.toggle("an",c.dataset.s===s));
   if(s==="rueck"){$("offenListe").classList.remove("versteckt");$("rueckForm").classList.add("versteckt");zeichneOffen();
-    $("haupt").textContent="Rückgabeprotokoll drucken"}
-  if(s==="neu"){$("haupt").textContent="Vertrag + Übergabe drucken";zeichneAnfragen()}
+    $("haupt").textContent="Rückgabe speichern und drucken"}
+  if(s==="neu"){$("haupt").textContent="Speichern und drucken";zeichneAnfragen()}
   if(s==="alle")zeichneAlle();
   document.querySelector(".leiste").style.display=(s==="alle"?"none":"")}
 [...$("reiter").children].forEach(c=>c.onclick=()=>zeige(c.dataset.s));
