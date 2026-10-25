@@ -161,7 +161,8 @@ details summary{cursor:pointer;font-weight:800;color:var(--grau);font-size:14px}
     <div id="kfzWrap" class="versteckt"><label>Fahrzeugdaten der Sicherheit</label><input id="kfz" placeholder="Modell, Kennzeichen">
       <div class="hinweis">Dazu im Reiter Überlassungserklärung den Sicherungsvertrag drucken.</div></div>
   </div>
-  <div class="karte"><h2>Vertragsnummer</h2><input id="nr"></div>
+  <div class="karte"><h2>Mietvertragsnummer</h2><input id="nr" inputmode="numeric">
+    <div class="hinweis">Zählt von selbst weiter. Nur ändern, wenn du eine Nummer schon anders vergeben hast.</div></div>
   <details class="karte"><summary>Alle Verträge und Sicherung</summary>
     <div id="alleListe"></div>
     <div class="hinweis">Die Verträge liegen auf diesem Gerät. Zum Übertragen: sichern, den Text per WhatsApp an dich
@@ -357,8 +358,10 @@ function stammFuellen(){const k=kunden()[$("name").value.trim()];
   const n=vorgaenge().filter(v=>v.name===$("name").value.trim()).length;
   $("stamm").textContent="Stammkunde"+(n?", "+n+(n===1?" Vertrag":" Verträge")+" bisher":"")+". Daten übernommen."}
 $("name").addEventListener("change",stammFuellen);
-function neueNr(){const d=new Date(),tag=d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate());
-  const n=vorgaenge().filter(v=>(v.nr||"").indexOf("MV-"+tag)===0).length+1;return "MV-"+tag+"-"+pad(n)}
+// Fortlaufende Mietvertragsnummer, sechsstellig. Stand 26.10.2026: zuletzt vergeben 000531 (Baran).
+const LETZTE_NR=531;
+function neueNr(){let max=LETZTE_NR;vorgaenge().forEach(v=>{const n=parseInt(String(v.nr||"").replace(/\D/g,""),10);
+  if(/^\d{6}$/.test(String(v.nr||""))&&n>max)max=n});return String(max+1).padStart(6,"0")}
 
 /* ---------- PDF: Vorlage füllen, festschreiben, einzeln zum Drucken öffnen ---------- */
 function bytes(b){const s=atob(b),u=new Uint8Array(s.length);for(let i=0;i<s.length;i++)u[i]=s.charCodeAt(i);return u}
