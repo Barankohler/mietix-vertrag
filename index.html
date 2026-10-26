@@ -74,7 +74,7 @@ details summary{cursor:pointer;font-weight:800;color:var(--grau);font-size:14px}
   padding:14px;font-weight:800;text-align:center;z-index:9;display:none}
 </style></head><body>
 <header>
-  <h1>MIETIX <span>VERTRÄGE</span></h1>
+  <h1>MIETIX <span>VERTRÄGE</span> <i id="abgleichPunkt" title="Abgleich aller Geräte" style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#B0B0B3;vertical-align:middle;margin-left:4px"></i></h1>
   <div class="reiter" id="reiter">
     <div data-s="heute" class="an">Heute</div>
     <div data-s="vertrag">Mietvertrag</div>
@@ -95,6 +95,7 @@ details summary{cursor:pointer;font-weight:800;color:var(--grau);font-size:14px}
 
 <!-- ================= HEUTE: wer holt ab, wer bringt zurück (ein Klick öffnet das richtige Formular) ================= -->
 <section id="s_heute">
+  <div id="abgleich"></div>
   <div class="karte"><h2>Abholen</h2><div id="hAb"></div></div>
   <div class="karte"><h2>Zurück</h2><div id="hZu"></div></div>
   <div class="karte"><h2>Gebucht, noch kein Vertrag</h2><div id="hAnf"></div></div>
@@ -597,14 +598,21 @@ $("rKm").addEventListener("input",()=>rRechne(true));$("rKmAb").addEventListener
 const KNOPF={heute:"Neuer Mietvertrag",vertrag:"Vertrag + Übergabe drucken",uebergabe:"Übergabeprotokoll drucken",rueckgabe:"Rückgabeprotokoll drucken",
   schaden:"Schadensanerkennung drucken",ueberlassung:"Überlassungserklärung drucken"};
 function weiter(s){setTimeout(()=>zeige(s),900)}
-function vertragSpeichern(mitUeb){const v=sammle();if(!v)return;merke(v);
-  if(mitUeb){const u=aendere(x=>{if(!x.ueb)x.ueb=uebStandard(x)});
-    lerneAuto(u.auto,{reifen:u.ueb.reifen,felgen:u.ueb.felgen,marke:u.ueb.marke})}
-  const voll=aktuell();kopiere(excelZeile(voll));
-  oeffnen(mitUeb?()=>fuelleVertrag(voll):()=>seite(()=>fuelleVertrag(voll),0));
-  meldung("Gespeichert: Nr. "+v.nr+". Zeile für die Excel ist kopiert (Buchungen, Spalte Kunde, einfügen).");
-  ANFRAGE=null;leerNaechstes=true;
-  weiter(voll.kautionArt==="fahrzeug"?"ueberlassung":mitUeb?"heute":"uebergabe")}
+// Neue Verträge holen ihre Nummer beim Speichern aus dem gemeinsamen Speicher (keine doppelten Nummern auf zwei Geräten).
+// Ohne Internet bleibt die Nummer vom Gerät. Die Excel-Zeile wird noch im Klick kopiert (sonst sperrt das iPhone).
+let nrVonHand=false;$("nr").addEventListener("input",()=>nrVonHand=true);
+function vertragSpeichern(mitUeb){const v=sammle();if(!v)return;
+  const neu=!nrVonHand&&!vorgaenge().some(x=>x.nr===v.nr&&x.name===v.name);
+  kopiere(excelZeile(v));leerNaechstes=true;
+  oeffnen(async()=>{
+    if(neu&&window.mietixNeueNummer){const n=await window.mietixNeueNummer();if(n)v.nr=n}
+    merke(v);ANFRAGE=null;
+    if(mitUeb){const u=aendere(x=>{if(!x.ueb)x.ueb=uebStandard(x)});
+      lerneAuto(u.auto,{reifen:u.ueb.reifen,felgen:u.ueb.felgen,marke:u.ueb.marke})}
+    const voll=aktuell();
+    meldung("Gespeichert: Nr. "+voll.nr+". Zeile für die Excel ist kopiert (Buchungen, Spalte Kunde, einfügen).");
+    weiter(voll.kautionArt==="fahrzeug"?"ueberlassung":mitUeb?"heute":"uebergabe");
+    return mitUeb?fuelleVertrag(voll):seite(()=>fuelleVertrag(voll),0)})}
 $("haupt2").onclick=()=>{if(SICHT==="vertrag")vertragSpeichern(false)};
 let leerNaechstes=false;
 $("haupt").onclick=()=>{
@@ -651,7 +659,7 @@ $("einlesen").onclick=()=>{let s=null;try{s=JSON.parse($("sicherung").value)}cat
 function leeren(){$("s_vertrag").querySelectorAll("input,textarea").forEach(e=>e.value="");
   $("vonU").value="10:00";$("bisU").value="10:00";$("mehrkm").value="3";$("kautB").value="1.950";$("sb").value="7.500";
   ["z_anz","z_rest","z_kaut"].forEach(g=>gs(g,""));gs("k_art","geld");$("stamm").textContent="";
-  AUTO=null;ANFRAGE=null;restVonHand=false;preisAuto=true;kmAuto=true;leerNaechstes=false;$("nr").value=neueNr();zeichneAutos();summe();tipps()}
+  AUTO=null;ANFRAGE=null;restVonHand=false;nrVonHand=false;preisAuto=true;kmAuto=true;leerNaechstes=false;$("nr").value=neueNr();zeichneAutos();summe();tipps()}
 function eintrag(t,u,knopf,spaet){return'<div class="heute'+(spaet?" spaet":"")+'"><div><b>'+t+'</b><i>'+u+'</i></div><span>'+knopf+'</span></div>'}
 function zeichneHeute(){const h=iso(new Date()),m=plusTage(h,1),l=vorgaenge().filter(v=>v.status!=="zurück");
   const ab=l.filter(v=>!v.ueb&&v.vonD<=m).sort((a,b)=>(a.vonD+a.vonU).localeCompare(b.vonD+b.vonU));
@@ -688,4 +696,121 @@ fetch("https://barankohler.github.io/mietix-preise/preise.json",{cache:"no-store
   const x=lies("mietixAnfragen",[]).find(x=>x.id===id);history.replaceState(null,"",location.pathname);
   if(x){leeren();uebernehmeAnfrage(x);zeige("vertrag")}})();
 zeichneHeute();
+// Neuer Stand von einem anderen Gerät: Listen neu zeichnen, ein angefangenes Formular bleibt wie es ist
+window.addEventListener("mietix-abgleich",()=>{kundenListe();zeichneAlle();
+  if(SICHT==="heute")zeichneHeute();else if(SICHT!=="vertrag")wahlFuellen();
+  if(SICHT==="vertrag"&&!$("name").value&&!nrVonHand)$("nr").value=neueNr()});
+</script>
+<script>/* Mietix Abgleich: Verträge, Anfragen, Kunden und Fahrzeuge auf allen Geräten gleich (Supabase Frankfurt, seit 26.10.2026).
+   Wird von tools/vertrag/build_html.py und tools/anfragen/build_html.py in die Seite eingebaut.
+   - Die Werkzeuge arbeiten weiter nur mit localStorage. Dieser Baustein merkt jede Änderung an den vier Speichern,
+     schickt sie hoch und holt neue Stände der anderen Geräte (beim Start, beim Zurückkehren zur Seite, jede Minute).
+   - Ohne Internet oder ohne Anmeldung läuft alles wie vorher, der Abgleich holt später nach.
+   - Gelöschte Einträge (Anfragen-Buch) gehen als {_weg:true} hoch, damit sie auch auf den anderen Geräten verschwinden.
+   - Anmeldung: E-Mail und Passwort, einmal pro Gerät. Gilt für alle Mietix-Werkzeuge auf barankohler.github.io. */
+(function(){
+const URL_="https://zbeqrwvlmiulxvhryiku.supabase.co";
+const KEY="sb_publishable_LVkvpgXMpBbq_OXgwOfTqg_ZRcRkFyQ";   // öffentlich gedacht, Schutz über Anmeldung und Regeln in der Datenbank
+const SPEICHER={mietixVorgaenge:{tab:"vorgaenge",pk:"nr",liste:true},mietixAnfragen:{tab:"anfragen",pk:"id",liste:true},
+  mietixKunden:{tab:"kunden",pk:"name",liste:false},mietixFahrzeuge:{tab:"fahrzeuge",pk:"name",liste:false}};
+const roh=Storage.prototype.setItem;
+const lies=(k,d)=>{try{return JSON.parse(localStorage.getItem(k)||"")||d}catch(e){return d}};
+const merk=(k,v)=>{try{roh.call(localStorage,k,JSON.stringify(v))}catch(e){}};
+const hash=s=>{let h=5381;for(let i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))|0;return String(h)};
+let sitzung=lies("mietixSitzung",null),laeuft=false,nochmal=false,zuletzt=null,fehler="";
+
+/* ---------- Anmeldung ---------- */
+async function auth(pfad,body){const r=await fetch(URL_+"/auth/v1/"+pfad,{method:"POST",headers:{apikey:KEY,"Content-Type":"application/json"},body:JSON.stringify(body)});
+  const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error_description||j.msg||j.message||"Anmeldung fehlgeschlagen");return j}
+function sichern(j){sitzung={token:j.access_token,neu:j.refresh_token,bis:Date.now()+(j.expires_in||3600)*1000-60000,
+  email:(j.user&&j.user.email)||(sitzung&&sitzung.email)||""};merk("mietixSitzung",sitzung)}
+async function token(){if(!sitzung)return null;
+  if(Date.now()>sitzung.bis){try{sichern(await auth("token?grant_type=refresh_token",{refresh_token:sitzung.neu}))}
+    catch(e){if(navigator.onLine){sitzung=null;localStorage.removeItem("mietixSitzung");zeigen()}return null}}
+  return sitzung.token}
+async function api(pfad,opt){const t=await token();if(!t)throw new Error("nicht angemeldet");
+  const r=await fetch(URL_+"/rest/v1/"+pfad,Object.assign({},opt,{headers:Object.assign({apikey:KEY,Authorization:"Bearer "+t,"Content-Type":"application/json"},(opt||{}).headers||{})}));
+  if(!r.ok)throw new Error("Speicher antwortet "+r.status);const s=await r.text();return s?JSON.parse(s):null}
+
+/* ---------- Abgleich ---------- */
+function alsMap(k,w){const c=SPEICHER[k],m={};if(c.liste)(w||[]).forEach(x=>{if(x&&x[c.pk]!==undefined)m[String(x[c.pk])]=x});else Object.assign(m,w||{});return m}
+function ausMap(k,m){const c=SPEICHER[k];if(!c.liste)return m;return Object.keys(m).sort().map(p=>m[p])}
+async function abgleichen(){
+  if(!sitzung||!navigator.onLine)return;if(laeuft){nochmal=true;return}laeuft=true;fehler="";zeigen();
+  const H=lies("mietixAbgleich",{}),geholt=[];
+  try{
+    for(const k of Object.keys(SPEICHER)){const c=SPEICHER[k],h=H[k]=H[k]||{zeit:"",hash:{}},m=alsMap(k,lies(k,c.liste?[]:{}));
+      // 1) hoch: alles, was sich hier seit dem letzten Abgleich geändert hat (auch Gelöschtes)
+      const jetzt=new Date().toISOString(),hoch=[];
+      Object.keys(m).forEach(p=>{const s=JSON.stringify(m[p]);if(h.hash[p]!==hash(s))hoch.push({[c.pk]:p,daten:m[p],geaendert:jetzt})});
+      Object.keys(h.hash).forEach(p=>{if(!(p in m)&&h.hash[p]!=="weg")hoch.push({[c.pk]:p,daten:{_weg:true},geaendert:jetzt})});
+      for(let i=0;i<hoch.length;i+=200)await api(c.tab+"?on_conflict="+c.pk,{method:"POST",headers:{Prefer:"resolution=merge-duplicates,return=minimal"},body:JSON.stringify(hoch.slice(i,i+200))});
+      hoch.forEach(z=>h.hash[z[c.pk]]=z.daten._weg?"weg":hash(JSON.stringify(z.daten)));
+      if(k==="mietixVorgaenge"){const max=Math.max(0,...Object.keys(m).filter(n=>/^\d{6}$/.test(n)).map(Number));
+        if(max)await api("rpc/vertragsnummer_mindestens",{method:"POST",body:JSON.stringify({n:max})})}
+      // 2) runter: was die anderen Geräte seit dem letzten Mal geschickt haben
+      const seit=h.zeit?"&geaendert=gt."+encodeURIComponent(h.zeit):"";
+      const zeilen=await api(c.tab+"?select="+c.pk+",daten,geaendert&order=geaendert.asc"+seit,{method:"GET"})||[];
+      let anders=false;const m2=alsMap(k,lies(k,c.liste?[]:{}));
+      zeilen.forEach(z=>{const p=String(z[c.pk]);h.zeit=z.geaendert>h.zeit?z.geaendert:h.zeit;
+        if(z.daten&&z.daten._weg){if(p in m2){delete m2[p];anders=true}h.hash[p]="weg";return}
+        const s=JSON.stringify(z.daten);if(!(p in m2)||JSON.stringify(m2[p])!==s){m2[p]=z.daten;anders=true}h.hash[p]=hash(s)});
+      if(anders){merk(k,ausMap(k,m2));geholt.push(k)}}
+    merk("mietixAbgleich",H);zuletzt=new Date();
+    if(geholt.length)window.dispatchEvent(new CustomEvent("mietix-abgleich",{detail:geholt}));
+  }catch(e){fehler=e.message||"Abgleich fehlgeschlagen"}
+  laeuft=false;zeigen();if(nochmal){nochmal=false;setTimeout(abgleichen,500)}}
+// Jede Änderung an den vier Speichern löst kurz danach einen Abgleich aus
+let warte=null;
+Storage.prototype.setItem=function(k,v){roh.call(this,k,v);if(this===localStorage&&SPEICHER[k]){clearTimeout(warte);warte=setTimeout(abgleichen,800)}};
+
+/* ---------- Vertragsnummer aus dem gemeinsamen Speicher ---------- */
+window.mietixNeueNummer=async function(){if(!sitzung||!navigator.onLine)return null;
+  try{const n=await api("rpc/neue_vertragsnummer",{method:"POST",body:"{}"});return typeof n==="string"?n:null}catch(e){return null}};
+window.mietixAbgleichen=abgleichen;
+
+/* ---------- Link aus der Einladungs- oder Passwort-Mail: Passwort selbst festlegen ---------- */
+let pwSetzen=false,linkFehler="";
+(function(){const h=new URLSearchParams(location.hash.slice(1));if(!h.get("access_token")&&!h.get("error"))return;
+  history.replaceState(null,"",location.pathname+location.search);
+  if(h.get("error")){linkFehler="Der Link aus der Mail ist abgelaufen oder schon benutzt. Bitte eine neue Einladung anfordern.";return}
+  sichern({access_token:h.get("access_token"),refresh_token:h.get("refresh_token"),expires_in:+h.get("expires_in")||3600});
+  pwSetzen=/invite|recovery|signup/.test(h.get("type")||"")})();
+
+/* ---------- Anzeige: Anmeldung oder Stand ---------- */
+function zeigen(){const el=document.getElementById("abgleich");if(!el)return;
+  if(sitzung&&pwSetzen){el.innerHTML='<div class="abgl"><b>Passwort festlegen</b><div class="abgl-text">Damit meldest du dich auf deinen Geräten an. Mindestens 8 Zeichen.</div>'+
+    '<input id="ablNeu" type="password" autocomplete="new-password" placeholder="Neues Passwort">'+
+    '<button id="ablSetzen" type="button">Passwort speichern</button><div class="abgl-fehler" id="ablFehler"></div></div>';
+    document.getElementById("ablSetzen").onclick=async()=>{const pw=document.getElementById("ablNeu").value,f=document.getElementById("ablFehler");
+      if(pw.length<8){f.textContent="Bitte mindestens 8 Zeichen.";return}
+      try{const t=await token();const r=await fetch(URL_+"/auth/v1/user",{method:"PUT",headers:{apikey:KEY,Authorization:"Bearer "+t,"Content-Type":"application/json"},body:JSON.stringify({password:pw})});
+        if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error(j.msg||j.message||"Speichern ging nicht")}
+        pwSetzen=false;zeigen();abgleichen()}catch(e){f.textContent=e.message}};return}
+  const pkt=document.getElementById("abgleichPunkt");
+  if(pkt)pkt.style.background=!sitzung?"#B0B0B3":fehler?"#C4161C":"#1B8A4B";
+  if(!sitzung){el.innerHTML='<div class="abgl"><b>Geräte abgleichen</b><div class="abgl-text">Einmal anmelden, dann sind Verträge und Anfragen auf allen Geräten gleich.</div>'+
+    '<input id="ablMail" type="email" inputmode="email" autocomplete="username" placeholder="E-Mail">'+
+    '<input id="ablPw" type="password" autocomplete="current-password" placeholder="Passwort">'+
+    '<button id="ablLos" type="button">Anmelden</button><div class="abgl-fehler" id="ablFehler">'+linkFehler+'</div></div>';
+    document.getElementById("ablLos").onclick=async()=>{const f=document.getElementById("ablFehler");f.textContent="";
+      try{sichern(await auth("token?grant_type=password",{email:document.getElementById("ablMail").value.trim(),password:document.getElementById("ablPw").value}));
+        zeigen();abgleichen()}catch(e){f.textContent=/Invalid login/i.test(e.message)?"E-Mail oder Passwort stimmt nicht.":e.message}};return}
+  const stand=laeuft?"gleicht ab …":fehler?"nicht abgeglichen: "+fehler:zuletzt?"abgeglichen um "+String(zuletzt.getHours()).padStart(2,"0")+":"+String(zuletzt.getMinutes()).padStart(2,"0"):"wartet auf Internet";
+  el.innerHTML='<div class="abgl klein"><span>Alle Geräte: '+stand+'</span><a href="#" id="ablAus">abmelden</a></div>';
+  document.getElementById("ablAus").onclick=e=>{e.preventDefault();if(!confirm("Auf diesem Gerät abmelden? Die Daten bleiben hier."))return;
+    sitzung=null;localStorage.removeItem("mietixSitzung");zeigen()}}
+const css=document.createElement("style");
+css.textContent=".abgl{background:#fff;border:1px solid #E4E4E7;border-radius:16px;padding:14px;margin-bottom:14px}"+
+  ".abgl b{display:block;font-size:15px;margin-bottom:4px}.abgl-text{font-size:13px;color:#6F6F72;margin-bottom:8px}"+
+  ".abgl input{width:100%;border:1px solid #E4E4E7;border-radius:12px;padding:12px;font:600 16px inherit;margin-top:6px;min-height:46px;box-sizing:border-box}"+
+  ".abgl button{width:100%;margin-top:8px;background:#C4161C;color:#fff;border:0;border-radius:12px;padding:13px;font:800 16px inherit;cursor:pointer}"+
+  ".abgl-fehler{color:#C4161C;font-size:13px;font-weight:700;margin-top:6px}"+
+  ".abgl.klein{display:flex;justify-content:space-between;gap:10px;font-size:13px;color:#6F6F72;padding:10px 14px}.abgl.klein a{color:#6F6F72}";
+document.head.appendChild(css);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)abgleichen()});
+window.addEventListener("online",abgleichen);
+setInterval(abgleichen,60000);
+zeigen();abgleichen();
+})();
 </script></body></html>
