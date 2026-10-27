@@ -98,7 +98,6 @@ details summary{cursor:pointer;font-weight:800;color:var(--grau);font-size:14px}
   <div id="abgleich"></div>
   <div class="karte"><h2>Abholen</h2><div id="hAb"></div></div>
   <div class="karte"><h2>Zurück</h2><div id="hZu"></div></div>
-  <div class="karte versteckt" id="hSaKarte"><h2>Kunde hat Daten geschickt</h2><div id="hSa"></div></div>
   <div class="karte"><h2>Gebucht, noch kein Vertrag</h2><div id="hAnf"></div></div>
 </section>
 
@@ -404,14 +403,8 @@ function zeichneAnfragen(){
     a.map((x,i)=>'<div class="anfrage" data-i="'+i+'"><b>'+(x.name||"ohne Namen")+'</b><div>'+
       [x.auto,x.von?de(x.von)+(x.bis?" bis "+de(x.bis):""):"",x.nummer].filter(Boolean).join("  |  ")+'</div></div>').join("");
   [...$("anfragen").querySelectorAll(".anfrage")].forEach(e=>e.onclick=()=>uebernehmeAnfrage(a[+e.dataset.i]))}
-let ANFRAGE=null,SA_ID=null;
-// Was der Kunde über den Kunden-Link selbst eingetragen hat, in den Mietvertrag übernehmen
-function kundendaten(d,id){if(!d)return;SA_ID=id||SA_ID;
-  [["name","name"],["anschrift","anschrift"],["gebort","gebort"],["telefon","telefon"],["email","email"]].forEach(([f,k])=>{if(d[k])$(f).value=d[k]});
-  if(d.geb)$("geb").value=d.geb;meldung("Kundendaten übernommen: "+(d.name||""))}
-function kundendatenZurAnfrage(id){if(!id||!window.mietixSelbstauskuenfte)return;
-  window.mietixSelbstauskuenfte().then(l=>{const s=l.find(x=>x.anfrage===id);if(s&&ANFRAGE===id)kundendaten(s.daten,s.id)})}
-function uebernehmeAnfrage(x){ANFRAGE=x.id||null;kundendatenZurAnfrage(x.id);
+let ANFRAGE=null;
+function uebernehmeAnfrage(x){ANFRAGE=x.id||null;
   $("name").value=x.name||"";$("telefon").value=x.nummer||"";
   if(x.von)$("vonD").value=x.von;if(x.bis)$("bisD").value=x.bis;
   const f=fahrzeugListe().find(f=>f.name===x.auto);if(f)waehleAuto(f);stammFuellen();tipps();
@@ -614,7 +607,6 @@ function vertragSpeichern(mitUeb){const v=sammle();if(!v)return;
   oeffnen(async()=>{
     if(neu&&window.mietixNeueNummer){const n=await window.mietixNeueNummer();if(n)v.nr=n}
     merke(v);ANFRAGE=null;
-    if(SA_ID&&window.mietixSelbstauskunftErledigt){window.mietixSelbstauskunftErledigt(SA_ID);SA_ID=null}   // steht jetzt im Vertrag
     if(mitUeb){const u=aendere(x=>{if(!x.ueb)x.ueb=uebStandard(x)});
       lerneAuto(u.auto,{reifen:u.ueb.reifen,felgen:u.ueb.felgen,marke:u.ueb.marke})}
     const voll=aktuell();
@@ -667,7 +659,7 @@ $("einlesen").onclick=()=>{let s=null;try{s=JSON.parse($("sicherung").value)}cat
 function leeren(){$("s_vertrag").querySelectorAll("input,textarea").forEach(e=>e.value="");
   $("vonU").value="10:00";$("bisU").value="10:00";$("mehrkm").value="3";$("kautB").value="1.950";$("sb").value="7.500";
   ["z_anz","z_rest","z_kaut"].forEach(g=>gs(g,""));gs("k_art","geld");$("stamm").textContent="";
-  AUTO=null;ANFRAGE=null;SA_ID=null;restVonHand=false;nrVonHand=false;preisAuto=true;kmAuto=true;leerNaechstes=false;$("nr").value=neueNr();zeichneAutos();summe();tipps()}
+  AUTO=null;ANFRAGE=null;restVonHand=false;nrVonHand=false;preisAuto=true;kmAuto=true;leerNaechstes=false;$("nr").value=neueNr();zeichneAutos();summe();tipps()}
 function eintrag(t,u,knopf,spaet){return'<div class="heute'+(spaet?" spaet":"")+'"><div><b>'+t+'</b><i>'+u+'</i></div><span>'+knopf+'</span></div>'}
 function zeichneHeute(){const h=iso(new Date()),m=plusTage(h,1),l=vorgaenge().filter(v=>v.status!=="zurück");
   const ab=l.filter(v=>!v.ueb&&v.vonD<=m).sort((a,b)=>(a.vonD+a.vonU).localeCompare(b.vonD+b.vonU));
@@ -681,13 +673,7 @@ function zeichneHeute(){const h=iso(new Date()),m=plusTage(h,1),l=vorgaenge().fi
   const anf=lies("mietixAnfragen",[]).filter(x=>x.status==="gebucht"&&x.von&&x.von>=plusTage(h,-1)&&!hat(x)).sort((a,b)=>a.von.localeCompare(b.von)).slice(0,8);
   $("hAnf").innerHTML=anf.length?anf.map(x=>eintrag(x.name||"ohne Namen",[x.auto,de(x.von)].filter(Boolean).join(", "),"Vertrag")).join(""):'<div class="leer">Alle gebuchten Anfragen haben einen Vertrag.</div>';
   [...$("hAnf").children].forEach((e,i)=>e.onclick=()=>{leeren();uebernehmeAnfrage(anf[i]);zeige("vertrag")});
-  if(window.mietixSelbstauskuenfte)window.mietixSelbstauskuenfte().then(sa=>{
-    $("hSaKarte").classList.toggle("versteckt",!sa.length);
-    const alleAnf=lies("mietixAnfragen",[]);
-    $("hSa").innerHTML=sa.map(x=>{const a=alleAnf.find(a=>a.id===x.anfrage);
-      return eintrag(x.daten.name||"ohne Namen",[a&&a.auto,a&&a.von?de(a.von):"",x.daten.telefon].filter(Boolean).join(", "),"Vertrag")}).join("");
-    [...$("hSa").children].forEach((e,i)=>e.onclick=()=>{const x=sa[i],a=alleAnf.find(a=>a.id===x.anfrage);leeren();
-      if(a)uebernehmeAnfrage(a);kundendaten(x.daten,x.id);zeige("vertrag")})})}
+}
 function zeige(s){SICHT=s;["heute","vertrag","uebergabe","rueckgabe","schaden","ueberlassung"].forEach(x=>$("s_"+x).classList.toggle("versteckt",x!==s));
   [...$("reiter").children].forEach(c=>{c.classList.toggle("an",c.dataset.s===s);
     if(c.dataset.s===s)try{c.scrollIntoView({inline:"center",block:"nearest",behavior:"smooth"})}catch(e){}});
@@ -784,10 +770,6 @@ Storage.prototype.setItem=function(k,v){roh.call(this,k,v);if(this===localStorag
 window.mietixNeueNummer=async function(){if(!sitzung||!navigator.onLine)return null;
   try{const n=await api("rpc/neue_vertragsnummer",{method:"POST",body:"{}"});return typeof n==="string"?n:null}catch(e){return null}};
 window.mietixAbgleichen=abgleichen;
-// Daten, die Kunden über kunde.html selbst geschickt haben (nur lesbar mit Anmeldung)
-window.mietixSelbstauskuenfte=async function(){if(!sitzung||!navigator.onLine)return[];
-  try{return await api("selbstauskunft?select=id,anfrage,daten,erstellt&order=erstellt.desc",{method:"GET"})||[]}catch(e){return[]}};
-window.mietixSelbstauskunftErledigt=async function(id){if(!id)return;try{await api("selbstauskunft?id=eq."+encodeURIComponent(id),{method:"DELETE"})}catch(e){}};
 
 /* ---------- Link aus der Einladungs- oder Passwort-Mail: Passwort selbst festlegen ---------- */
 let pwSetzen=false,linkFehler="";
