@@ -609,7 +609,14 @@ function weiter(s){setTimeout(()=>zeige(s),900)}
 // Neue Verträge holen ihre Nummer beim Speichern aus dem gemeinsamen Speicher (keine doppelten Nummern auf zwei Geräten).
 // Ohne Internet bleibt die Nummer vom Gerät. Die Excel-Zeile wird noch im Klick kopiert (sonst sperrt das iPhone).
 let nrVonHand=false;$("nr").addEventListener("input",()=>nrVonHand=true);
+// Doppelbelegung: ein anderer Vertrag (nicht zurück), eine gebuchte Anfrage oder eine Sperre mit demselben Auto im Zeitraum
+function belegtDurch(v){const ueber=(a1,b1,a2,b2)=>a1<b2&&b1>a2,t=[];
+  vorgaenge().forEach(x=>{if(x.nr!==v.nr&&x.auto===v.auto&&x.status!=="zurück"&&x.vonD&&x.bisD&&ueber(v.vonD,v.bisD,x.vonD,x.bisD))t.push(x.name+" (Vertrag "+x.nr+", bis "+de(x.bisD)+")")});
+  lies("mietixAnfragen",[]).forEach(a=>{if(a.id!==ANFRAGE&&a.status==="gebucht"&&a.auto===v.auto&&a.von&&a.bis&&a.name!==v.name&&ueber(v.vonD,v.bisD,a.von,a.bis))t.push(a.name+" (gebucht, bis "+de(a.bis)+")")});
+  lies("mietixSperren",[]).forEach(x=>{if(x.auto===v.auto&&x.von&&x.bis&&ueber(v.vonD,v.bisD,x.von,x.bis))t.push("Sperre: "+(x.grund||"gesperrt")+" bis "+de(x.bis))});
+  return t}
 function vertragSpeichern(mitUeb){const v=sammle();if(!v)return;
+  const b=belegtDurch(v);if(b.length&&!confirm("ACHTUNG, "+v.auto+" ist in dem Zeitraum schon vergeben:\n\n"+b.join("\n")+"\n\nTrotzdem speichern?"))return;
   const neu=!nrVonHand&&!vorgaenge().some(x=>x.nr===v.nr&&x.name===v.name);
   leerNaechstes=true;
   oeffnen(async()=>{
@@ -741,7 +748,7 @@ const KEY="sb_publishable_LVkvpgXMpBbq_OXgwOfTqg_ZRcRkFyQ";   // öffentlich ged
 const SPEICHER={mietixVorgaenge:{tab:"vorgaenge",pk:"nr",liste:true},mietixAnfragen:{tab:"anfragen",pk:"id",liste:true},
   mietixKunden:{tab:"kunden",pk:"name",liste:false},mietixFahrzeuge:{tab:"fahrzeuge",pk:"name",liste:false},
   mietixAusgaben:{tab:"ausgaben",pk:"id",liste:true},mietixSperren:{tab:"sperren",pk:"id",liste:true},
-  mietixAufgaben:{tab:"aufgaben",pk:"id",liste:true},mietixZustand:{tab:"zustand",pk:"id",liste:true},mietixAutos:{tab:"autos",pk:"name",liste:false}};
+  mietixAufgaben:{tab:"aufgaben",pk:"id",liste:true},mietixZustand:{tab:"zustand",pk:"id",liste:true},mietixAutos:{tab:"autos",pk:"name",liste:false},mietixStand:{tab:"stand",pk:"id",liste:false}};
 const roh=Storage.prototype.setItem;
 const lies=(k,d)=>{try{return JSON.parse(localStorage.getItem(k)||"")||d}catch(e){return d}};
 const merk=(k,v)=>{try{roh.call(localStorage,k,JSON.stringify(v))}catch(e){}};
