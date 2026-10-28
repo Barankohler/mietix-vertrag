@@ -127,8 +127,7 @@ details summary{cursor:pointer;font-weight:800;color:var(--grau);font-size:14px}
   <div class="karte">
     <h2>Mieter</h2>
     <div id="anfragen"></div>
-    <label>Vor- und Nachname *</label><input id="name" list="kundenliste" autocomplete="off">
-    <datalist id="kundenliste"></datalist>
+    <label>Vor- und Nachname *</label><input id="name" autocomplete="off" placeholder="Name, Telefon oder Geburtsdatum tippen, Kunde antippen">
     <div class="hinweis" id="stamm"></div>
     <label>Anschrift</label><input id="anschrift">
     <div class="zwei">
@@ -490,7 +489,7 @@ function uebernehmeAnfrage(x){ANFRAGE=x.id||null;
   const f=fahrzeugListe().find(f=>f.name===x.auto);if(f)waehleAuto(f);stammFuellen();tipps();
   if(x.anzahlung&&x.anzahlung.betrag){$("anzB").value=eur(x.anzahlung.betrag);if(x.anzahlung.art)gs("z_anz",x.anzahlung.art);if(x.anzahlung.am)$("anzAm").value=x.anzahlung.am;summe()}   // Anzahlung aus dem Anfragen-Buch
   meldung("Übernommen: "+(x.name||"Anfrage"))}
-function kundenListe(){$("kundenliste").innerHTML=Object.keys(kunden()).sort().map(n=>'<option value="'+n.replace(/"/g,"&quot;")+'">').join("")}
+function kundenListe(){}   // seit 28.10.2026: Kundensuche (kundensuche.js) statt Vorschlagsliste
 function stammFuellen(){const k=kunden()[$("name").value.trim()];
   if(!k){$("stamm").textContent="";return}
   ["telefon","anschrift","gebort","email"].forEach(f=>{if(k[f]&&!$(f).value)$(f).value=k[f]});if(k.geb&&!$("geb").value)$("geb").value=k.geb;
@@ -498,6 +497,13 @@ function stammFuellen(){const k=kunden()[$("name").value.trim()];
   if(n&&!AUTO&&!$("modell").value){const f=fahrzeugListe().find(f=>f.name===alte[n-1].auto);if(f)waehleAuto(f)}
   $("stamm").textContent="Stammkunde"+(n?", "+n+(n===1?" Vertrag":" Verträge")+" bisher":"")+". Daten übernommen."}
 $("name").addEventListener("change",stammFuellen);
+// Kundenbuch: Treffer unter dem Namensfeld, antippen trägt alles ein (Name, Telefon, Anschrift, Geburtsdatum, Geburtsort, E-Mail)
+function kundeEintragen(k){$("name").value=k.name;["telefon","anschrift","geb","gebort","email"].forEach(f=>{if(k[f])$(f).value=k[f]});stammFuellen();tipps()}
+(function(){const los=()=>{window.mietixKunden.anhaengen($("name"),kundeEintragen);
+  // Aus dem Kundenbuch: ...mietix-vertrag/?kunde=NAME öffnet den Mietvertrag mit allen Kundendaten
+  const q=new URLSearchParams(location.search).get("kunde");if(!q)return;history.replaceState(null,"",location.pathname);
+  const tr=window.mietixKunden.finde(q),k=tr.find(e=>e.name===q)||tr[0];if(k){leeren();kundeEintragen(k);zeige("vertrag")}};
+  if(window.mietixKunden)los();else window.addEventListener("mietix-kunden-bereit",los)})();   // kundensuche.js steht weiter unten
 // Fortlaufende Mietvertragsnummer, sechsstellig. Stand 26.10.2026: zuletzt vergeben 000531 (Baran).
 const LETZTE_NR=531;
 function neueNr(){let max=LETZTE_NR;vorgaenge().forEach(v=>{const s=String(v.nr||"");if(/^\d{6}$/.test(s)&&+s>max)max=+s});
@@ -775,7 +781,7 @@ function zeichneHeute(){const h=iso(new Date()),m=plusTage(h,1),l=vorgaenge().fi
   $("hZu").innerHTML=zu.length?zu.map(v=>eintrag(v.name,v.auto+", "+tag(v.bisD)+" "+(v.bisU||""),"Rückgabe",v.bisD<h)).join(""):'<div class="leer">Heute und morgen kommt nichts zurück.</div>';
   [...$("hAb").children].forEach((e,i)=>e.onclick=()=>{WAHL=ab[i].nr;zeige("uebergabe")});
   // Erinnerung am Vortag: bei Abholungen von morgen ein grüner Knopf, öffnet WhatsApp mit dem Text
-  [...$("hAb").children].forEach((e,i)=>{const v=ab[i];if(v.vonD!==m||v.erinnert)return;
+  if(ab.length)[...$("hAb").children].forEach((e,i)=>{const v=ab[i];if(v.vonD!==m||v.erinnert)return;
     const k=document.createElement("span");k.textContent="Erinnerung";k.style.cssText="background:#25D366;margin-left:6px";
     k.onclick=ev=>{ev.stopPropagation();waOeffnen(v,ERINNERUNG(v));const l=vorgaenge(),x=l.find(y=>y.nr===v.nr);if(x){x.erinnert=h;schreib("mietixVorgaenge",l)}meldung("Erinnerung geöffnet");setTimeout(zeichneHeute,800)};e.appendChild(k)});
   // Miete noch offen: Abholung war schon, Rest nicht als bezahlt eingetragen
@@ -835,6 +841,83 @@ document.addEventListener("visibilitychange",()=>{if(!document.hidden&&SICHT==="
 window.addEventListener("mietix-abgleich",()=>{kundenListe();zeichneAlle();
   if(SICHT==="heute")zeichneHeute();else if(SICHT!=="vertrag")wahlFuellen();
   if(SICHT==="vertrag"&&!$("name").value&&!nrVonHand)$("nr").value=neueNr()});
+</script>
+<script>/* Mietix Kundenstamm (seit 28.10.2026): ein Kunde, einmal gespeichert, überall gefunden.
+   Quelle: mietixKunden (Name -> Daten, abgeglichen über alle Geräte), dazu alles, was in Verträgen (mietixVorgaenge)
+   und Anfragen (mietixAnfragen) steht. Nichts wird doppelt eingetippt: Suche nach Name, Telefon, Geburtsdatum, Ort.
+   window.mietixKunden.alle()               alle Kunden mit Verlauf (Verträge, Anfragen, Schäden)
+   window.mietixKunden.finde(text)          Treffer zu einem Suchtext
+   window.mietixKunden.anhaengen(feld, auf)  Trefferliste unter einem Eingabefeld, antippen ruft auf(kunde)
+   window.mietixKunden.merken(name, werte)  Felder eines Kunden im gemeinsamen Speicher ändern */
+(function(){
+const lies=(k,d)=>{try{return JSON.parse(localStorage.getItem(k)||"")||d}catch(e){return d}};
+const schreib=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+const norm=s=>String(s||"").toLowerCase().replace(/ä/g,"ae").replace(/ö/g,"oe").replace(/ü/g,"ue").replace(/ß/g,"ss").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g," ").trim();   // Çelik findet man auch als celik
+const ziffern=n=>String(n||"").replace(/\D/g,"").replace(/^0049/,"0").replace(/^49/,"0");
+const de=s=>s&&/^\d{4}-\d{2}-\d{2}$/.test(s)?s.split("-").reverse().join("."):String(s||"");
+const heute=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
+const zahl=s=>{if(typeof s==="number")return s;s=String(s||"").replace(/[^\d,.-]/g,"");if(!s)return 0;
+  if(s.includes(",")){s=s.replace(/\./g,"").replace(",",".")}else if((s.match(/\./g)||[]).length>1||/\.\d{3}$/.test(s))s=s.replace(/\./g,"");return +s||0};
+const leer=n=>({name:n,telefon:"",anschrift:"",geb:"",gebort:"",email:"",ort:"",notiz:"",keineAngebote:false,gesperrt:false,angeschrieben:"",
+  rechtsstreit:false,schadenOffen:0,schadenFaelle:0,schaeden:[],vertraege:[],anfragen:[],quelle:""});
+function alle(){
+  const K=lies("mietixKunden",{}),V=lies("mietixVorgaenge",[]),A=lies("mietixAnfragen",[]),m={},h=heute();
+  const hol=(name,quelle)=>{const k=norm(name);if(!k)return null;if(!m[k]){m[k]=leer(String(name).trim());m[k].quelle=quelle}return m[k]};
+  Object.keys(K).forEach(n=>{const d=K[n];if(!d||d._weg)return;const e=hol(n,"kunden");if(!e)return;
+    ["telefon","anschrift","geb","gebort","email","ort","notiz","angeschrieben"].forEach(f=>{if(d[f])e[f]=String(d[f])});
+    e.keineAngebote=!!d.keineAngebote;e.gesperrt=!!d.gesperrt;e.rechtsstreit=!!d.rechtsstreit;
+    e.schadenOffen=+d.schadenOffen||0;e.schadenFaelle=+d.schadenFaelle||0;if(Array.isArray(d.schaeden))e.schaeden=d.schaeden});
+  V.forEach(v=>{if(!v||!v.name)return;const e=hol(v.name,"vertrag");if(!e)return;
+    if(!e.gesperrt)["telefon","anschrift","geb","gebort","email"].forEach(f=>{if(!e[f]&&v[f])e[f]=String(v[f])});
+    const z=v.zahlung||{},rest=z.rest||{};
+    e.vertraege.push({nr:v.nr,auto:v.auto||"",von:v.vonD||"",bis:v.bisD||"",preis:zahl(v.gesamt||v.preis1),status:v.status||"",
+      mieteOffen:!!(v.vonD&&v.vonD<h&&!rest.am&&zahl(rest.betrag))})});
+  A.forEach(a=>{if(!a||!a.name)return;const e=hol(a.name,"anfrage");if(!e)return;
+    if(!e.gesperrt){if(!e.telefon&&a.nummer)e.telefon=String(a.nummer);if(!e.ort&&a.ort)e.ort=String(a.ort)}
+    e.anfragen.push({tag:a.tag||"",auto:a.auto||"",von:a.von||"",bis:a.bis||"",status:a.status||""})});
+  return Object.values(m).map(e=>{
+    e.vertraege.sort((a,b)=>(a.von||"")<(b.von||"")?-1:1);e.anfragen.sort((a,b)=>(a.tag||"")<(b.tag||"")?-1:1);
+    e.mieten=e.vertraege.length;e.zuletzt=e.mieten?e.vertraege[e.mieten-1].von:"";e.letztesAuto=e.mieten?e.vertraege[e.mieten-1].auto:"";
+    e.umsatz=e.vertraege.reduce((s,v)=>s+(v.preis||0),0);
+    if(!e.ort&&e.anschrift){const t=e.anschrift.match(/\b\d{5}\s+(.+)$/);if(t)e.ort=t[1].trim()}
+    const w=[];if(e.rechtsstreit)w.push("Rechtsstreit");if(e.schadenOffen)w.push("Schaden offen "+e.schadenOffen.toLocaleString("de-DE",{style:"currency",currency:"EUR"}));
+    const mo=e.vertraege.filter(v=>v.mieteOffen);if(mo.length)w.push("Miete nicht bezahlt ("+mo.map(v=>v.auto).join(", ")+")");
+    e.warn=w;e.alter=alter(e.geb);return e})}
+function alter(geb){if(!/^\d{4}-\d{2}-\d{2}$/.test(geb||""))return null;const g=new Date(geb),h=new Date();
+  let a=h.getFullYear()-g.getFullYear();if(h.getMonth()<g.getMonth()||(h.getMonth()===g.getMonth()&&h.getDate()<g.getDate()))a--;return a>0&&a<120?a:null}
+function passt(e,tok){const t=norm(tok),z=ziffern(tok);
+  if(t&&(norm(e.name).includes(t)||norm(e.ort).includes(t)||norm(e.anschrift).includes(t)||norm(e.email).includes(t)||norm(e.gebort).includes(t)))return true;
+  if(z.length>=3&&ziffern(e.telefon).includes(z))return true;
+  if(e.geb&&(de(e.geb).includes(tok.trim())||e.geb.includes(tok.trim())))return true;
+  if(/^\d{1,2}\.\d{1,2}\.?$/.test(tok.trim())&&e.geb){const p=tok.trim().replace(/\.$/,"").split(".");if(e.geb.slice(5)===p[1].padStart(2,"0")+"-"+p[0].padStart(2,"0"))return true}
+  return false}
+function finde(text,liste){const tok=String(text||"").trim().split(/\s+/).filter(Boolean);if(!tok.length)return[];
+  return (liste||alle()).filter(e=>tok.every(t=>passt(e,t))).sort((a,b)=>b.mieten-a.mieten||norm(a.name).localeCompare(norm(b.name)))}
+function merken(name,werte){const K=lies("mietixKunden",{});const alt=Object.keys(K).find(n=>norm(n)===norm(name))||String(name).trim();
+  const d=Object.assign({},K[alt]||{});Object.keys(werte).forEach(k=>{if(werte[k]===null||werte[k]===undefined||werte[k]==="")delete d[k];else d[k]=werte[k]});
+  K[alt]=d;schreib("mietixKunden",K);return d}
+function zeile(e){const info=[e.geb?"geb. "+de(e.geb):"",e.telefon,e.ort,e.mieten?e.mieten+(e.mieten===1?" Miete":" Mieten"):"noch kein Vertrag"].filter(Boolean).join("  |  ");
+  return'<div class="ksT"><b>'+esc(e.name)+(e.warn.length?' <i class="ksWarn">ACHTUNG</i>':"")+'</b><span>'+esc(info)+'</span></div>'}
+const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");
+let cssDa=false;
+function css(){if(cssDa)return;cssDa=true;const c=document.createElement("style");
+  c.textContent=".ksL{border:1px solid #E4E4E7;border-radius:12px;background:#fff;margin-top:4px;overflow:hidden;box-shadow:0 6px 18px rgba(0,0,0,.08)}"+
+    ".ksT{padding:10px 12px;border-bottom:1px solid #F0F0F2;cursor:pointer}.ksT:last-child{border-bottom:0}.ksT:active{background:#FDECEC}"+
+    ".ksT b{display:block;font-size:15px;color:#2E2E30}.ksT span{display:block;font-size:12px;color:#6F6F72;margin-top:2px}"+
+    ".ksWarn{font-style:normal;color:#C4161C;font-size:11px;margin-left:6px}.ksTipp{padding:9px 12px;font-size:12px;color:#6F6F72}";document.head.appendChild(c)}
+function anhaengen(feld,auf,opt){opt=opt||{};css();const box=document.createElement("div");box.className="ksL";box.style.display="none";
+  feld.insertAdjacentElement("afterend",box);let zu=null;
+  const zeichne=()=>{const q=feld.value;if(norm(q).length<2&&ziffern(q).length<3){box.style.display="none";return}
+    const tr=finde(q).slice(0,opt.max||6);
+    if(!tr.length){box.style.display="none";return}
+    box.innerHTML=tr.map(zeile).join("")+'<div class="ksTipp">Antippen: alle Daten werden eingetragen</div>';box.style.display="block";
+    [...box.querySelectorAll(".ksT")].forEach((el,i)=>{el.onmousedown=ev=>ev.preventDefault();el.onclick=()=>{box.style.display="none";auf(tr[i])}})};
+  feld.addEventListener("input",zeichne);feld.addEventListener("focus",zeichne);
+  feld.addEventListener("blur",()=>{zu=setTimeout(()=>box.style.display="none",250)});
+  return{neu:zeichne}}
+window.mietixKunden={alle,finde,anhaengen,merken,norm,ziffern,de,alter,heute};
+window.dispatchEvent(new Event("mietix-kunden-bereit"));
+})();
 </script>
 <script>/* Mietix Abgleich: Verträge, Anfragen, Kunden und Fahrzeuge auf allen Geräten gleich (Supabase Frankfurt, seit 26.10.2026).
    Wird von tools/vertrag/build_html.py und tools/anfragen/build_html.py in die Seite eingebaut.
