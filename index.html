@@ -61,6 +61,11 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--rot);outline-off
 .ergebnis{background:var(--hell);border-radius:14px;padding:12px;margin-top:10px;font-weight:700}
 .wahlinfo{font-weight:800;margin-top:8px}
 .versteckt{display:none!important}
+.pad{border:1.5px dashed var(--rand);border-radius:14px;background:#fff;position:relative;touch-action:none}
+.pad canvas{width:100%;height:150px;display:block;border-radius:14px}
+.pad .tipp{position:absolute;left:0;right:0;top:60px;text-align:center;color:#C9C9CE;font-weight:800;pointer-events:none}
+.pad .weg{position:absolute;right:8px;top:6px;font-size:12px;color:var(--grau);cursor:pointer;background:#fff;padding:4px 8px;border-radius:8px}
+.pad.hat .tipp{display:none}
 .knoepfe{display:flex;gap:10px;max-width:680px;margin:0 auto}
 .knoepfe button{flex:2}.knoepfe button.zweit{flex:1;background:#fff;color:var(--rot);border:2px solid var(--rot);font-size:15px}
 .heute{border:1px solid var(--rand);border-radius:14px;padding:12px;margin-top:8px;cursor:pointer;display:flex;
@@ -192,13 +197,20 @@ details summary{cursor:pointer;font-weight:800;color:var(--grau);font-size:14px}
   </div>
 
   <div class="karte"><h2>Unterschriften</h2>
-    <div class="hinweis" style="margin-top:0">Das Kästchen „Mietvertragsbedingungen und Datenschutzhinweise erhalten, gelesen und
-      akzeptiert“ kreuzt der Mieter beim Unterschreiben selbst an. Eingetragen wird: Wiesbaden, den <span id="heuteText"></span>.</div></div>
+    <div class="hinweis" style="margin-top:0">Eingetragen wird: Wiesbaden, den <span id="heuteText"></span>. Unterschreibt der Kunde hier auf dem Handy,
+      steht seine Unterschrift im PDF. Das Kästchen „Mietvertragsbedingungen und Datenschutzhinweise erhalten, gelesen und akzeptiert“ wird dann mit angekreuzt.
+      Auf Papier kreuzt er es selbst an.</div>
+    <label>Unterschrift Mieter (mit dem Finger, am besten quer)</label><div class="pad" id="padV"><canvas width="900" height="300"></canvas><div class="tipp">Hier unterschreiben</div><div class="weg">Löschen</div></div>
+    <div class="chips" style="margin-top:8px"><div class="chip" id="avbHaken">Bedingungen und Datenschutz erhalten (Kunde hat bestätigt)</div></div>
+    <a class="knopf versteckt" id="vSenden">Vertrag per WhatsApp an den Kunden</a></div>
 
   <details class="karte"><summary>Alle Verträge und Sicherung</summary>
     <div id="alleListe"></div>
     <div class="hinweis">Die Verträge liegen auf diesem Gerät. Zum Übertragen: sichern, den Text per WhatsApp an dich
       selbst schicken und auf dem anderen Gerät einfügen.</div>
+    <h2 style="margin-top:14px">Meine Unterschrift (Vermieter)</h2>
+    <div class="hinweis" style="margin-top:0">Einmal hier unterschreiben. Sie wird auf diesem Gerät gemerkt und bei jedem Druck als Unterschrift Vermieter eingesetzt.</div>
+    <label>Unterschrift Vermieter (mit dem Finger, am besten quer)</label><div class="pad" id="padVM"><canvas width="900" height="300"></canvas><div class="tipp">Hier unterschreiben</div><div class="weg">Löschen</div></div>
     <div class="knopf" id="sichern">Alle Verträge sichern</div>
     <textarea id="sicherung" placeholder="Sicherung hier einfügen" style="margin-top:10px"></textarea>
     <div class="knopf" id="einlesen">Sicherung einlesen</div>
@@ -219,6 +231,7 @@ details summary{cursor:pointer;font-weight:800;color:var(--grau);font-size:14px}
     <div class="hinweis" style="margin-top:0">Vorschäden zeichnest du wie gewohnt von Hand in die Skizze auf dem Ausdruck.</div>
     <label>Fotos zur Dokumentation</label><div class="chips" data-gruppe="u_fotos"><div class="chip an" data-v="ja">ja</div><div class="chip" data-v="nein">nein</div></div></div>
   <div class="karte"><h2>Bemerkungen</h2><textarea id="uBem"></textarea></div>
+  <div class="karte"><h2>Unterschrift</h2><label>Unterschrift Mieter (Übergabe) (mit dem Finger, am besten quer)</label><div class="pad" id="padU"><canvas width="900" height="300"></canvas><div class="tipp">Hier unterschreiben</div><div class="weg">Löschen</div></div></div>
 </section>
 
 <!-- ================= RÜCKGABEPROTOKOLL ================= -->
@@ -241,6 +254,7 @@ details summary{cursor:pointer;font-weight:800;color:var(--grau);font-size:14px}
     <label>Fotos zur Dokumentation</label><div class="chips" data-gruppe="r_fotos"><div class="chip an" data-v="ja">ja</div><div class="chip" data-v="nein">nein</div></div>
     <label>Neue Beschädigungen, Gerüche (z. B. Rauch) oder Auffälligkeiten festgestellt</label><div class="chips" data-gruppe="r_auff"><div class="chip" data-v="ja">ja</div><div class="chip an" data-v="nein">nein</div></div></div>
   <div class="karte"><h2>Bemerkungen</h2><textarea id="rBem"></textarea></div>
+  <div class="karte"><h2>Unterschrift</h2><label>Unterschrift Mieter (Rückgabe) (mit dem Finger, am besten quer)</label><div class="pad" id="padR"><canvas width="900" height="300"></canvas><div class="tipp">Hier unterschreiben</div><div class="weg">Löschen</div></div></div>
 </section>
 
 <!-- ================= SCHADENSANERKENNUNG ================= -->
@@ -265,6 +279,8 @@ details summary{cursor:pointer;font-weight:800;color:var(--grau);font-size:14px}
     <div class="hinweis">Das Kästchen „Mit der Unterschrift erkennt der Mieter …“ kreuzt der Mieter selbst an.</div>
     <a class="knopf versteckt" id="sBrief" target="_blank">Schadensbrief ans Handy des Kunden (Formular, schon ausgefüllt)</a>
   </div>
+  <div class="karte"><h2>Unterschrift</h2><label>Unterschrift Mieter (Schaden) (mit dem Finger, am besten quer)</label><div class="pad" id="padS"><canvas width="900" height="300"></canvas><div class="tipp">Hier unterschreiben</div><div class="weg">Löschen</div></div>
+    <div class="chips" style="margin-top:8px"><div class="chip" id="sAnerkannt">Mieter erkennt den Schaden an (bestätigt)</div></div></div>
 </section>
 
 <!-- ================= ÜBERLASSUNGSERKLÄRUNG ================= -->
@@ -279,8 +295,10 @@ details summary{cursor:pointer;font-weight:800;color:var(--grau);font-size:14px}
     <label>Zugleich übergeben</label>
     <div class="chips"><div class="chip" id="vSchein">Fahrzeugschein (ZB I)</div><div class="chip" id="vBrief">Zulassungsbesch. Teil II (Brief)</div></div>
     <label>Schlüssel (Stück)</label><input id="vSchluessel" inputmode="numeric">
-    <div class="hinweis">Das Kästchen „Der Mieter bestätigt …“ kreuzt der Mieter selbst an.</div>
+    <div class="hinweis">Das Kästchen „Der Mieter bestätigt …“ kreuzt der Mieter selbst an, oder er bestätigt hier.</div>
   </div>
+  <div class="karte"><h2>Unterschrift</h2><label>Unterschrift Mieter (Sicherungsvertrag) (mit dem Finger, am besten quer)</label><div class="pad" id="padSV"><canvas width="900" height="300"></canvas><div class="tipp">Hier unterschreiben</div><div class="weg">Löschen</div></div>
+    <div class="chips" style="margin-top:8px"><div class="chip" id="svBestaetigt">Mieter bestätigt (hat gelesen)</div></div></div>
 </section>
 </main>
 <div class="leiste"><div class="knoepfe"><button id="haupt2" class="zweit versteckt">Nur Mietvertrag</button>
@@ -332,12 +350,34 @@ const kmText=v=>{const n=zahl(v);return n===null?String(v||"").trim():Math.round
 const heuteDe=()=>{const d=new Date();return pad(d.getDate())+"."+pad(d.getMonth()+1)+"."+d.getFullYear()};
 function meldung(t){const m=$("meldung");m.textContent=t;m.style.display="block";setTimeout(()=>m.style.display="none",2600)}
 
+/* ---------- Unterschrift mit dem Finger ---------- */
+function padMachen(id){const el=$(id),c=el.querySelector("canvas"),ctx=c.getContext("2d");let malt=false,hat=false;
+  ctx.lineWidth=5;ctx.lineCap="round";ctx.lineJoin="round";ctx.strokeStyle="#1a1a1a";
+  const pos=e=>{const r=c.getBoundingClientRect(),p=e.touches?e.touches[0]:e;return[(p.clientX-r.left)*c.width/r.width,(p.clientY-r.top)*c.height/r.height]};
+  const start=e=>{malt=true;hat=true;el.classList.add("hat");const[x,y]=pos(e);ctx.beginPath();ctx.moveTo(x,y);e.preventDefault()};
+  const zieh=e=>{if(!malt)return;const[x,y]=pos(e);ctx.lineTo(x,y);ctx.stroke();e.preventDefault()};
+  const ende=()=>{malt=false};
+  c.addEventListener("pointerdown",start);c.addEventListener("pointermove",zieh);window.addEventListener("pointerup",ende);
+  el.querySelector(".weg").onclick=()=>{ctx.clearRect(0,0,c.width,c.height);hat=false;el.classList.remove("hat")};
+  return{wert:()=>hat?c.toDataURL("image/png"):"",setzen:d=>{ctx.clearRect(0,0,c.width,c.height);hat=false;el.classList.remove("hat");if(!d)return;
+    const im=new Image();im.onload=()=>{ctx.drawImage(im,0,0,c.width,c.height);hat=true;el.classList.add("hat")};im.src=d}}}
+const PAD={};["padV","padU","padR","padS","padSV","padVM"].forEach(id=>{if($(id))PAD[id]=padMachen(id)});
+if(PAD.padVM){PAD.padVM.setzen(localStorage.getItem("mietixUnterschriftVermieter")||"");
+  $("padVM").querySelector("canvas").addEventListener("pointerup",()=>setTimeout(()=>{try{localStorage.setItem("mietixUnterschriftVermieter",PAD.padVM.wert())}catch(e){}},50));
+  $("padVM").querySelector(".weg").addEventListener("click",()=>{try{localStorage.removeItem("mietixUnterschriftVermieter")}catch(e){}})}
+const vermieterUnterschrift=()=>{try{return localStorage.getItem("mietixUnterschriftVermieter")||""}catch(e){return""}};
+// Unterschriften ins PDF: über die Linien "Unterschrift Mieter" und "Unterschrift Vermieter" (Lage aus den Vorlagen gemessen)
+const LINIE={vertrag1:92,vertrag2:168,rueck:131,schaden:176,sv:289};
+async function stempel(doc,seite,yLinie,mieterPng,vermieterPng){const p=doc.getPages()[seite];
+  for(const[png,x]of[[mieterPng,440],[vermieterPng,283]]){if(!png)continue;
+    try{const im=await doc.embedPng(png);const w=104,h=Math.min(30,im.height*w/im.width);p.drawImage(im,{x:x+4,y:yLinie+1,width:w,height:h})}catch(e){}}}
+
 /* ---------- Kästchen (antippen = ankreuzen) ---------- */
 function chipWahl(el,wert){[...el.children].forEach(c=>c.classList.toggle("an",c.dataset.v===wert))}
 function chipWert(el){const c=[...el.children].find(c=>c.classList.contains("an"));return c?c.dataset.v:""}
 document.querySelectorAll("[data-gruppe]").forEach(g=>[...g.children].forEach(c=>c.onclick=()=>{
   const war=c.classList.contains("an");chipWahl(g,war?"":c.dataset.v);g.dispatchEvent(new Event("wahl"))}));
-["uReserve","rReserve","vSchein","vBrief"].forEach(i=>$(i).onclick=()=>$(i).classList.toggle("an"));
+["uReserve","rReserve","vSchein","vBrief","avbHaken","sAnerkannt","svBestaetigt"].forEach(i=>$(i).onclick=()=>$(i).classList.toggle("an"));
 const an=i=>$(i).classList.contains("an"), setzeAn=(i,w)=>$(i).classList.toggle("an",!!w);
 const gruppe=n=>document.querySelector('[data-gruppe="'+n+'"]');
 const gw=n=>chipWert(gruppe(n)), gs=(n,w)=>{if(w!==undefined)chipWahl(gruppe(n),w)};
@@ -459,7 +499,11 @@ async function fuelleVertrag(v){
   X(f,"u_reifen_"+u.reifen,!!u.reifen);X(f,"u_reifen_reserverad",!!u.reserve);X(f,"u_felgen_"+u.felgen,!!u.felgen);T(f,"u_reifenmarke",u.marke);
   ["vl","vr","hl","hr"].forEach(k=>T(f,"u_profil_"+k,(u.profil||{})[k]));
   X(f,"u_fotos_ja",u.fotos==="ja");X(f,"u_fotos_nein",u.fotos==="nein");T(f,"u_bemerkung",u.bem);T(f,"u_ort_datum",u.ortDatum||v.datum);
-  f.flatten();return doc.save()}
+  X(f,"agb_akzeptiert",!!v.avb);
+  f.flatten();
+  await stempel(doc,0,LINIE.vertrag1,v.unterschrift,v.unterschriftVermieter||vermieterUnterschrift());
+  await stempel(doc,1,LINIE.vertrag2,u.unterschrift,u.unterschriftVermieter||vermieterUnterschrift());
+  return doc.save()}
 async function fuelleRueckgabe(v){
   const doc=await lade(V_RUECK),f=doc.getForm(),r=v.rueck||{};
   T(f,"r_vertrag_nr",v.nr);T(f,"r_kennzeichen",v.kz);T(f,"r_modell",v.auto);T(f,"r_mieter_name",v.name);T(f,"r_mieter_telefon",v.telefon);
@@ -471,7 +515,7 @@ async function fuelleRueckgabe(v){
   ["vl","vr","hl","hr"].forEach(k=>T(f,"r_profil_"+k,(r.profil||{})[k]));
   X(f,"r_fotos_ja",r.fotos==="ja");X(f,"r_fotos_nein",r.fotos==="nein");X(f,"r_auffaellig_ja",r.auff==="ja");X(f,"r_auffaellig_nein",r.auff==="nein");
   T(f,"r_bemerkung",r.bem);T(f,"r_ort_datum",r.ortDatum||heuteDe());
-  f.flatten();return doc.save()}
+  f.flatten();await stempel(doc,0,LINIE.rueck,r.unterschrift,r.unterschriftVermieter||vermieterUnterschrift());return doc.save()}
 async function fuelleSchaden(v){
   const doc=await lade(V_SCHADEN),f=doc.getForm(),s=v.schaden||{};
   T(f,"sa_vertrag_nr",v.nr);T(f,"sa_mieter_name",v.name);T(f,"sa_mieter_telefon",v.telefon);T(f,"sa_mieter_anschrift",v.anschrift);
@@ -481,15 +525,20 @@ async function fuelleSchaden(v){
   X(f,"sa_fotos_ja",s.fotos==="ja");X(f,"sa_fotos_nein",s.fotos==="nein");X(f,"sa_besichtigt_ja",s.besichtigt==="ja");X(f,"sa_besichtigt_nein",s.besichtigt==="nein");
   T(f,"sa_sb",s.sb);X(f,"sa_gutachter",s.weiter==="gutachter");X(f,"sa_kv",s.weiter==="kv");
   if(s.kaution==="fahrzeug")X(f,"sa_kaution_fahrzeug",true);else if(s.kaution==="geld"){X(f,"sa_kaution_geld",true);T(f,"sa_kaution_betrag",s.betrag)}
-  T(f,"sa_ort_datum",s.ortDatum||heuteDe());
-  f.flatten();return doc.save()}
+  T(f,"sa_ort_datum",s.ortDatum||heuteDe());X(f,"sa_anerkannt",!!s.anerkannt);
+  f.flatten();await stempel(doc,0,LINIE.schaden,s.unterschrift,s.unterschriftVermieter||vermieterUnterschrift());return doc.save()}
 async function fuelleUeberlassung(v){
   const doc=await lade(V_SV),f=doc.getForm(),s=v.sv||{};
   T(f,"sv_vertrag_nr",v.nr);T(f,"sv_mieter_name",v.name);T(f,"sv_mieter_geb",de(v.geb));T(f,"sv_mieter_anschrift",v.anschrift);
   T(f,"sv_sf_modell",s.modell);T(f,"sv_sf_kennzeichen",s.kz);T(f,"sv_sf_fin",s.fin);T(f,"sv_sf_wert",s.wert);
   X(f,"sv_uebergabe_schein",!!s.schein);X(f,"sv_uebergabe_brief",!!s.brief);
-  T(f,"sv_schluessel_anzahl",s.schluessel);T(f,"sv_ort_datum",s.ortDatum||heuteDe());
-  f.flatten();return doc.save()}
+  T(f,"sv_schluessel_anzahl",s.schluessel);T(f,"sv_ort_datum",s.ortDatum||heuteDe());X(f,"sv_bestaetigt",!!s.bestaetigt);
+  f.flatten();await stempel(doc,0,LINIE.sv,s.unterschrift,s.unterschriftVermieter||vermieterUnterschrift());return doc.save()}
+// Vertrag als PDF teilen (iPhone: Teilen-Fenster, dann WhatsApp und den Kunden wählen). Mit Unterschriften, wenn da.
+async function teilen(v){try{const b=await fuelleVertrag(v);const f=new File([b],"Mietvertrag "+v.nr+" "+v.name+".pdf",{type:"application/pdf"});
+    if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:"Mietvertrag "+v.nr})}
+    else{const url=URL.createObjectURL(new Blob([b],{type:"application/pdf"}));window.open(url,"_blank");meldung("Teilen geht hier nicht, PDF ist offen")}}
+  catch(e){if(!/abort/i.test(e.message||""))alert("Senden ging nicht: "+e.message)}}
 async function seite(machen,i){const voll=await PDFLib.PDFDocument.load(await machen());
   const neu=await PDFLib.PDFDocument.create();const[p]=await neu.copyPages(voll,[i]);neu.addPage(p);return neu.save()}
 // Am Computer (Chrome, Edge, Firefox) geht es direkt ins Druckfenster, ohne erst die PDF-Ansicht zu öffnen.
@@ -526,7 +575,8 @@ function sammle(){
     vonD:$("vonD").value,vonU:$("vonU").value,bisD:$("bisD").value,bisU:$("bisU").value,
     freikm:$("freikm").value.trim(),mehrkm:$("mehrkm").value.trim(),
     zahlung:{anz:zl("anzB","z_anz","anzAm"),rest:zl("restB","z_rest","restAm"),kaut:{betrag:betrag("kautB"),art:gw("z_kaut"),am:$("kautAm").value}},
-    kautionArt:gw("k_art"),kfz:$("kfz").value.trim(),sb:betrag("sb"),status:"unterwegs"}}
+    kautionArt:gw("k_art"),kfz:$("kfz").value.trim(),sb:betrag("sb"),status:"unterwegs",
+    unterschrift:PAD.padV.wert(),unterschriftVermieter:PAD.padV.wert()?vermieterUnterschrift():"",avb:an("avbHaken")}}
 function lerneAuto(name,werte){const fz=lies("mietixFahrzeuge",{});const neu=fz[name]||{};
   Object.keys(werte).forEach(k=>{if(werte[k])neu[k]=werte[k]});fz[name]=neu;schreib("mietixFahrzeuge",fz)}
 function merke(v){
@@ -575,13 +625,13 @@ function formularLaden(){const v=aktuell();if(!v)return;
   if(SICHT==="uebergabe"){const u=Object.assign(uebStandard(v),v.ueb||{});$("uFz").innerHTML=fzInfo(v);$("uMieter").innerHTML=mieterInfo(v);
     $("uKm").value=kmText(u.km);$("uD").value=u.datum;$("uU").value=u.uhr;$("uOrt").value=u.ort||ORT;
     // Reifen und Felgen merkt sich das Werkzeug je Auto, die Reifengröße kommt aus dem Fahrzeugschein
-    protokollSetzen("u",u);$("uBem").value=u.bem||""}
+    protokollSetzen("u",u);$("uBem").value=u.bem||"";PAD.padU.setzen(u.unterschrift||"")}
   if(SICHT==="rueckgabe"){const r=v.rueck||{},u=v.ueb||{};$("rFz").innerHTML=fzInfo(v);$("rMieter").innerHTML=mieterInfo(v);
     $("rKm").value=kmText(r.km||"");$("rKmAb").value=kmText(u.km||v.km||"");$("rGef").value=kmText(r.gefahren||"");$("rMehr").value=kmText(r.mehrkm||"");
     $("rD").value=r.datum||iso(new Date());$("rU").value=r.uhr||jetztUhr();$("rOrt").value=r.ort||ORT;
     protokollSetzen("r",Object.assign({aussen:"sauber",innen:"sauber",tank:"voll",gegen:"ja",fotos:"ja",
       reifen:u.reifen,felgen:u.felgen,reserve:u.reserve,marke:u.marke,profil:u.profil},v.rueck||{}));
-    gs("r_auff",r.auff||"nein");$("rBem").value=r.bem||"";rRechne(false);
+    gs("r_auff",r.auff||"nein");$("rBem").value=r.bem||"";rRechne(false);PAD.padR.setzen(r.unterschrift||"");
     $("rEndab").classList.toggle("versteckt",!v.rueck);$("rEndab").href="https://barankohler.github.io/mietix-endabrechnung/?vertrag="+encodeURIComponent(v.nr)}
   if(SICHT==="schaden"){const s=v.schaden||{};$("sInfo").innerHTML=mieterInfo(v)+"<br>"+fzInfo(v)+"<br>FIN: "+(v.fin||"");
     $("sKm").value=kmText(s.km||(v.rueck&&v.rueck.km)||"");$("sD").value=s.datum||iso(new Date());$("sU").value=s.uhr||jetztUhr();
@@ -589,11 +639,11 @@ function formularLaden(){const v=aktuell();if(!v)return;
     $("sBesch").value=s.besch||(v.rueck&&v.rueck.auff==="ja"?v.rueck.bem||"":"");   // aus der Rückgabe übernommen
     $("sSb").value=s.sb||v.sb||"";gs("s_fotos",s.fotos||"ja");gs("s_besichtigt",s.besichtigt||"ja");gs("s_weiter",s.weiter||"");
     gs("s_kaution",s.kaution||(v.kautionArt==="fahrzeug"?"fahrzeug":"geld"));
-    $("sKaution").value=s.betrag||((v.zahlung||{}).kaut||{}).betrag||"";
+    $("sKaution").value=s.betrag||((v.zahlung||{}).kaut||{}).betrag||"";PAD.padS.setzen(s.unterschrift||"");setzeAn("sAnerkannt",s.anerkannt);
     $("sBrief").classList.toggle("versteckt",!v.schaden);$("sBrief").href="https://barankohler.github.io/mietix-schadensformular/?vertrag="+encodeURIComponent(v.nr)}
   if(SICHT==="ueberlassung"){const s=v.sv||{};$("vInfo").innerHTML="Mieter: "+v.name+"<br>geb. am: "+de(v.geb)+"<br>Anschrift: "+(v.anschrift||"");
     $("vModell").value=s.modell||"";$("vKz").value=s.kz||"";$("vFin").value=s.fin||"";$("vWert").value=s.wert||"";
-    setzeAn("vSchein",s.schein);setzeAn("vBrief",s.brief);$("vSchluessel").value=s.schluessel||""}}
+    setzeAn("vSchein",s.schein);setzeAn("vBrief",s.brief);$("vSchluessel").value=s.schluessel||"";PAD.padSV.setzen(s.unterschrift||"");setzeAn("svBestaetigt",s.bestaetigt)}}
 function rRechne(schreiben){const v=aktuell();if(!v)return;
   const km=zahl($("rKm").value),ab=zahl($("rKmAb").value),frei=zahl(v.freikm),satz=zahl(v.mehrkm)||0;
   if(km===null||ab===null){$("rErgebnis").textContent="Kilometerstand eintragen, gefahrene km und Mehrkilometer rechnen sich.";return}
@@ -627,6 +677,7 @@ function vertragSpeichern(mitUeb){const v=sammle();if(!v)return;
       lerneAuto(u.auto,{reifen:u.ueb.reifen,felgen:u.ueb.felgen,marke:u.ueb.marke})}
     const voll=aktuell();
     meldung("Gespeichert: Nr. "+voll.nr+". Die Brücke trägt es in die Excel ein.");
+    $("vSenden").classList.remove("versteckt");$("vSenden").onclick=e=>{e.preventDefault();teilen(voll)};
     weiter(voll.kautionArt==="fahrzeug"?"ueberlassung":mitUeb?"heute":"uebergabe");
     return mitUeb?fuelleVertrag(voll):seite(()=>fuelleVertrag(voll),0)})}
 $("haupt2").onclick=()=>{if(SICHT==="vertrag")vertragSpeichern(false)};
@@ -636,12 +687,12 @@ $("haupt").onclick=()=>{
   if(SICHT==="vertrag"){vertragSpeichern(true);return}
   if(!aktuell()){meldung("Erst im Reiter Mietvertrag einen Vertrag anlegen.");return}
   if(SICHT==="uebergabe"){const v=aendere(v=>{v.ueb=Object.assign(protokollLesen("u"),{km:$("uKm").value.trim(),datum:$("uD").value,
-      uhr:$("uU").value,ort:$("uOrt").value.trim(),bem:$("uBem").value.trim(),ortDatum:heuteDe()});if(v.ueb.km)v.km=v.ueb.km});
+      uhr:$("uU").value,ort:$("uOrt").value.trim(),bem:$("uBem").value.trim(),ortDatum:heuteDe(),unterschrift:PAD.padU.wert(),unterschriftVermieter:PAD.padU.wert()?vermieterUnterschrift():""});if(v.ueb.km)v.km=v.ueb.km});
     lerneAuto(v.auto,{km:v.ueb.km,reifen:v.ueb.reifen,felgen:v.ueb.felgen,reserve:v.ueb.reserve,marke:v.ueb.marke,profil:v.ueb.profil});
     oeffnen(()=>seite(()=>fuelleVertrag(v),1));meldung("Übergabe gespeichert");weiter("heute");return}
   if(SICHT==="rueckgabe"){if(!$("rKm").value.trim()){alert("Bitte den Kilometerstand bei Rückgabe eintragen.");return}
     const v=aendere(v=>{v.rueck=Object.assign(protokollLesen("r"),{km:$("rKm").value.trim(),gefahren:$("rGef").value.trim(),mehrkm:$("rMehr").value.trim(),
-      datum:$("rD").value,uhr:$("rU").value,ort:$("rOrt").value.trim(),auff:gw("r_auff"),bem:$("rBem").value.trim(),ortDatum:heuteDe()});
+      datum:$("rD").value,uhr:$("rU").value,ort:$("rOrt").value.trim(),auff:gw("r_auff"),bem:$("rBem").value.trim(),ortDatum:heuteDe(),unterschrift:PAD.padR.wert(),unterschriftVermieter:PAD.padR.wert()?vermieterUnterschrift():""});
       if($("rKmAb").value.trim()){v.ueb=v.ueb||{};v.ueb.km=$("rKmAb").value.trim()}v.status="zurück"});
     lerneAuto(v.auto,{km:v.rueck.km,reifen:v.rueck.reifen,felgen:v.rueck.felgen,marke:v.rueck.marke,profil:v.rueck.profil});
     oeffnen(()=>fuelleRueckgabe(v));meldung("Rückgabe gespeichert. Unten: Endabrechnung an den Kunden.");
@@ -649,11 +700,11 @@ $("haupt").onclick=()=>{
     if(v.rueck.auff==="ja")weiter("schaden");return}
   if(SICHT==="schaden"){const v=aendere(v=>{v.schaden={km:$("sKm").value.trim(),datum:$("sD").value,uhr:$("sU").value,ort:$("sOrt").value.trim(),
       ortFz:$("sOrtFz").value.trim(),art:$("sArt").value.trim(),besch:$("sBesch").value.trim(),fotos:gw("s_fotos"),besichtigt:gw("s_besichtigt"),
-      sb:betrag("sSb"),weiter:gw("s_weiter"),kaution:gw("s_kaution"),betrag:betrag("sKaution"),ortDatum:heuteDe()}});
+      sb:betrag("sSb"),weiter:gw("s_weiter"),kaution:gw("s_kaution"),betrag:betrag("sKaution"),ortDatum:heuteDe(),unterschrift:PAD.padS.wert(),unterschriftVermieter:PAD.padS.wert()?vermieterUnterschrift():"",anerkannt:an("sAnerkannt")}});
     oeffnen(()=>fuelleSchaden(v));meldung("Schadensanerkennung gespeichert. Unten: Schadensbrief.");
     $("sBrief").classList.remove("versteckt");$("sBrief").href="https://barankohler.github.io/mietix-schadensformular/?vertrag="+encodeURIComponent(v.nr);return}
   if(SICHT==="ueberlassung"){const v=aendere(v=>{v.sv={modell:$("vModell").value.trim(),kz:$("vKz").value.trim(),fin:$("vFin").value.trim(),
-      wert:betrag("vWert"),schein:an("vSchein"),brief:an("vBrief"),schluessel:$("vSchluessel").value.trim(),ortDatum:heuteDe()};
+      wert:betrag("vWert"),schein:an("vSchein"),brief:an("vBrief"),schluessel:$("vSchluessel").value.trim(),ortDatum:heuteDe(),unterschrift:PAD.padSV.wert(),unterschriftVermieter:PAD.padSV.wert()?vermieterUnterschrift():"",bestaetigt:an("svBestaetigt")};
       v.kautionArt="fahrzeug";if(!v.kfz)v.kfz=[v.sv.modell,v.sv.kz].filter(Boolean).join(", ")});
     oeffnen(()=>fuelleUeberlassung(v));meldung("Gespeichert. Im Mietvertrag steht jetzt: Fahrzeug als Sicherheit.");
     weiter(v.ueb?"heute":"uebergabe");return}};
@@ -674,7 +725,7 @@ $("einlesen").onclick=()=>{let s=null;try{s=JSON.parse($("sicherung").value)}cat
 function leeren(){$("s_vertrag").querySelectorAll("input,textarea").forEach(e=>e.value="");
   $("vonU").value="10:00";$("bisU").value="10:00";$("mehrkm").value="3";$("kautB").value="1.950";$("sb").value="7.500";
   ["z_anz","z_rest","z_kaut"].forEach(g=>gs(g,""));gs("k_art","geld");$("stamm").textContent="";
-  AUTO=null;ANFRAGE=null;restVonHand=false;nrVonHand=false;preisAuto=true;kmAuto=true;leerNaechstes=false;$("nr").value=neueNr();zeichneAutos();summe();tipps()}
+  PAD.padV.setzen("");setzeAn("avbHaken",false);$("vSenden").classList.add("versteckt");AUTO=null;ANFRAGE=null;restVonHand=false;nrVonHand=false;preisAuto=true;kmAuto=true;leerNaechstes=false;$("nr").value=neueNr();zeichneAutos();summe();tipps()}
 function eintrag(t,u,knopf,spaet){return'<div class="heute'+(spaet?" spaet":"")+'"><div><b>'+t+'</b><i>'+u+'</i></div><span>'+knopf+'</span></div>'}
 // Texte für WhatsApp (E2). Baran kann sie hier anpassen, sie werden nirgends sonst gebraucht.
 const ERINNERUNG=v=>"Hallo "+v.name+",\n\nkurze Erinnerung an Ihre Abholung morgen, "+de(v.vonD)+(v.vonU?" um "+v.vonU+" Uhr":"")+", bei Mietix in der Peter-Sander-Straße 43 B, 55252 Mainz-Kastel.\n\nBitte mitbringen:\n- Personalausweis\n- Führerschein"+
