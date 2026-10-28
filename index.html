@@ -68,6 +68,8 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--rot);outline-off
 .heute b{font-size:16px;display:block}.heute i{font-style:normal;font-size:13px;color:var(--grau)}
 .heute span{background:var(--rot);color:#fff;border-radius:10px;padding:8px 11px;font-weight:800;font-size:13px;white-space:nowrap}
 .heute.spaet{border-color:var(--rot);background:var(--hell)}
+.kautform{margin-top:8px;padding:10px;border-radius:12px;background:var(--bg)}
+.kautform input{margin-top:6px}
 .klein{font-size:13px;color:var(--grau);font-weight:700;margin-top:6px}
 details summary{cursor:pointer;font-weight:800;color:var(--grau);font-size:14px}
 .meldung{position:fixed;left:16px;right:16px;bottom:96px;background:var(--gruen);color:#fff;border-radius:14px;
@@ -98,6 +100,7 @@ details summary{cursor:pointer;font-weight:800;color:var(--grau);font-size:14px}
   <div id="abgleich"></div>
   <div class="karte"><h2>Abholen</h2><div id="hAb"></div></div>
   <div class="karte"><h2>Zurück</h2><div id="hZu"></div></div>
+  <div class="karte versteckt" id="hKautKarte"><h2>Kaution zurückgeben</h2><div id="hKaut"></div></div>
   <div class="karte"><h2>Gebucht, noch kein Vertrag</h2><div id="hAnf"></div></div>
 </section>
 
@@ -226,6 +229,7 @@ details summary{cursor:pointer;font-weight:800;color:var(--grau);font-size:14px}
     <div class="zwei"><div><label>Gefahrene Kilometer</label><input id="rGef" inputmode="numeric"></div>
       <div><label>davon Mehrkilometer</label><input id="rMehr" inputmode="numeric"></div></div>
     <div class="ergebnis" id="rErgebnis">Kilometerstand eintragen, gefahrene km und Mehrkilometer rechnen sich.</div>
+    <a class="knopf versteckt" id="rEndab" target="_blank">Endabrechnung an den Kunden (alles schon ausgefüllt)</a>
     <div class="drei"><div><label>Datum Rückgabe</label><input id="rD" type="date"></div><div><label>Uhrzeit Rückgabe</label><input id="rU" type="time"></div></div>
     <label>Ort der Rückgabe</label><input id="rOrt">
   </div>
@@ -258,6 +262,7 @@ details summary{cursor:pointer;font-weight:800;color:var(--grau);font-size:14px}
     <label>Einbehaltene Kaution</label><div class="chips" data-gruppe="s_kaution"><div class="chip an" data-v="geld">Geldkaution</div><div class="chip" data-v="fahrzeug">Fahrzeug des Mieters (gemäß Sicherungsvertrag)</div></div>
     <label>Geldkaution in Höhe von €</label><input id="sKaution" inputmode="decimal">
     <div class="hinweis">Das Kästchen „Mit der Unterschrift erkennt der Mieter …“ kreuzt der Mieter selbst an.</div>
+    <a class="knopf versteckt" id="sBrief" target="_blank">Schadensbrief ans Handy des Kunden (Formular, schon ausgefüllt)</a>
   </div>
 </section>
 
@@ -575,14 +580,16 @@ function formularLaden(){const v=aktuell();if(!v)return;
     $("rD").value=r.datum||iso(new Date());$("rU").value=r.uhr||jetztUhr();$("rOrt").value=r.ort||ORT;
     protokollSetzen("r",Object.assign({aussen:"sauber",innen:"sauber",tank:"voll",gegen:"ja",fotos:"ja",
       reifen:u.reifen,felgen:u.felgen,reserve:u.reserve,marke:u.marke,profil:u.profil},v.rueck||{}));
-    gs("r_auff",r.auff||"nein");$("rBem").value=r.bem||"";rRechne(false)}
+    gs("r_auff",r.auff||"nein");$("rBem").value=r.bem||"";rRechne(false);
+    $("rEndab").classList.toggle("versteckt",!v.rueck);$("rEndab").href="https://barankohler.github.io/mietix-endabrechnung/?vertrag="+encodeURIComponent(v.nr)}
   if(SICHT==="schaden"){const s=v.schaden||{};$("sInfo").innerHTML=mieterInfo(v)+"<br>"+fzInfo(v)+"<br>FIN: "+(v.fin||"");
     $("sKm").value=kmText(s.km||(v.rueck&&v.rueck.km)||"");$("sD").value=s.datum||iso(new Date());$("sU").value=s.uhr||jetztUhr();
     $("sOrt").value=s.ort||"Peter-Sander-Straße 43 B";$("sOrtFz").value=s.ortFz||"";$("sArt").value=s.art||"";
     $("sBesch").value=s.besch||(v.rueck&&v.rueck.auff==="ja"?v.rueck.bem||"":"");   // aus der Rückgabe übernommen
     $("sSb").value=s.sb||v.sb||"";gs("s_fotos",s.fotos||"ja");gs("s_besichtigt",s.besichtigt||"ja");gs("s_weiter",s.weiter||"");
     gs("s_kaution",s.kaution||(v.kautionArt==="fahrzeug"?"fahrzeug":"geld"));
-    $("sKaution").value=s.betrag||((v.zahlung||{}).kaut||{}).betrag||""}
+    $("sKaution").value=s.betrag||((v.zahlung||{}).kaut||{}).betrag||"";
+    $("sBrief").classList.toggle("versteckt",!v.schaden);$("sBrief").href="https://barankohler.github.io/mietix-schadensformular/?vertrag="+encodeURIComponent(v.nr)}
   if(SICHT==="ueberlassung"){const s=v.sv||{};$("vInfo").innerHTML="Mieter: "+v.name+"<br>geb. am: "+de(v.geb)+"<br>Anschrift: "+(v.anschrift||"");
     $("vModell").value=s.modell||"";$("vKz").value=s.kz||"";$("vFin").value=s.fin||"";$("vWert").value=s.wert||"";
     setzeAn("vSchein",s.schein);setzeAn("vBrief",s.brief);$("vSchluessel").value=s.schluessel||""}}
@@ -629,12 +636,14 @@ $("haupt").onclick=()=>{
       datum:$("rD").value,uhr:$("rU").value,ort:$("rOrt").value.trim(),auff:gw("r_auff"),bem:$("rBem").value.trim(),ortDatum:heuteDe()});
       if($("rKmAb").value.trim()){v.ueb=v.ueb||{};v.ueb.km=$("rKmAb").value.trim()}v.status="zurück"});
     lerneAuto(v.auto,{km:v.rueck.km,reifen:v.rueck.reifen,felgen:v.rueck.felgen,marke:v.rueck.marke,profil:v.rueck.profil});
-    oeffnen(()=>fuelleRueckgabe(v));meldung("Rückgabe gespeichert");
-    weiter(v.rueck.auff==="ja"?"schaden":"heute");return}
+    oeffnen(()=>fuelleRueckgabe(v));meldung("Rückgabe gespeichert. Unten: Endabrechnung an den Kunden.");
+    $("rEndab").classList.remove("versteckt");$("rEndab").href="https://barankohler.github.io/mietix-endabrechnung/?vertrag="+encodeURIComponent(v.nr);
+    if(v.rueck.auff==="ja")weiter("schaden");return}
   if(SICHT==="schaden"){const v=aendere(v=>{v.schaden={km:$("sKm").value.trim(),datum:$("sD").value,uhr:$("sU").value,ort:$("sOrt").value.trim(),
       ortFz:$("sOrtFz").value.trim(),art:$("sArt").value.trim(),besch:$("sBesch").value.trim(),fotos:gw("s_fotos"),besichtigt:gw("s_besichtigt"),
       sb:betrag("sSb"),weiter:gw("s_weiter"),kaution:gw("s_kaution"),betrag:betrag("sKaution"),ortDatum:heuteDe()}});
-    oeffnen(()=>fuelleSchaden(v));meldung("Schadensanerkennung gespeichert");weiter("heute");return}
+    oeffnen(()=>fuelleSchaden(v));meldung("Schadensanerkennung gespeichert. Unten: Schadensbrief.");
+    $("sBrief").classList.remove("versteckt");$("sBrief").href="https://barankohler.github.io/mietix-schadensformular/?vertrag="+encodeURIComponent(v.nr);return}
   if(SICHT==="ueberlassung"){const v=aendere(v=>{v.sv={modell:$("vModell").value.trim(),kz:$("vKz").value.trim(),fin:$("vFin").value.trim(),
       wert:betrag("vWert"),schein:an("vSchein"),brief:an("vBrief"),schluessel:$("vSchluessel").value.trim(),ortDatum:heuteDe()};
       v.kautionArt="fahrzeug";if(!v.kfz)v.kfz=[v.sv.modell,v.sv.kz].filter(Boolean).join(", ")});
@@ -667,6 +676,21 @@ function zeichneHeute(){const h=iso(new Date()),m=plusTage(h,1),l=vorgaenge().fi
   $("hZu").innerHTML=zu.length?zu.map(v=>eintrag(v.name,v.auto+", "+tag(v.bisD)+" "+(v.bisU||""),"Rückgabe",v.bisD<h)).join(""):'<div class="leer">Heute und morgen kommt nichts zurück.</div>';
   [...$("hAb").children].forEach((e,i)=>e.onclick=()=>{WAHL=ab[i].nr;zeige("uebergabe")});
   [...$("hZu").children].forEach((e,i)=>e.onclick=()=>{WAHL=zu[i].nr;zeige("rueckgabe")});
+  // Kaution zurückgeben: zurückgegeben, Kaution war da, noch nicht zurück. Ein Tipp = komplett zurück, heute.
+  const kaut=vorgaenge().filter(v=>v.status==="zurück"&&((v.zahlung||{}).kaut||{}).am&&!v.kautionRueck);
+  $("hKautKarte").classList.toggle("versteckt",!kaut.length);
+  $("hKaut").innerHTML=kaut.map((v,i)=>{const k=zahl(v.zahlung.kaut.betrag)||0,e=v.endabrechnung,vor=e&&e.summe?e.summe:0;
+    return'<div class="heute" style="display:block"><b>'+v.name+'</b><i>'+v.auto+', Kaution '+eur(k)+' €'+(vor?', Endabrechnung: '+eur(vor)+' € Zusatzkosten':'')+'</i>'+
+      '<div class="chips" style="margin-top:8px"><div class="chip an" data-k="'+i+'" data-art="voll">Komplett zurück</div><div class="chip" data-k="'+i+'" data-art="teil">Einbehalt …</div></div>'+
+      '<div class="kautform versteckt" data-form="'+i+'"><input placeholder="Einbehalt €" inputmode="decimal" class="kEin" value="'+(vor?eur(vor):'')+'"><input placeholder="Grund (z. B. Reinigung, Mehrkilometer)" class="kGrund">'+
+      '<div class="chip tipp" data-k="'+i+'" data-art="rest" style="margin-top:8px">Rest zurückgeben</div></div></div>'}).join("");
+  [...$("hKaut").querySelectorAll("[data-art]")].forEach(c=>c.onclick=()=>{const v=kaut[+c.dataset.k],k=zahl(v.zahlung.kaut.betrag)||0;
+    if(c.dataset.art==="teil"){$("hKaut").querySelector('[data-form="'+c.dataset.k+'"]').classList.toggle("versteckt");return}
+    let ein=0,grund="";
+    if(c.dataset.art==="rest"){const f=$("hKaut").querySelector('[data-form="'+c.dataset.k+'"]');ein=zahl(f.querySelector(".kEin").value)||0;grund=f.querySelector(".kGrund").value.trim();
+      if(!ein){meldung("Bitte den Einbehalt eintragen");return}}
+    const l=vorgaenge(),x=l.find(y=>y.nr===v.nr);x.kautionRueck={betrag:Math.max(0,k-ein),einbehalt:ein,grund,am:iso(new Date())};schreib("mietixVorgaenge",l);
+    meldung(ein?"Einbehalt "+eur(ein)+" €, "+eur(k-ein)+" € zurück":"Kaution "+eur(k)+" € zurück");zeichneHeute()});
   const hat=x=>vorgaenge().some(v=>v.name===x.name&&v.vonD===x.von);
   const anf=lies("mietixAnfragen",[]).filter(x=>x.status==="gebucht"&&x.von&&x.von>=plusTage(h,-1)&&!hat(x)).sort((a,b)=>a.von.localeCompare(b.von)).slice(0,8);
   $("hAnf").innerHTML=anf.length?anf.map(x=>eintrag(x.name||"ohne Namen",[x.auto,de(x.von)].filter(Boolean).join(", "),"Vertrag")).join(""):'<div class="leer">Alle gebuchten Anfragen haben einen Vertrag.</div>';
