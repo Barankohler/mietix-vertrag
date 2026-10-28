@@ -718,7 +718,10 @@ fetch("https://barankohler.github.io/mietix-preise/preise.json",{cache:"no-store
 (()=>{const id=new URLSearchParams(location.search).get("anfrage");if(!id)return;
   const x=lies("mietixAnfragen",[]).find(x=>x.id===id);history.replaceState(null,"",location.pathname);
   if(x){leeren();uebernehmeAnfrage(x);zeige("vertrag")}})();
-setTimeout(zeichneHeute,0);   // erst wenn der Abgleich-Baustein geladen ist (Kundendaten kommen von dort)
+setTimeout(zeichneHeute,0);   // erst wenn der Abgleich-Baustein geladen ist
+// Von der Zentrale: ?nr=000532&zeige=uebergabe springt direkt in das Formular
+(()=>{const q=new URLSearchParams(location.search),nr=q.get("nr"),z=q.get("zeige");if(!nr&&!z)return;history.replaceState(null,"",location.pathname);
+  if(nr&&vorgaenge().some(v=>v.nr===nr))WAHL=nr;if(z&&$("s_"+z))zeige(z)})();
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&SICHT==="heute")zeichneHeute()});
 // Neuer Stand von einem anderen Gerät: Listen neu zeichnen, ein angefangenes Formular bleibt wie es ist
 window.addEventListener("mietix-abgleich",()=>{kundenListe();zeichneAlle();
@@ -737,7 +740,8 @@ const URL_="https://zbeqrwvlmiulxvhryiku.supabase.co";
 const KEY="sb_publishable_LVkvpgXMpBbq_OXgwOfTqg_ZRcRkFyQ";   // öffentlich gedacht, Schutz über Anmeldung und Regeln in der Datenbank
 const SPEICHER={mietixVorgaenge:{tab:"vorgaenge",pk:"nr",liste:true},mietixAnfragen:{tab:"anfragen",pk:"id",liste:true},
   mietixKunden:{tab:"kunden",pk:"name",liste:false},mietixFahrzeuge:{tab:"fahrzeuge",pk:"name",liste:false},
-  mietixAusgaben:{tab:"ausgaben",pk:"id",liste:true},mietixSperren:{tab:"sperren",pk:"id",liste:true}};
+  mietixAusgaben:{tab:"ausgaben",pk:"id",liste:true},mietixSperren:{tab:"sperren",pk:"id",liste:true},
+  mietixAufgaben:{tab:"aufgaben",pk:"id",liste:true},mietixZustand:{tab:"zustand",pk:"id",liste:true},mietixAutos:{tab:"autos",pk:"name",liste:false}};
 const roh=Storage.prototype.setItem;
 const lies=(k,d)=>{try{return JSON.parse(localStorage.getItem(k)||"")||d}catch(e){return d}};
 const merk=(k,v)=>{try{roh.call(localStorage,k,JSON.stringify(v))}catch(e){}};
