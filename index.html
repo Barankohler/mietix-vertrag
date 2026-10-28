@@ -66,6 +66,15 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--rot);outline-off
 .pad .tipp{position:absolute;left:0;right:0;top:60px;text-align:center;color:#C9C9CE;font-weight:800;pointer-events:none}
 .pad .weg{position:absolute;right:8px;top:6px;font-size:12px;color:var(--grau);cursor:pointer;background:#fff;padding:4px 8px;border-radius:8px}
 .pad.hat .tipp{display:none}
+.pad .gross{position:absolute;left:8px;bottom:6px;font-size:12px;color:var(--grau);font-weight:700;pointer-events:none}
+#ug{position:fixed;inset:0;background:#fff;z-index:50;display:flex;flex-direction:column}
+#ug .kopf{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:calc(10px + env(safe-area-inset-top)) 14px 8px;border-bottom:1px solid var(--rand)}
+#ug .kopf b{font-size:15px}
+#ug canvas{flex:1;width:100%;touch-action:none;background:#fff}
+#ug .linie{position:absolute;left:8%;right:8%;bottom:calc(60px + env(safe-area-inset-bottom));border-bottom:2px solid #C9C9CE;pointer-events:none}
+#ug .fuss{padding:8px 14px calc(10px + env(safe-area-inset-bottom));font-size:13px;color:var(--grau);text-align:center}
+.vmStand{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--bg);border-radius:12px;padding:10px 12px;margin-top:8px;font-size:14px;font-weight:700}
+.vmStand img{height:34px}
 .knoepfe{display:flex;gap:10px;max-width:680px;margin:0 auto}
 .knoepfe button{flex:2}.knoepfe button.zweit{flex:1;background:#fff;color:var(--rot);border:2px solid var(--rot);font-size:15px}
 .heute{border:1px solid var(--rand);border-radius:14px;padding:12px;margin-top:8px;cursor:pointer;display:flex;
@@ -200,7 +209,8 @@ details summary{cursor:pointer;font-weight:800;color:var(--grau);font-size:14px}
     <div class="hinweis" style="margin-top:0">Eingetragen wird: Wiesbaden, den <span id="heuteText"></span>. Unterschreibt der Kunde hier auf dem Handy,
       steht seine Unterschrift im PDF. Das Kästchen „Mietvertragsbedingungen und Datenschutzhinweise erhalten, gelesen und akzeptiert“ wird dann mit angekreuzt.
       Auf Papier kreuzt er es selbst an.</div>
-    <label>Unterschrift Mieter (mit dem Finger, am besten quer)</label><div class="pad" id="padV"><canvas width="900" height="300"></canvas><div class="tipp">Hier unterschreiben</div><div class="weg">Löschen</div></div>
+    <label>Unterschrift Mieter (mit dem Finger, am besten quer)</label><div class="pad" id="padV"><canvas width="900" height="300"></canvas><div class="tipp">Antippen, dann groß unterschreiben</div><div class="weg">Löschen</div><div class="gross">Antippen für Vollbild</div></div>
+    <div class="vmStand" id="vmStand"></div>
     <div class="chips" style="margin-top:8px"><div class="chip" id="avbHaken">Bedingungen und Datenschutz erhalten (Kunde hat bestätigt)</div></div>
     <a class="knopf versteckt" id="vSenden">Vertrag per WhatsApp an den Kunden</a></div>
 
@@ -210,7 +220,7 @@ details summary{cursor:pointer;font-weight:800;color:var(--grau);font-size:14px}
       selbst schicken und auf dem anderen Gerät einfügen.</div>
     <h2 style="margin-top:14px">Meine Unterschrift (Vermieter)</h2>
     <div class="hinweis" style="margin-top:0">Einmal hier unterschreiben. Sie wird auf diesem Gerät gemerkt und bei jedem Druck als Unterschrift Vermieter eingesetzt.</div>
-    <label>Unterschrift Vermieter (mit dem Finger, am besten quer)</label><div class="pad" id="padVM"><canvas width="900" height="300"></canvas><div class="tipp">Hier unterschreiben</div><div class="weg">Löschen</div></div>
+    <label>Unterschrift Vermieter (mit dem Finger, am besten quer)</label><div class="pad" id="padVM"><canvas width="900" height="300"></canvas><div class="tipp">Antippen, dann groß unterschreiben</div><div class="weg">Löschen</div><div class="gross">Antippen für Vollbild</div></div>
     <div class="knopf" id="sichern">Alle Verträge sichern</div>
     <textarea id="sicherung" placeholder="Sicherung hier einfügen" style="margin-top:10px"></textarea>
     <div class="knopf" id="einlesen">Sicherung einlesen</div>
@@ -231,7 +241,7 @@ details summary{cursor:pointer;font-weight:800;color:var(--grau);font-size:14px}
     <div class="hinweis" style="margin-top:0">Vorschäden zeichnest du wie gewohnt von Hand in die Skizze auf dem Ausdruck.</div>
     <label>Fotos zur Dokumentation</label><div class="chips" data-gruppe="u_fotos"><div class="chip an" data-v="ja">ja</div><div class="chip" data-v="nein">nein</div></div></div>
   <div class="karte"><h2>Bemerkungen</h2><textarea id="uBem"></textarea></div>
-  <div class="karte"><h2>Unterschrift</h2><label>Unterschrift Mieter (Übergabe) (mit dem Finger, am besten quer)</label><div class="pad" id="padU"><canvas width="900" height="300"></canvas><div class="tipp">Hier unterschreiben</div><div class="weg">Löschen</div></div></div>
+  <div class="karte"><h2>Unterschrift</h2><label>Unterschrift Mieter (Übergabe) (mit dem Finger, am besten quer)</label><div class="pad" id="padU"><canvas width="900" height="300"></canvas><div class="tipp">Antippen, dann groß unterschreiben</div><div class="weg">Löschen</div><div class="gross">Antippen für Vollbild</div></div></div>
 </section>
 
 <!-- ================= RÜCKGABEPROTOKOLL ================= -->
@@ -254,7 +264,7 @@ details summary{cursor:pointer;font-weight:800;color:var(--grau);font-size:14px}
     <label>Fotos zur Dokumentation</label><div class="chips" data-gruppe="r_fotos"><div class="chip an" data-v="ja">ja</div><div class="chip" data-v="nein">nein</div></div>
     <label>Neue Beschädigungen, Gerüche (z. B. Rauch) oder Auffälligkeiten festgestellt</label><div class="chips" data-gruppe="r_auff"><div class="chip" data-v="ja">ja</div><div class="chip an" data-v="nein">nein</div></div></div>
   <div class="karte"><h2>Bemerkungen</h2><textarea id="rBem"></textarea></div>
-  <div class="karte"><h2>Unterschrift</h2><label>Unterschrift Mieter (Rückgabe) (mit dem Finger, am besten quer)</label><div class="pad" id="padR"><canvas width="900" height="300"></canvas><div class="tipp">Hier unterschreiben</div><div class="weg">Löschen</div></div></div>
+  <div class="karte"><h2>Unterschrift</h2><label>Unterschrift Mieter (Rückgabe) (mit dem Finger, am besten quer)</label><div class="pad" id="padR"><canvas width="900" height="300"></canvas><div class="tipp">Antippen, dann groß unterschreiben</div><div class="weg">Löschen</div><div class="gross">Antippen für Vollbild</div></div></div>
 </section>
 
 <!-- ================= SCHADENSANERKENNUNG ================= -->
@@ -279,7 +289,7 @@ details summary{cursor:pointer;font-weight:800;color:var(--grau);font-size:14px}
     <div class="hinweis">Das Kästchen „Mit der Unterschrift erkennt der Mieter …“ kreuzt der Mieter selbst an.</div>
     <a class="knopf versteckt" id="sBrief" target="_blank">Schadensbrief ans Handy des Kunden (Formular, schon ausgefüllt)</a>
   </div>
-  <div class="karte"><h2>Unterschrift</h2><label>Unterschrift Mieter (Schaden) (mit dem Finger, am besten quer)</label><div class="pad" id="padS"><canvas width="900" height="300"></canvas><div class="tipp">Hier unterschreiben</div><div class="weg">Löschen</div></div>
+  <div class="karte"><h2>Unterschrift</h2><label>Unterschrift Mieter (Schaden) (mit dem Finger, am besten quer)</label><div class="pad" id="padS"><canvas width="900" height="300"></canvas><div class="tipp">Antippen, dann groß unterschreiben</div><div class="weg">Löschen</div><div class="gross">Antippen für Vollbild</div></div>
     <div class="chips" style="margin-top:8px"><div class="chip" id="sAnerkannt">Mieter erkennt den Schaden an (bestätigt)</div></div></div>
 </section>
 
@@ -297,10 +307,12 @@ details summary{cursor:pointer;font-weight:800;color:var(--grau);font-size:14px}
     <label>Schlüssel (Stück)</label><input id="vSchluessel" inputmode="numeric">
     <div class="hinweis">Das Kästchen „Der Mieter bestätigt …“ kreuzt der Mieter selbst an, oder er bestätigt hier.</div>
   </div>
-  <div class="karte"><h2>Unterschrift</h2><label>Unterschrift Mieter (Sicherungsvertrag) (mit dem Finger, am besten quer)</label><div class="pad" id="padSV"><canvas width="900" height="300"></canvas><div class="tipp">Hier unterschreiben</div><div class="weg">Löschen</div></div>
+  <div class="karte"><h2>Unterschrift</h2><label>Unterschrift Mieter (Sicherungsvertrag) (mit dem Finger, am besten quer)</label><div class="pad" id="padSV"><canvas width="900" height="300"></canvas><div class="tipp">Antippen, dann groß unterschreiben</div><div class="weg">Löschen</div><div class="gross">Antippen für Vollbild</div></div>
     <div class="chips" style="margin-top:8px"><div class="chip" id="svBestaetigt">Mieter bestätigt (hat gelesen)</div></div></div>
 </section>
 </main>
+<div id="ug" class="versteckt"><div class="kopf"><b id="ugTitel">Unterschrift</b><div class="chips"><div class="chip" id="ugWeg">Löschen</div><div class="chip an" id="ugFertig">Fertig</div></div></div>
+  <canvas id="ugCanvas"></canvas><div class="linie"></div><div class="fuss">Mit dem Finger unterschreiben, gern das Handy quer halten. Danach „Fertig“.</div></div>
 <div class="leiste"><div class="knoepfe"><button id="haupt2" class="zweit versteckt">Nur Mietvertrag</button>
   <button id="haupt">Neuer Mietvertrag</button></div></div>
 <div class="meldung" id="meldung"></div>
@@ -357,15 +369,37 @@ function padMachen(id){const el=$(id),c=el.querySelector("canvas"),ctx=c.getCont
   const start=e=>{malt=true;hat=true;el.classList.add("hat");const[x,y]=pos(e);ctx.beginPath();ctx.moveTo(x,y);e.preventDefault()};
   const zieh=e=>{if(!malt)return;const[x,y]=pos(e);ctx.lineTo(x,y);ctx.stroke();e.preventDefault()};
   const ende=()=>{malt=false};
-  c.addEventListener("pointerdown",start);c.addEventListener("pointermove",zieh);window.addEventListener("pointerup",ende);
-  el.querySelector(".weg").onclick=()=>{ctx.clearRect(0,0,c.width,c.height);hat=false;el.classList.remove("hat")};
+  c.addEventListener("pointerdown",e=>{e.preventDefault();grossOeffnen(id)});
+  el.querySelector(".weg").onclick=()=>{ctx.clearRect(0,0,c.width,c.height);hat=false;el.classList.remove("hat");if(id==="padVM"){try{localStorage.removeItem("mietixUnterschriftVermieter")}catch(e){}vmStand()}};
   return{wert:()=>hat?c.toDataURL("image/png"):"",setzen:d=>{ctx.clearRect(0,0,c.width,c.height);hat=false;el.classList.remove("hat");if(!d)return;
     const im=new Image();im.onload=()=>{ctx.drawImage(im,0,0,c.width,c.height);hat=true;el.classList.add("hat")};im.src=d}}}
+// Vollbild zum Unterschreiben: der ganze Bildschirm ist die Fläche, "Fertig" übernimmt in das kleine Feld
+const TITEL={padV:"Unterschrift Mieter (Mietvertrag)",padU:"Unterschrift Mieter (Übergabe)",padR:"Unterschrift Mieter (Rückgabe)",padS:"Unterschrift Mieter (Schaden)",padSV:"Unterschrift Mieter (Sicherungsvertrag)",padVM:"Meine Unterschrift (Vermieter)"};
+let UG=null;
+function grossOeffnen(padId){const ug=$("ug"),c=$("ugCanvas");ug.classList.remove("versteckt");$("ugTitel").textContent=TITEL[padId]||"Unterschrift";
+  requestAnimationFrame(()=>{c.width=c.clientWidth*2;c.height=c.clientHeight*2;const ctx=c.getContext("2d");ctx.lineWidth=6;ctx.lineCap="round";ctx.lineJoin="round";ctx.strokeStyle="#1a1a1a";
+    UG={padId,ctx,c,hat:false,malt:false,minX:1e9,maxX:0,minY:1e9,maxY:0}});
+  try{document.body.style.overflow="hidden"}catch(e){}}
+function ugPos(e){const r=UG.c.getBoundingClientRect(),p=e.touches?e.touches[0]:e;return[(p.clientX-r.left)*UG.c.width/r.width,(p.clientY-r.top)*UG.c.height/r.height]}
+$("ugCanvas").addEventListener("pointerdown",e=>{if(!UG)return;UG.malt=true;UG.hat=true;const[x,y]=ugPos(e);UG.ctx.beginPath();UG.ctx.moveTo(x,y);e.preventDefault()});
+$("ugCanvas").addEventListener("pointermove",e=>{if(!UG||!UG.malt)return;const[x,y]=ugPos(e);UG.ctx.lineTo(x,y);UG.ctx.stroke();
+  UG.minX=Math.min(UG.minX,x);UG.maxX=Math.max(UG.maxX,x);UG.minY=Math.min(UG.minY,y);UG.maxY=Math.max(UG.maxY,y);e.preventDefault()});
+window.addEventListener("pointerup",()=>{if(UG)UG.malt=false});
+$("ugWeg").onclick=()=>{if(!UG)return;UG.ctx.clearRect(0,0,UG.c.width,UG.c.height);UG.hat=false;UG.minX=1e9;UG.maxX=0;UG.minY=1e9;UG.maxY=0};
+$("ugFertig").onclick=()=>{if(!UG)return;let daten="";
+  if(UG.hat){const r=24,x0=Math.max(0,UG.minX-r),y0=Math.max(0,UG.minY-r),w=Math.min(UG.c.width,UG.maxX+r)-x0,h=Math.min(UG.c.height,UG.maxY+r)-y0;   // nur den beschriebenen Teil übernehmen
+    const z=document.createElement("canvas");z.width=Math.max(w,10);z.height=Math.max(h,10);z.getContext("2d").drawImage(UG.c,x0,y0,w,h,0,0,z.width,z.height);daten=z.toDataURL("image/png")}
+  const padId=UG.padId;$("ug").classList.add("versteckt");document.body.style.overflow="";UG=null;
+  if(daten){PAD[padId].setzen(daten);if(padId==="padVM"){try{localStorage.setItem("mietixUnterschriftVermieter",daten)}catch(e){}setTimeout(vmStand,100)}}};
 const PAD={};["padV","padU","padR","padS","padSV","padVM"].forEach(id=>{if($(id))PAD[id]=padMachen(id)});
-if(PAD.padVM){PAD.padVM.setzen(localStorage.getItem("mietixUnterschriftVermieter")||"");
-  $("padVM").querySelector("canvas").addEventListener("pointerup",()=>setTimeout(()=>{try{localStorage.setItem("mietixUnterschriftVermieter",PAD.padVM.wert())}catch(e){}},50));
-  $("padVM").querySelector(".weg").addEventListener("click",()=>{try{localStorage.removeItem("mietixUnterschriftVermieter")}catch(e){}})}
 const vermieterUnterschrift=()=>{try{return localStorage.getItem("mietixUnterschriftVermieter")||""}catch(e){return""}};
+if(PAD.padVM)PAD.padVM.setzen(vermieterUnterschrift());
+// Stand der Vermieter-Unterschrift in der Unterschriften-Karte: hinterlegt oder jetzt unterschreiben
+function vmStand(){const el=$("vmStand");if(!el)return;const u=vermieterUnterschrift();
+  el.innerHTML=u?'<span>Unterschrift Vermieter: hinterlegt, wird eingesetzt</span><img src="'+u+'" alt=""><div class="chip" id="vmNeu">ändern</div>'
+    :'<span>Unterschrift Vermieter: noch nicht hinterlegt</span><div class="chip an" id="vmNeu">jetzt unterschreiben</div>';
+  $("vmNeu").onclick=()=>grossOeffnen("padVM")}
+vmStand();
 // Unterschriften ins PDF: über die Linien "Unterschrift Mieter" und "Unterschrift Vermieter" (Lage aus den Vorlagen gemessen)
 const LINIE={vertrag1:92,vertrag2:168,rueck:131,schaden:176,sv:289};
 async function stempel(doc,seite,yLinie,mieterPng,vermieterPng){const p=doc.getPages()[seite];
