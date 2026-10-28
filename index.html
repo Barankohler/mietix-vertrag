@@ -603,14 +603,14 @@ function weiter(s){setTimeout(()=>zeige(s),900)}
 let nrVonHand=false;$("nr").addEventListener("input",()=>nrVonHand=true);
 function vertragSpeichern(mitUeb){const v=sammle();if(!v)return;
   const neu=!nrVonHand&&!vorgaenge().some(x=>x.nr===v.nr&&x.name===v.name);
-  kopiere(excelZeile(v));leerNaechstes=true;
+  leerNaechstes=true;
   oeffnen(async()=>{
     if(neu&&window.mietixNeueNummer){const n=await window.mietixNeueNummer();if(n)v.nr=n}
     merke(v);ANFRAGE=null;
     if(mitUeb){const u=aendere(x=>{if(!x.ueb)x.ueb=uebStandard(x)});
       lerneAuto(u.auto,{reifen:u.ueb.reifen,felgen:u.ueb.felgen,marke:u.ueb.marke})}
     const voll=aktuell();
-    meldung("Gespeichert: Nr. "+voll.nr+". Zeile für die Excel ist kopiert (Buchungen, Spalte Kunde, einfügen).");
+    meldung("Gespeichert: Nr. "+voll.nr+". Die Brücke trägt es in die Excel ein.");
     weiter(voll.kautionArt==="fahrzeug"?"ueberlassung":mitUeb?"heute":"uebergabe");
     return mitUeb?fuelleVertrag(voll):seite(()=>fuelleVertrag(voll),0)})}
 $("haupt2").onclick=()=>{if(SICHT==="vertrag")vertragSpeichern(false)};
@@ -628,8 +628,7 @@ $("haupt").onclick=()=>{
       datum:$("rD").value,uhr:$("rU").value,ort:$("rOrt").value.trim(),auff:gw("r_auff"),bem:$("rBem").value.trim(),ortDatum:heuteDe()});
       if($("rKmAb").value.trim()){v.ueb=v.ueb||{};v.ueb.km=$("rKmAb").value.trim()}v.status="zurück"});
     lerneAuto(v.auto,{km:v.rueck.km,reifen:v.rueck.reifen,felgen:v.rueck.felgen,marke:v.rueck.marke,profil:v.rueck.profil});
-    kopiere(excelKm(v));oeffnen(()=>fuelleRueckgabe(v));
-    meldung("Rückgabe gespeichert. km für die Excel kopiert (Buchungen, Spalte km Abh.).");
+    oeffnen(()=>fuelleRueckgabe(v));meldung("Rückgabe gespeichert");
     weiter(v.rueck.auff==="ja"?"schaden":"heute");return}
   if(SICHT==="schaden"){const v=aendere(v=>{v.schaden={km:$("sKm").value.trim(),datum:$("sD").value,uhr:$("sU").value,ort:$("sOrt").value.trim(),
       ortFz:$("sOrtFz").value.trim(),art:$("sArt").value.trim(),besch:$("sBesch").value.trim(),fotos:gw("s_fotos"),besichtigt:gw("s_besichtigt"),
@@ -644,9 +643,7 @@ $("haupt").onclick=()=>{
 /* ---------- Alle und Sicherung ---------- */
 function zeichneAlle(){const l=vorgaenge().slice().reverse();
   $("alleListe").innerHTML=l.length?l.map(v=>'<div class="vorgang"><b>'+v.nr+"  "+v.name+'</b><div>'+v.auto+(v.kz?" ("+v.kz+")":"")+", "+de(v.vonD)+" bis "+de(v.bisD)+
-    (v.status==="zurück"?", zurück":"")+'</div><div class="chip tipp" data-nr="'+v.nr+'">Excel-Zeile kopieren</div></div>').join(""):'<div class="leer">Noch kein Vertrag.</div>';
-  [...$("alleListe").querySelectorAll("[data-nr]")].forEach(c=>c.onclick=()=>{const v=vorgaenge().find(x=>x.nr===c.dataset.nr);
-    if(v){kopiere(excelZeile(v));meldung("Kopiert. In Buchungen bei Kunde einfügen.")}})}
+    (v.status==="zurück"?", zurück":"")+'</div></div>').join(""):'<div class="leer">Noch kein Vertrag.</div>'}
 $("sichern").onclick=()=>{$("sicherung").value=JSON.stringify({vorgaenge:vorgaenge(),kunden:kunden(),fahrzeuge:lies("mietixFahrzeuge",{})});meldung("Sicherung steht im Feld")};
 $("einlesen").onclick=()=>{let s=null;try{s=JSON.parse($("sicherung").value)}catch(e){}
   if(!s||!Array.isArray(s.vorgaenge)){alert("Da steht keine gültige Sicherung.");return}
@@ -714,7 +711,8 @@ window.addEventListener("mietix-abgleich",()=>{kundenListe();zeichneAlle();
 const URL_="https://zbeqrwvlmiulxvhryiku.supabase.co";
 const KEY="sb_publishable_LVkvpgXMpBbq_OXgwOfTqg_ZRcRkFyQ";   // öffentlich gedacht, Schutz über Anmeldung und Regeln in der Datenbank
 const SPEICHER={mietixVorgaenge:{tab:"vorgaenge",pk:"nr",liste:true},mietixAnfragen:{tab:"anfragen",pk:"id",liste:true},
-  mietixKunden:{tab:"kunden",pk:"name",liste:false},mietixFahrzeuge:{tab:"fahrzeuge",pk:"name",liste:false}};
+  mietixKunden:{tab:"kunden",pk:"name",liste:false},mietixFahrzeuge:{tab:"fahrzeuge",pk:"name",liste:false},
+  mietixAusgaben:{tab:"ausgaben",pk:"id",liste:true}};
 const roh=Storage.prototype.setItem;
 const lies=(k,d)=>{try{return JSON.parse(localStorage.getItem(k)||"")||d}catch(e){return d}};
 const merk=(k,v)=>{try{roh.call(localStorage,k,JSON.stringify(v))}catch(e){}};
