@@ -86,6 +86,23 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--rot);outline-off
 .kautform input{margin-top:6px}
 .klein{font-size:13px;color:var(--grau);font-weight:700;margin-top:6px}
 details summary{cursor:pointer;font-weight:800;color:var(--grau);font-size:14px}
+/* Ablauf (29.10.2026): Schrittleiste, Reiter Verträge, Angebote nach dem Speichern */
+.schritt{display:flex;gap:6px;margin-top:10px}
+.schritt div{flex:1;text-align:center;padding:9px 6px;border-radius:12px;background:var(--bg);font-weight:800;font-size:13px;color:var(--grau);cursor:pointer;white-space:nowrap}
+.schritt div.ok{background:#E8F6EE;color:var(--gruen)}.schritt div.an{outline:2px solid var(--rot);color:var(--rot)}.schritt div.ok.an{color:var(--gruen)}
+.sKopf{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}.sKopf b{font-size:16px;display:block}.sKopf i{font-style:normal;font-size:13px;color:var(--grau)}
+.sKopf a{font-size:13px;color:var(--grau);white-space:nowrap;font-weight:700}
+#wahl.klein{margin-top:8px;font-size:15px;min-height:42px;padding:8px 12px}
+.vorgang{cursor:pointer}.vorgang.auf{border-color:var(--rot)}
+.haken{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.haken span{font-size:12px;font-weight:800;border-radius:8px;padding:4px 8px;background:var(--bg);color:var(--grau)}
+.haken span.ok{background:#E8F6EE;color:var(--gruen)}.haken span.rot{background:var(--hell);color:var(--rot)}
+h2.gruppe{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--grau);margin:16px 4px 6px}
+#nachBg{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:30}
+#nach{position:fixed;left:0;right:0;bottom:0;background:#fff;border-radius:22px 22px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom));z-index:31;max-width:680px;margin:0 auto;box-shadow:0 -10px 30px rgba(0,0,0,.15)}
+#nach h3{font-size:17px;font-weight:900;margin-bottom:4px}#nach .unter{font-size:13px;color:var(--grau);margin-bottom:10px}
+#nach .knopf{margin-top:8px}#nach .knopf.voll{background:var(--rot);color:#fff}#nach .knopf.wa{background:#25D366;border-color:#25D366;color:#fff}
+#nach .zu{display:block;text-align:center;font-size:13px;color:var(--grau);margin-top:12px;font-weight:700}
 .meldung{position:fixed;left:16px;right:16px;bottom:96px;background:var(--gruen);color:#fff;border-radius:14px;
   padding:14px;font-weight:800;text-align:center;z-index:9;display:none}
 </style></head><body>
@@ -93,6 +110,7 @@ details summary{cursor:pointer;font-weight:800;color:var(--grau);font-size:14px}
   <h1>MIETIX <span>VERTRÄGE</span> <i id="abgleichPunkt" title="Abgleich aller Geräte" style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#B0B0B3;vertical-align:middle;margin-left:4px"></i></h1>
   <div class="reiter" id="reiter">
     <div data-s="heute" class="an">Heute</div>
+    <div data-s="vertraege">Verträge</div>
     <div data-s="vertrag">Mietvertrag</div>
     <div data-s="uebergabe">Übergabeprotokoll</div>
     <div data-s="rueckgabe">Rückgabeprotokoll</div>
@@ -103,9 +121,9 @@ details summary{cursor:pointer;font-weight:800;color:var(--grau);font-size:14px}
 <main>
 <!-- ======== Vertrag wählen (für alle Formulare außer dem Mietvertrag) ======== -->
 <div class="karte versteckt" id="wahlKarte">
-  <h2>Zum Mietvertrag-Nr.</h2>
-  <select id="wahl"></select>
-  <div class="wahlinfo" id="wahlInfo"></div>
+  <div id="schritte"></div>
+  <select id="wahl" class="klein"></select>
+  <div class="wahlinfo versteckt" id="wahlInfo"></div>
   <div class="hinweis" id="wahlLeer">Noch kein Mietvertrag gespeichert. Erst im Reiter Mietvertrag anlegen.</div>
 </div>
 
@@ -210,17 +228,18 @@ details summary{cursor:pointer;font-weight:800;color:var(--grau);font-size:14px}
     <div class="chips" style="margin-top:8px"><div class="chip" id="avbHaken">Bedingungen und Datenschutz erhalten (Kunde hat bestätigt)</div></div>
     <a class="knopf versteckt" id="vSenden">Vertrag per WhatsApp an den Kunden</a></div>
 
-  <details class="karte"><summary>Alle Verträge und Sicherung</summary>
-    <div id="alleListe"></div>
-    <div class="hinweis">Die Verträge liegen auf diesem Gerät. Zum Übertragen: sichern, den Text per WhatsApp an dich
-      selbst schicken und auf dem anderen Gerät einfügen.</div>
-    <h2 style="margin-top:14px">Meine Unterschrift (Vermieter)</h2>
+</section>
+
+<!-- ================= VERTRÄGE: alle auf einen Blick, mit Stand ================= -->
+<section id="s_vertraege" class="versteckt">
+  <div class="karte"><h2>Verträge</h2>
+    <input id="vSuche" type="search" autocomplete="off" placeholder="Suchen: Name, Nummer, Auto, Kennzeichen">
+    <div class="hinweis">Antippen zeigt, was zu dem Vertrag noch zu tun ist. Jeder gespeicherte Vertrag steht hier, auf allen Geräten.</div></div>
+  <div id="alleListe"></div>
+  <div class="karte" style="margin-top:16px"><h2>Meine Unterschrift (Vermieter)</h2>
     <div class="hinweis" style="margin-top:0">Einmal hier unterschreiben. Sie wird auf diesem Gerät gemerkt und bei jedem Druck als Unterschrift Vermieter eingesetzt.</div>
     <label>Unterschrift Vermieter (mit dem Finger, am besten quer)</label><div class="pad" id="padVM"><canvas width="900" height="300"></canvas><div class="tipp">Antippen, dann groß unterschreiben</div><div class="weg">Löschen</div><div class="gross">Antippen für Vollbild</div></div>
-    <div class="knopf" id="sichern">Alle Verträge sichern</div>
-    <textarea id="sicherung" placeholder="Sicherung hier einfügen" style="margin-top:10px"></textarea>
-    <div class="knopf" id="einlesen">Sicherung einlesen</div>
-  </details>
+  </div>
 </section>
 
 <!-- ================= ÜBERGABEPROTOKOLL (wie Seite 2) ================= -->
@@ -312,8 +331,8 @@ details summary{cursor:pointer;font-weight:800;color:var(--grau);font-size:14px}
 </main>
 <div id="ug" class="versteckt"><div class="kopf"><b id="ugTitel">Unterschrift</b><div class="chips"><div class="chip" id="ugWeg">Löschen</div><div class="chip an" id="ugFertig">Fertig</div></div></div>
   <canvas id="ugCanvas"></canvas><div class="linie"></div><div class="fuss">Mit dem Finger unterschreiben, gern das Handy quer halten. Danach „Fertig“.</div></div>
-<div class="leiste"><div class="knoepfe"><button id="haupt2" class="zweit versteckt">Nur Mietvertrag</button>
-  <button id="haupt">Neuer Mietvertrag</button></div></div>
+<div class="leiste"><div class="knoepfe"><button id="haupt">Neuer Mietvertrag</button></div></div>
+<div id="nachBg" class="versteckt"></div><div id="nach" class="versteckt"></div>
 <div class="meldung" id="meldung"></div>
 
 <script>!function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"function"==typeof define&&define.amd?define(["exports"],e):e((t=t||self).PDFLib={})}(this,(function(t){"use strict";
@@ -500,7 +519,7 @@ let entwurfTimer=null,entwurfAus=false;
 function entwurfSchnappschuss(){const f={};$("s_vertrag").querySelectorAll("input,textarea,select").forEach(e=>{if(e.id)f[e.id]=e.value});
   const chips={};document.querySelectorAll("#s_vertrag [data-gruppe]").forEach(g=>chips[g.dataset.gruppe]=chipWert(g));
   return{f,chips,an:["avbHaken"].filter(i=>$(i).classList.contains("an")),auto:AUTO,zeit:new Date().toISOString()}}
-function entwurfMerken(){if(entwurfAus||SICHT!=="vertrag")return;clearTimeout(entwurfTimer);entwurfTimer=setTimeout(()=>{const e=entwurfSchnappschuss();
+function entwurfMerken(){if(entwurfAus||SICHT!=="vertrag")return;clearTimeout(entwurfTimer);entwurfTimer=setTimeout(()=>{ungespeichertZeigen();const e=entwurfSchnappschuss();
   if(!(e.f.name||"").trim()&&!e.auto){try{localStorage.removeItem("mietixEntwurfVertrag")}catch(x){}return}
   try{localStorage.setItem("mietixEntwurfVertrag",JSON.stringify(e))}catch(x){}},300)}
 function entwurfWeg(){try{localStorage.removeItem("mietixEntwurfVertrag")}catch(x){}$("entwurf").classList.add("versteckt")}
@@ -668,7 +687,7 @@ function wahlFuellen(){const l=vorgaenge().slice().reverse();
 function aktuell(){return vorgaenge().find(x=>x.nr===WAHL)||null}
 function wahlInfo(){const v=aktuell();
   $("wahlInfo").textContent=v?"Mietzeitraum "+de(v.vonD)+" bis "+de(v.bisD)+(v.status==="zurück"?", zurückgegeben":""):""}
-$("wahl").onchange=()=>{WAHL=$("wahl").value;wahlInfo();formularLaden()};
+$("wahl").onchange=()=>{WAHL=$("wahl").value;wahlInfo();formularLaden(true);schritte()};
 const fzInfo=v=>"Kennzeichen: "+(v.kz||"")+"<br>Hersteller, Modell: "+v.auto;
 const mieterInfo=v=>"Vor- und Nachname: "+v.name+"<br>Telefon: "+(v.telefon||"");
 function protokollSetzen(p,d){["aussen","innen","tank","gegen","fotos","reifen","felgen"].forEach(k=>{if(d[k]!==undefined)gs(p+"_"+k,d[k])});
@@ -741,9 +760,8 @@ $("eKopieren").onclick=async()=>{const v=aktuell();if(!v)return;
   try{await navigator.clipboard.writeText(t);meldung("Endabrechnung kopiert, einfach in WhatsApp einfügen.")}catch(err){alert(t)}};
 
 /* ---------- Hauptknopf: speichern und das Formular dieses Reiters drucken ---------- */
-const KNOPF={heute:"Neuer Mietvertrag",vertrag:"Vertrag + Übergabe drucken",uebergabe:"Übergabeprotokoll drucken",rueckgabe:"Rückgabeprotokoll drucken",
-  schaden:"Schadensanerkennung drucken",ueberlassung:"Überlassungserklärung drucken"};
-function weiter(s){setTimeout(()=>zeige(s),900)}
+const KNOPF={heute:"Neuer Mietvertrag",vertraege:"Neuer Mietvertrag",vertrag:"Speichern",uebergabe:"Übergabe speichern",rueckgabe:"Rückgabe speichern",
+  schaden:"Schadensanerkennung speichern",ueberlassung:"Überlassung speichern"};
 // Neue Verträge holen ihre Nummer beim Speichern aus dem gemeinsamen Speicher (keine doppelten Nummern auf zwei Geräten).
 // Ohne Internet bleibt die Nummer vom Gerät. Die Excel-Zeile wird noch im Klick kopiert (sonst sperrt das iPhone).
 let nrVonHand=false;$("nr").addEventListener("input",()=>nrVonHand=true);
@@ -753,66 +771,141 @@ function belegtDurch(v){const ueber=(a1,b1,a2,b2)=>a1<b2&&b1>a2,t=[];
   lies("mietixAnfragen",[]).forEach(a=>{if(a.id!==ANFRAGE&&a.status==="gebucht"&&a.auto===v.auto&&a.von&&a.bis&&a.name!==v.name&&ueber(v.vonD,v.bisD,a.von,a.bis))t.push(a.name+" (gebucht, bis "+de(a.bis)+")")});
   lies("mietixSperren",[]).forEach(x=>{if(x.auto===v.auto&&x.von&&x.bis&&ueber(v.vonD,v.bisD,x.von,x.bis))t.push("Sperre: "+(x.grund||"gesperrt")+" bis "+de(x.bis))});
   return t}
-function vertragSpeichern(mitUeb){const v=sammle();if(!v)return;
+// Speichern ist vom Drucken getrennt (29.10.2026): erst sichern, dann im Blatt wählen: drucken, WhatsApp, weiter zur Übergabe.
+function vertragSpeichern(){const v=sammle();if(!v)return;
   const b=belegtDurch(v);if(b.length&&!confirm("ACHTUNG, "+v.auto+" ist in dem Zeitraum schon vergeben:\n\n"+b.join("\n")+"\n\nTrotzdem speichern?"))return;
   const neu=!nrVonHand&&!vorgaenge().some(x=>x.nr===v.nr&&x.name===v.name);
-  leerNaechstes=true;
-  oeffnen(async()=>{
-    if(neu&&window.mietixNeueNummer){const n=await window.mietixNeueNummer();if(n)v.nr=n}
-    merke(v);ANFRAGE=null;
-    if(mitUeb){const u=aendere(x=>{if(!x.ueb)x.ueb=uebStandard(x)});
-      lerneAuto(u.auto,{reifen:u.ueb.reifen,felgen:u.ueb.felgen,marke:u.ueb.marke})}
-    const voll=aktuell();
-    meldung("Gespeichert: Nr. "+voll.nr+". Die Brücke trägt es in die Excel ein.");
-    $("vSenden").classList.remove("versteckt");$("vSenden").onclick=e=>{e.preventDefault();teilen(voll)};
-    weiter(voll.kautionArt==="fahrzeug"?"ueberlassung":mitUeb?"heute":"uebergabe");
-    return mitUeb?fuelleVertrag(voll):seite(()=>fuelleVertrag(voll),0)})}
-$("haupt2").onclick=()=>{if(SICHT==="vertrag")vertragSpeichern(false)};
-let leerNaechstes=false;
+  const fertig=()=>{merke(v);ANFRAGE=null;nrVonHand=true;$("nr").value=v.nr;NEU=false;GELADEN={};standMerken();
+    const voll=aktuell();meldung("Gespeichert: Nr. "+voll.nr);schritte();
+    $("vSenden").classList.remove("versteckt");$("vSenden").onclick=e=>{e.preventDefault();teilen(aktuell())};
+    const sv=voll.kautionArt==="fahrzeug"&&!voll.sv;
+    nachSheet("Vertrag "+voll.nr+" gespeichert",voll.name+", "+voll.auto+". Die Brücke trägt ihn in die Excel ein. Was jetzt?",[
+      sv?{t:"Weiter: Überlassungserklärung (Fahrzeug als Sicherheit)",voll:true,f:()=>zeige("ueberlassung")}:{t:"Weiter: Übergabe",voll:true,f:()=>zeige("uebergabe")},
+      {t:"Vertrag + Übergabe drucken",f:()=>DRUCK_BEIDE(voll),bleibt:true},
+      {t:"Nur den Mietvertrag drucken",f:()=>oeffnen(()=>seite(()=>fuelleVertrag(aktuell()),0)),bleibt:true},
+      {t:"Per WhatsApp an den Kunden",wa:true,f:()=>teilen(aktuell()),bleibt:true},
+      {t:"Fertig, zurück zu Heute",f:HEUTE}])};
+  if(neu&&window.mietixNeueNummer&&navigator.onLine)window.mietixNeueNummer().then(n=>{if(n)v.nr=n;fertig()}).catch(fertig);else fertig()}
 $("haupt").onclick=()=>{
-  if(SICHT==="heute"){leeren();zeige("vertrag");return}
-  if(SICHT==="vertrag"){vertragSpeichern(true);return}
+  if(SICHT==="heute"||SICHT==="vertraege"){leeren();zeige("vertrag");return}
+  if(SICHT==="vertrag"){vertragSpeichern();return}
   if(!aktuell()){meldung("Erst im Reiter Mietvertrag einen Vertrag anlegen.");return}
   if(SICHT==="uebergabe"){const v=aendere(v=>{v.ueb=Object.assign(protokollLesen("u"),{km:$("uKm").value.trim(),datum:$("uD").value,
       uhr:$("uU").value,ort:$("uOrt").value.trim(),bem:$("uBem").value.trim(),ortDatum:heuteDe(),unterschrift:PAD.padU.wert(),unterschriftVermieter:PAD.padU.wert()?vermieterUnterschrift():""});if(v.ueb.km)v.km=v.ueb.km});
     lerneAuto(v.auto,{km:v.ueb.km,reifen:v.ueb.reifen,felgen:v.ueb.felgen,reserve:v.ueb.reserve,marke:v.ueb.marke,profil:v.ueb.profil});
-    oeffnen(()=>seite(()=>fuelleVertrag(v),1));meldung("Übergabe gespeichert");weiter("heute");return}
+    meldung("Übergabe gespeichert");GELADEN={};schritte();
+    nachSheet("Übergabe gespeichert",v.name+", "+v.auto+". "+(v.ueb.unterschrift?"Mit Unterschrift.":"Ohne Unterschrift des Mieters.")+" Was jetzt?",[
+      {t:"Übergabeprotokoll drucken",voll:true,f:()=>oeffnen(()=>seite(()=>fuelleVertrag(aktuell()),1)),bleibt:true},
+      {t:"Vertrag + Übergabe drucken",f:()=>oeffnen(()=>fuelleVertrag(aktuell())),bleibt:true},
+      {t:"Per WhatsApp an den Kunden",wa:true,f:()=>teilen(aktuell()),bleibt:true},
+      {t:"Fertig, zurück zu Heute",f:HEUTE}]);return}
   if(SICHT==="rueckgabe"){if(!$("rKm").value.trim()){alert("Bitte den Kilometerstand bei Rückgabe eintragen.");return}
     const v=aendere(v=>{v.rueck=Object.assign(protokollLesen("r"),{km:$("rKm").value.trim(),gefahren:$("rGef").value.trim(),mehrkm:$("rMehr").value.trim(),
       datum:$("rD").value,uhr:$("rU").value,ort:$("rOrt").value.trim(),auff:gw("r_auff"),bem:$("rBem").value.trim(),ortDatum:heuteDe(),unterschrift:PAD.padR.wert(),unterschriftVermieter:PAD.padR.wert()?vermieterUnterschrift():""});
       if($("rKmAb").value.trim()){v.ueb=v.ueb||{};v.ueb.km=$("rKmAb").value.trim()}v.status="zurück";
       const e=eWerte();v.endabrechnung={mehrkm:e.mehr,satz:e.satz,aufWahl:$("eAuf").value,auf:e.auf,summe:e.summe}});
     lerneAuto(v.auto,{km:v.rueck.km,reifen:v.rueck.reifen,felgen:v.rueck.felgen,marke:v.rueck.marke,profil:v.rueck.profil});
-    oeffnen(()=>fuelleRueckgabe(v));meldung("Rückgabe gespeichert. Endabrechnung steht oben zum Kopieren.");
-    if(v.rueck.auff==="ja")weiter("schaden");return}
+    meldung("Rückgabe gespeichert");GELADEN={};schritte();const e=v.endabrechnung||{},schaden=v.rueck.auff==="ja";
+    nachSheet("Rückgabe gespeichert",v.name+", "+v.auto+(e.summe?". Endabrechnung: "+eur(e.summe)+" € Zusatzkosten.":". Nichts nachzuberechnen.")+" Was jetzt?",[
+      schaden?{t:"Weiter: Schadensanerkennung (Auffälligkeiten festgestellt)",voll:true,f:()=>zeige("schaden")}:null,
+      {t:"Rückgabeprotokoll drucken",voll:!schaden,f:()=>oeffnen(()=>fuelleRueckgabe(aktuell())),bleibt:true},
+      e.summe?{t:"Endabrechnung für WhatsApp kopieren",wa:true,f:()=>$("eKopieren").click(),bleibt:true}:null,
+      (((v.zahlung||{}).kaut||{}).am&&!v.kautionRueck)?{t:"Kaution zurückgeben (auf Heute)",f:HEUTE}:null,
+      {t:"Fertig, zurück zu Heute",f:HEUTE}].filter(Boolean));return}
   if(SICHT==="schaden"){const v=aendere(v=>{v.schaden={km:$("sKm").value.trim(),datum:$("sD").value,uhr:$("sU").value,ort:$("sOrt").value.trim(),
       ortFz:$("sOrtFz").value.trim(),art:$("sArt").value.trim(),besch:$("sBesch").value.trim(),fotos:gw("s_fotos"),besichtigt:gw("s_besichtigt"),
       sb:betrag("sSb"),weiter:gw("s_weiter"),kaution:gw("s_kaution"),betrag:betrag("sKaution"),ortDatum:heuteDe(),unterschrift:PAD.padS.wert(),unterschriftVermieter:PAD.padS.wert()?vermieterUnterschrift():"",anerkannt:an("sAnerkannt")}});
-    oeffnen(()=>fuelleSchaden(v));meldung("Schadensanerkennung gespeichert. Unten: Schadensbrief.");
-    $("sBrief").classList.remove("versteckt");$("sBrief").href="https://barankohler.github.io/mietix-schadensformular/?vertrag="+encodeURIComponent(v.nr);return}
+    meldung("Schadensanerkennung gespeichert");GELADEN={};schritte();
+    const brief="https://barankohler.github.io/mietix-schadensformular/?vertrag="+encodeURIComponent(v.nr);
+    $("sBrief").classList.remove("versteckt");$("sBrief").href=brief;
+    nachSheet("Schadensanerkennung gespeichert",v.name+", "+v.auto+". "+(v.schaden.anerkannt?"Vom Mieter anerkannt.":"Noch nicht vom Mieter bestätigt.")+" Was jetzt?",[
+      {t:"Schadensanerkennung drucken",voll:true,f:()=>oeffnen(()=>fuelleSchaden(aktuell())),bleibt:true},
+      {t:"Schadensbrief ans Handy des Kunden",wa:true,f:()=>window.open(brief,"_blank"),bleibt:true},
+      {t:"Fertig, zurück zu Heute",f:HEUTE}]);return}
   if(SICHT==="ueberlassung"){const v=aendere(v=>{v.sv={modell:$("vModell").value.trim(),kz:$("vKz").value.trim(),fin:$("vFin").value.trim(),
       wert:betrag("vWert"),schein:an("vSchein"),brief:an("vBrief"),schluessel:$("vSchluessel").value.trim(),ortDatum:heuteDe(),unterschrift:PAD.padSV.wert(),unterschriftVermieter:PAD.padSV.wert()?vermieterUnterschrift():"",bestaetigt:an("svBestaetigt")};
       v.kautionArt="fahrzeug";if(!v.kfz)v.kfz=[v.sv.modell,v.sv.kz].filter(Boolean).join(", ")});
-    oeffnen(()=>fuelleUeberlassung(v));meldung("Gespeichert. Im Mietvertrag steht jetzt: Fahrzeug als Sicherheit.");
-    weiter(v.ueb?"heute":"uebergabe");return}};
+    meldung("Gespeichert. Im Mietvertrag steht jetzt: Fahrzeug als Sicherheit.");GELADEN={};schritte();
+    nachSheet("Überlassungserklärung gespeichert",v.name+", Sicherungsfahrzeug "+(v.sv.modell||"")+". Was jetzt?",[
+      v.ueb?null:{t:"Weiter: Übergabe",voll:true,f:()=>zeige("uebergabe")},
+      {t:"Überlassungserklärung drucken",voll:!!v.ueb,f:()=>oeffnen(()=>fuelleUeberlassung(aktuell())),bleibt:true},
+      {t:"Vertrag + Übergabe drucken",f:()=>DRUCK_BEIDE(v),bleibt:true},
+      {t:"Fertig, zurück zu Heute",f:HEUTE}].filter(Boolean));return}};
 
-/* ---------- Alle und Sicherung ---------- */
-function zeichneAlle(){const l=vorgaenge().slice().reverse();
-  $("alleListe").innerHTML=l.length?l.map(v=>'<div class="vorgang"><b>'+v.nr+"  "+v.name+'</b><div>'+v.auto+(v.kz?" ("+v.kz+")":"")+", "+de(v.vonD)+" bis "+de(v.bisD)+
-    (v.status==="zurück"?", zurück":"")+'</div></div>').join(""):'<div class="leer">Noch kein Vertrag.</div>'}
-$("sichern").onclick=()=>{$("sicherung").value=JSON.stringify({vorgaenge:vorgaenge(),kunden:kunden(),fahrzeuge:lies("mietixFahrzeuge",{})});meldung("Sicherung steht im Feld")};
-$("einlesen").onclick=()=>{let s=null;try{s=JSON.parse($("sicherung").value)}catch(e){}
-  if(!s||!Array.isArray(s.vorgaenge)){alert("Da steht keine gültige Sicherung.");return}
-  const l=vorgaenge(),bek=new Set(l.map(v=>v.nr));let n=0;s.vorgaenge.forEach(v=>{if(v&&v.nr&&!bek.has(v.nr)){l.push(v);n++}});
-  schreib("mietixVorgaenge",l);schreib("mietixKunden",Object.assign(kunden(),s.kunden||{}));
-  schreib("mietixFahrzeuge",Object.assign(s.fahrzeuge||{},lies("mietixFahrzeuge",{})));kundenListe();zeichneAlle();
-  alert(n+(n===1?" Vertrag":" Verträge")+" dazugekommen.")};
+/* ---------- Reiter Verträge: Karten mit Stand (29.10.2026) ---------- */
+let AUF=null;
+const esc=t=>String(t==null?"":t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");
+const normS=t=>String(t||"").toLowerCase();
+function vKarte(v){const z=v.zahlung||{},rest=z.rest||{},kaut=z.kaut||{};
+  const mieteOffen=zahl(rest.betrag)&&!rest.am,kautOffen=v.status==="zurück"&&kaut.am&&!v.kautionRueck;
+  const haken=[["Vertrag",true],["Übergabe",!!v.ueb],["Rückgabe",v.status==="zurück"]];
+  return'<div class="vorgang'+(AUF===v.nr?" auf":"")+'" data-nr="'+esc(v.nr)+'"><b>'+esc(v.nr)+"  "+esc(v.name)+'</b><div>'+esc(v.auto)+(v.kz?" ("+esc(v.kz)+")":"")+", "+de(v.vonD)+" bis "+de(v.bisD)+'</div>'+
+    '<div class="haken">'+haken.map(([t,ok])=>'<span class="'+(ok?"ok":"")+'">'+(ok?"✓ ":"○ ")+t+'</span>').join("")+
+    (mieteOffen?'<span class="rot">Miete offen '+eur(zahl(rest.betrag))+' €</span>':"")+(kautOffen?'<span class="rot">Kaution zurückgeben</span>':"")+(v.schaden?'<span class="rot">Schaden</span>':"")+
+    (v.kautionArt==="fahrzeug"?'<span>Fahrzeug als Sicherheit</span>':"")+'</div>'+
+    (AUF===v.nr?'<div class="chips" style="margin-top:10px">'+[["Mietvertrag","vertrag"],["Übergabe","uebergabe"],["Rückgabe","rueckgabe"],["Schadensanerkennung","schaden"],["Überlassung","ueberlassung"]]
+      .map(([t,x])=>'<div class="chip" data-geh="'+x+'">'+t+'</div>').join("")+'<div class="chip" data-druck="1">Drucken</div><div class="chip" data-wa="1" style="background:#25D366;border-color:#25D366;color:#fff">WhatsApp</div></div>':"")+'</div>'}
+function zeichneAlle(){if(!$("alleListe"))return;const q=normS($("vSuche").value).trim();
+  const l=vorgaenge().slice().reverse().filter(v=>!q||normS(v.nr+" "+v.name+" "+v.auto+" "+(v.kz||"")).includes(q));
+  const gr=[["Unterwegs",v=>v.ueb&&v.status!=="zurück"],["Gebucht, Übergabe offen",v=>!v.ueb&&v.status!=="zurück"],["Zurück",v=>v.status==="zurück"]];
+  $("alleListe").innerHTML=l.length?gr.map(([t,f])=>{const g=l.filter(f);return g.length?'<h2 class="gruppe">'+t+' ('+g.length+')</h2>'+g.map(vKarte).join(""):""}).join(""):'<div class="leer">'+(q?"Nichts gefunden.":"Noch kein Vertrag. Unten auf „Neuer Mietvertrag“ geht es los.")+'</div>';
+  [...$("alleListe").querySelectorAll(".vorgang")].forEach(el=>{el.onclick=()=>{AUF=AUF===el.dataset.nr?null:el.dataset.nr;zeichneAlle()};
+    const v=vorgaenge().find(x=>x.nr===el.dataset.nr);if(!v)return;
+    [...el.querySelectorAll("[data-geh]")].forEach(c=>c.onclick=ev=>{ev.stopPropagation();WAHL=v.nr;if(c.dataset.geh==="vertrag")vertragLaden(v);zeige(c.dataset.geh)});
+    const d=el.querySelector("[data-druck]");if(d)d.onclick=ev=>{ev.stopPropagation();oeffnen(()=>fuelleVertrag(v))};
+    const w=el.querySelector("[data-wa]");if(w)w.onclick=ev=>{ev.stopPropagation();teilen(v)}})}
+$("vSuche").addEventListener("input",zeichneAlle);
+// Gespeicherten Vertrag ins Formular holen (ansehen, ändern, noch einmal drucken). Speichern ersetzt ihn unter derselben Nummer.
+function vertragLaden(v){entwurfAus=true;leeren();NEU=false;$("nr").value=v.nr;nrVonHand=true;WAHL=v.nr;
+  ["name","anschrift","geb","gebort","telefon","email","kz","fin","km","preis1","zf","preis2","vonD","vonU","bisD","bisU","freikm","mehrkm","kfz","sb"].forEach(k=>{if(v[k]!==undefined&&v[k]!==null)$(k).value=v[k]});
+  AUTO=v.auto;$("modell").value=v.auto;zeichneAutos();
+  const z=v.zahlung||{};[["anz","anzB","z_anz","anzAm"],["rest","restB","z_rest","restAm"],["kaut","kautB","z_kaut","kautAm"]].forEach(([k,b,g,d])=>{const x=z[k]||{};$(b).value=x.betrag||"";gs(g,x.art||"");$(d).value=x.am||""});
+  gs("k_art",v.kautionArt||"geld");PAD.padV.setzen(v.unterschrift||"");setzeAn("avbHaken",!!v.avb);
+  preisAuto=false;kmAuto=false;restVonHand=true;summe();tipps();entwurfAus=false;$("stamm").textContent="";standMerken();
+  $("vSenden").classList.remove("versteckt");$("vSenden").onclick=e=>{e.preventDefault();teilen(aktuell()||v)}}
+// Nicht gespeicherte Änderungen: Stand beim Laden/Speichern merken, beim Tippen vergleichen, in der Schrittleiste zeigen
+let STAND="";
+function standMerken(){STAND=JSON.stringify(entwurfSchnappschuss().f)}
+function ungespeichert(){if(NEU||!aktuell())return false;return JSON.stringify(entwurfSchnappschuss().f)!==STAND}
+function ungespeichertZeigen(){const el=$("ungesp");if(!el)return;el.classList.toggle("versteckt",!ungespeichert())}
+
+/* ---------- Schrittleiste: wo stehe ich bei diesem Vertrag ---------- */
+function bearbeitet(){return SICHT==="vertrag"&&nrVonHand&&!!aktuell()&&$("nr").value.trim()===WAHL}
+function schritte(){const el=$("schritte");if(!el)return;
+  const formular=["vertrag","uebergabe","rueckgabe","schaden","ueberlassung"].includes(SICHT);
+  $("wahlKarte").classList.toggle("versteckt",!formular);if(!formular)return;
+  const v=SICHT==="vertrag"?(bearbeitet()?aktuell():null):aktuell();
+  $("wahl").classList.toggle("versteckt",SICHT==="vertrag"||!vorgaenge().length);
+  $("wahlLeer").classList.toggle("versteckt",SICHT==="vertrag"||vorgaenge().length>0);
+  if(!v){el.innerHTML='<div class="sKopf"><div><b>Neuer Mietvertrag</b><i>Schritt 1 von 3. Danach kommen Übergabe und Rückgabe, jedes mit einem Tipp.</i></div></div>'+
+    '<div class="schritt"><div class="an">1 Vertrag</div><div>2 Übergabe</div><div>3 Rückgabe</div></div>';return}
+  const st=[["vertrag","Vertrag",true],["uebergabe","Übergabe",!!v.ueb],["rueckgabe","Rückgabe",v.status==="zurück"]];
+  el.innerHTML='<div class="sKopf"><div><b>'+esc(v.nr)+"  "+esc(v.name)+'</b><i>'+esc(v.auto)+", "+de(v.vonD)+" bis "+de(v.bisD)+(v.status==="zurück"?", zurückgegeben":"")+'</i></div>'+
+    (SICHT!=="vertrag"?'<a href="#" id="sAlle">alle Verträge</a>':"")+'</div>'+
+    '<div class="schritt">'+st.map(([x,t,ok],i)=>'<div class="'+(ok?"ok":"")+(SICHT===x?" an":"")+'" data-s="'+x+'">'+(ok?"✓ ":(i+1)+" ")+t+'</div>').join("")+'</div>'+
+    (SICHT==="vertrag"?'<div id="ungesp" class="versteckt" style="margin-top:8px;color:var(--rot);font-size:13px;font-weight:800">Änderungen noch nicht gespeichert. Unten „Speichern“ tippen.</div>'+
+      '<a href="#" id="sNeu" class="hinweis" style="display:block;margin-top:8px">Das ist der gespeicherte Vertrag '+esc(v.nr)+'. Einen anderen, neuen Vertrag anfangen?</a>':"");
+  [...el.querySelectorAll("[data-s]")].forEach(c=>c.onclick=()=>{if(c.dataset.s==="vertrag"){if(bearbeitet())return;vertragLaden(v)}zeige(c.dataset.s)});
+  const n=$("sNeu");if(n)n.onclick=e=>{e.preventDefault();if(ungespeichert()&&!confirm("Deine Änderungen an Vertrag "+v.nr+" sind noch nicht gespeichert. Trotzdem einen neuen Vertrag anfangen?"))return;leeren();schritte();meldung("Neuer Vertrag, leeres Formular")};
+  ungespeichertZeigen();
+  const a=$("sAlle");if(a)a.onclick=e=>{e.preventDefault();AUF=v.nr;zeige("vertraege")}}
+
+/* ---------- Nach dem Speichern: was jetzt? (ein Blatt von unten, nichts springt mehr von selbst) ---------- */
+function nachSheet(titel,unter,aktionen){$("nach").innerHTML='<h3>'+esc(titel)+'</h3><div class="unter">'+esc(unter)+'</div>'+
+    aktionen.map((a,i)=>'<div class="knopf'+(a.voll?" voll":"")+(a.wa?" wa":"")+'" data-i="'+i+'">'+esc(a.t)+'</div>').join("")+'<a href="#" class="zu" id="nachZu">Schließen, ich bleibe hier</a>';
+  $("nach").classList.remove("versteckt");$("nachBg").classList.remove("versteckt");
+  const zu=()=>{$("nach").classList.add("versteckt");$("nachBg").classList.add("versteckt")};
+  [...$("nach").querySelectorAll("[data-i]")].forEach(k=>k.onclick=()=>{const a=aktionen[+k.dataset.i];if(!a.bleibt)zu();a.f()});
+  $("nachZu").onclick=e=>{e.preventDefault();zu()};$("nachBg").onclick=zu}
+const DRUCK_BEIDE=v=>{const u=aendere(x=>{if(!x.ueb)x.ueb=uebStandard(x)})||v;lerneAuto(u.auto,{reifen:u.ueb.reifen,felgen:u.ueb.felgen,marke:u.ueb.marke});oeffnen(()=>fuelleVertrag(aktuell()||u))};
+const HEUTE=()=>{AUF=null;zeige("heute")};
+let NEU=true;   // true = das Formular ist ein neuer Vertrag; false = ein gespeicherter Vertrag ist geladen (zurück zeigt ihn wieder, nichts geht verloren)
 
 /* ---------- Reiter ---------- */
-function leeren(){GELADEN={};$("s_vertrag").querySelectorAll("input,textarea").forEach(e=>e.value="");
+function leeren(){NEU=true;GELADEN={};$("s_vertrag").querySelectorAll("input,textarea").forEach(e=>e.value="");
   $("vonU").value="10:00";$("bisU").value="10:00";$("mehrkm").value="3";$("kautB").value="1.950";$("sb").value="7.500";
   ["z_anz","z_rest","z_kaut"].forEach(g=>gs(g,""));gs("k_art","geld");$("stamm").textContent="";
-  PAD.padV.setzen("");setzeAn("avbHaken",false);$("vSenden").classList.add("versteckt");AUTO=null;ANFRAGE=null;restVonHand=false;nrVonHand=false;preisAuto=true;kmAuto=true;leerNaechstes=false;$("nr").value=neueNr();zeichneAutos();summe();tipps()}
+  PAD.padV.setzen("");setzeAn("avbHaken",false);$("vSenden").classList.add("versteckt");AUTO=null;ANFRAGE=null;restVonHand=false;nrVonHand=false;preisAuto=true;kmAuto=true;$("nr").value=neueNr();zeichneAutos();summe();tipps()}
 function eintrag(t,u,knopf,spaet){return'<div class="heute'+(spaet?" spaet":"")+'"><div><b>'+t+'</b><i>'+u+'</i></div><span>'+knopf+'</span></div>'}
 // Texte für WhatsApp (E2). Baran kann sie hier anpassen, sie werden nirgends sonst gebraucht.
 const ERINNERUNG=v=>"Hallo "+v.name+",\n\nkurze Erinnerung an Ihre Abholung morgen, "+de(v.vonD)+(v.vonU?" um "+v.vonU+" Uhr":"")+", bei Mietix in der Peter-Sander-Straße 43 B, 55252 Mainz-Kastel.\n\nBitte mitbringen:\n- Personalausweis\n- Führerschein"+
@@ -858,20 +951,20 @@ function zeichneHeute(){const h=iso(new Date()),m=plusTage(h,1),l=vorgaenge().fi
   $("hAnf").innerHTML=anf.length?anf.map(x=>eintrag(x.name||"ohne Namen",[x.auto,de(x.von)].filter(Boolean).join(", "),"Vertrag")).join(""):'<div class="leer">Alle gebuchten Anfragen haben einen Vertrag.</div>';
   [...$("hAnf").children].forEach((e,i)=>e.onclick=()=>{leeren();uebernehmeAnfrage(anf[i]);zeige("vertrag")});
 }
-function zeige(s){SICHT=s;["heute","vertrag","uebergabe","rueckgabe","schaden","ueberlassung"].forEach(x=>$("s_"+x).classList.toggle("versteckt",x!==s));
+function zeige(s){SICHT=s;["heute","vertraege","vertrag","uebergabe","rueckgabe","schaden","ueberlassung"].forEach(x=>$("s_"+x).classList.toggle("versteckt",x!==s));
   [...$("reiter").children].forEach(c=>{c.classList.toggle("an",c.dataset.s===s);
     if(c.dataset.s===s)try{c.scrollIntoView({inline:"center",block:"nearest",behavior:"smooth"})}catch(e){}});
-  $("wahlKarte").classList.toggle("versteckt",s==="vertrag"||s==="heute");$("haupt").textContent=KNOPF[s];
-  $("haupt2").classList.toggle("versteckt",s!=="vertrag");
+  $("haupt").textContent=KNOPF[s];
   if(s==="heute")zeichneHeute();
-  else if(s==="vertrag"){if(leerNaechstes)leeren();zeichneAnfragen();zeichneAlle();if(!$("name").value)$("nr").value=neueNr()}
+  else if(s==="vertraege")zeichneAlle();
+  else if(s==="vertrag"){if(!NEU&&!$("name").value.trim()&&aktuell())vertragLaden(aktuell());zeichneAnfragen();if(!$("name").value)$("nr").value=neueNr()}
   else{wahlFuellen();formularLaden()}
-  window.scrollTo(0,0)}
+  schritte();window.scrollTo(0,0)}
 [...$("reiter").children].forEach(c=>c.onclick=()=>zeige(c.dataset.s));
 
 /* ---------- Start ---------- */
 $("nr").value=neueNr();$("heuteText").textContent=heuteDe();$("kautB").value="1.950";$("sb").value="7.500";
-zeichneAutos();zeichneAnfragen();kundenListe();zeichneAlle();entwurfLaden();
+zeichneAutos();zeichneAnfragen();kundenListe();entwurfLaden();
 fetch("https://barankohler.github.io/mietix-preise/preise.json",{cache:"no-store"}).then(r=>r.ok?r.json():null)
   .then(p=>{if(p&&p.cars){D=p;zeichneAutos();
     if(AUTO){const k=autoPreis(AUTO);if(k&&k.kaution&&$("kautB").value==="1.950")$("kautB").value=wie(k.kaution)}   // Kaution je Auto, auch wenn die Preisdatei später kam
@@ -886,8 +979,8 @@ setTimeout(zeichneHeute,0);   // erst wenn der Abgleich-Baustein geladen ist
   if(nr&&vorgaenge().some(v=>v.nr===nr))WAHL=nr;if(z&&$("s_"+z))zeige(z)})();
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&SICHT==="heute")zeichneHeute()});
 // Neuer Stand von einem anderen Gerät: Listen neu zeichnen, ein angefangenes Formular bleibt wie es ist
-window.addEventListener("mietix-abgleich",()=>{kundenListe();zeichneAlle();
-  if(SICHT==="heute")zeichneHeute();else if(SICHT!=="vertrag")wahlFuellen();
+window.addEventListener("mietix-abgleich",()=>{kundenListe();if(SICHT==="vertraege")zeichneAlle();
+  if(SICHT==="heute")zeichneHeute();else if(SICHT!=="vertrag"&&SICHT!=="vertraege"){wahlFuellen();schritte()}
   if(SICHT==="vertrag"&&!$("name").value&&!nrVonHand)$("nr").value=neueNr()});
 </script>
 <script>/* Mietix Kundenstamm (seit 28.10.2026): ein Kunde, einmal gespeichert, überall gefunden.
