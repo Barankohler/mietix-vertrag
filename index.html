@@ -101,6 +101,7 @@ details summary{cursor:pointer;font-weight:800;color:var(--grau);font-size:14px}
   <div class="karte"><h2>Abholen</h2><div id="hAb"></div></div>
   <div class="karte"><h2>Zurück</h2><div id="hZu"></div></div>
   <div class="karte versteckt" id="hKautKarte"><h2>Kaution zurückgeben</h2><div id="hKaut"></div></div>
+  <div class="karte versteckt" id="hMahnKarte"><h2>Miete noch offen</h2><div id="hMahn"></div></div>
   <div class="karte"><h2>Gebucht, noch kein Vertrag</h2><div id="hAnf"></div></div>
 </section>
 
@@ -675,6 +676,12 @@ function leeren(){$("s_vertrag").querySelectorAll("input,textarea").forEach(e=>e
   ["z_anz","z_rest","z_kaut"].forEach(g=>gs(g,""));gs("k_art","geld");$("stamm").textContent="";
   AUTO=null;ANFRAGE=null;restVonHand=false;nrVonHand=false;preisAuto=true;kmAuto=true;leerNaechstes=false;$("nr").value=neueNr();zeichneAutos();summe();tipps()}
 function eintrag(t,u,knopf,spaet){return'<div class="heute'+(spaet?" spaet":"")+'"><div><b>'+t+'</b><i>'+u+'</i></div><span>'+knopf+'</span></div>'}
+// Texte für WhatsApp (E2). Baran kann sie hier anpassen, sie werden nirgends sonst gebraucht.
+const ERINNERUNG=v=>"Hallo "+v.name+",\n\nkurze Erinnerung an Ihre Abholung morgen, "+de(v.vonD)+(v.vonU?" um "+v.vonU+" Uhr":"")+", bei Mietix in der Peter-Sander-Straße 43 B, 55252 Mainz-Kastel.\n\nBitte mitbringen:\n- Personalausweis\n- Führerschein"+
+  (((v.zahlung||{}).kaut||{}).am?"":"\n- Kaution "+eur(zahl(((v.zahlung||{}).kaut||{}).betrag)||0)+" €")+(((v.zahlung||{}).rest||{}).am?"":"\n- Restbetrag "+eur(zahl(((v.zahlung||{}).rest||{}).betrag)||0)+" €")+"\n\nBis morgen!\nIhr Mietix-Team";
+const MAHNUNG=v=>"Hallo "+v.name+",\n\nfür Ihre Miete "+v.auto+" vom "+de(v.vonD)+" bis "+de(v.bisD)+" ist noch ein Restbetrag von "+eur(zahl(((v.zahlung||{}).rest||{}).betrag)||0)+" € offen.\n\nBitte überweisen Sie den Betrag in den nächsten Tagen:\nMietix Sportwagenvermietung\nIBAN DE59 5105 0015 0997 0123 49\nVerwendungszweck: Vertrag "+v.nr+"\n\nVielen Dank!\nIhr Mietix-Team";
+const waNr=n=>{let s=String(n||"").replace(/[^0-9+]/g,"");if(!s)return"";if(s.startsWith("+"))s=s.slice(1);else if(s.startsWith("00"))s=s.slice(2);else if(s.startsWith("0"))s="49"+s.slice(1);return s.length>=8?s:""};
+function waOeffnen(v,text){const n=waNr(v.telefon);window.open("https://wa.me/"+(n?n+"?text=":"?text=")+encodeURIComponent(text),"_blank")}
 function zeichneHeute(){const h=iso(new Date()),m=plusTage(h,1),l=vorgaenge().filter(v=>v.status!=="zurück");
   const ab=l.filter(v=>!v.ueb&&v.vonD<=m).sort((a,b)=>(a.vonD+a.vonU).localeCompare(b.vonD+b.vonU));
   const zu=l.filter(v=>v.ueb&&v.bisD<=m).sort((a,b)=>(a.bisD+a.bisU).localeCompare(b.bisD+b.bisU));
@@ -682,6 +689,15 @@ function zeichneHeute(){const h=iso(new Date()),m=plusTage(h,1),l=vorgaenge().fi
   $("hAb").innerHTML=ab.length?ab.map(v=>eintrag(v.name,v.auto+", "+tag(v.vonD)+" "+(v.vonU||""),"Übergabe",v.vonD<h)).join(""):'<div class="leer">Heute und morgen holt niemand ab.</div>';
   $("hZu").innerHTML=zu.length?zu.map(v=>eintrag(v.name,v.auto+", "+tag(v.bisD)+" "+(v.bisU||""),"Rückgabe",v.bisD<h)).join(""):'<div class="leer">Heute und morgen kommt nichts zurück.</div>';
   [...$("hAb").children].forEach((e,i)=>e.onclick=()=>{WAHL=ab[i].nr;zeige("uebergabe")});
+  // Erinnerung am Vortag: bei Abholungen von morgen ein grüner Knopf, öffnet WhatsApp mit dem Text
+  [...$("hAb").children].forEach((e,i)=>{const v=ab[i];if(v.vonD!==m||v.erinnert)return;
+    const k=document.createElement("span");k.textContent="Erinnerung";k.style.cssText="background:#25D366;margin-left:6px";
+    k.onclick=ev=>{ev.stopPropagation();waOeffnen(v,ERINNERUNG(v));const l=vorgaenge(),x=l.find(y=>y.nr===v.nr);if(x){x.erinnert=h;schreib("mietixVorgaenge",l)}meldung("Erinnerung geöffnet");setTimeout(zeichneHeute,800)};e.appendChild(k)});
+  // Miete noch offen: Abholung war schon, Rest nicht als bezahlt eingetragen
+  const mahn=vorgaenge().filter(v=>v.vonD&&v.vonD<h&&!((v.zahlung||{}).rest||{}).am&&zahl(((v.zahlung||{}).rest||{}).betrag));
+  $("hMahnKarte").classList.toggle("versteckt",!mahn.length);
+  $("hMahn").innerHTML=mahn.map(v=>eintrag(v.name,v.auto+", Rest "+eur(zahl(v.zahlung.rest.betrag))+" € seit "+de(v.vonD)+(v.gemahnt?", erinnert am "+de(v.gemahnt):""),"Erinnern",!v.gemahnt)).join("");
+  [...$("hMahn").children].forEach((e,i)=>e.onclick=()=>{const v=mahn[i];waOeffnen(v,MAHNUNG(v));const l=vorgaenge(),x=l.find(y=>y.nr===v.nr);if(x){x.gemahnt=h;schreib("mietixVorgaenge",l)}setTimeout(zeichneHeute,800)});
   [...$("hZu").children].forEach((e,i)=>e.onclick=()=>{WAHL=zu[i].nr;zeige("rueckgabe")});
   // Kaution zurückgeben: zurückgegeben, Kaution war da, noch nicht zurück. Ein Tipp = komplett zurück, heute.
   const kaut=vorgaenge().filter(v=>v.status==="zurück"&&((v.zahlung||{}).kaut||{}).am&&!v.kautionRueck);
