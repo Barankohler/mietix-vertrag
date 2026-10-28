@@ -377,8 +377,8 @@ function padMachen(id){const el=$(id),c=el.querySelector("canvas"),ctx=c.getCont
 const TITEL={padV:"Unterschrift Mieter (Mietvertrag)",padU:"Unterschrift Mieter (Übergabe)",padR:"Unterschrift Mieter (Rückgabe)",padS:"Unterschrift Mieter (Schaden)",padSV:"Unterschrift Mieter (Sicherungsvertrag)",padVM:"Meine Unterschrift (Vermieter)"};
 let UG=null;
 function grossOeffnen(padId){const ug=$("ug"),c=$("ugCanvas");ug.classList.remove("versteckt");$("ugTitel").textContent=TITEL[padId]||"Unterschrift";
-  requestAnimationFrame(()=>{c.width=c.clientWidth*2;c.height=c.clientHeight*2;const ctx=c.getContext("2d");ctx.lineWidth=6;ctx.lineCap="round";ctx.lineJoin="round";ctx.strokeStyle="#1a1a1a";
-    UG={padId,ctx,c,hat:false,malt:false,minX:1e9,maxX:0,minY:1e9,maxY:0}});
+  c.width=Math.max(300,c.clientWidth)*2;c.height=Math.max(200,c.clientHeight)*2;const ctx=c.getContext("2d");ctx.lineWidth=6;ctx.lineCap="round";ctx.lineJoin="round";ctx.strokeStyle="#1a1a1a";
+  UG={padId,ctx,c,hat:false,malt:false,minX:1e9,maxX:0,minY:1e9,maxY:0};
   try{document.body.style.overflow="hidden"}catch(e){}}
 function ugPos(e){const r=UG.c.getBoundingClientRect(),p=e.touches?e.touches[0]:e;return[(p.clientX-r.left)*UG.c.width/r.width,(p.clientY-r.top)*UG.c.height/r.height]}
 $("ugCanvas").addEventListener("pointerdown",e=>{if(!UG)return;UG.malt=true;UG.hat=true;const[x,y]=ugPos(e);UG.ctx.beginPath();UG.ctx.moveTo(x,y);e.preventDefault()});
