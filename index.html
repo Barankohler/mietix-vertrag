@@ -190,10 +190,6 @@ details summary{cursor:pointer;font-weight:800;color:var(--grau);font-size:14px}
       <div class="zwei"><div><label>Betrag €</label><input id="kautB" inputmode="decimal"></div>
         <div><label>Bezahlt am</label><input id="kautAm" type="date"></div></div>
       <label>Zahlart</label><div class="chips" data-gruppe="z_kaut"><div class="chip" data-v="bar">Bar</div><div class="chip" data-v="ec">EC-Karte</div><div class="chip" data-v="kredit">Kreditkarte</div><div class="chip" data-v="ueberweisung">Überweisung</div></div></div>
-    <div class="zeile"><b>Alles heute bezahlt mit</b>
-      <div class="chips" id="allesBez"><div class="chip" data-v="bar">Bar</div><div class="chip" data-v="ec">EC-Karte</div>
-        <div class="chip" data-v="kredit">Kreditkarte</div><div class="chip" data-v="ueberweisung">Überweisung</div></div>
-      <div class="hinweis">Kreuzt bei jeder Zeile mit Betrag die Zahlart an und trägt heute ein. Einzeln geht es oben.</div></div>
   </div>
 
   <div class="karte">
@@ -253,7 +249,11 @@ details summary{cursor:pointer;font-weight:800;color:var(--grau);font-size:14px}
     <div class="zwei"><div><label>Gefahrene Kilometer</label><input id="rGef" inputmode="numeric"></div>
       <div><label>davon Mehrkilometer</label><input id="rMehr" inputmode="numeric"></div></div>
     <div class="ergebnis" id="rErgebnis">Kilometerstand eintragen, gefahrene km und Mehrkilometer rechnen sich.</div>
-    <a class="knopf versteckt" id="rEndab" target="_blank">Endabrechnung an den Kunden (alles schon ausgefüllt)</a>
+    <div class="zwei"><div><label>Preis je Mehrkilometer €</label><input id="eSatz" inputmode="decimal"></div>
+      <div><label>Aufbereitung</label><select id="eAuf"><option value="">Keine</option><option value="20">Klein, 20 €</option><option value="99">Mittel, 99 €</option><option value="199">Groß, 199 €</option><option value="frei">Eigener Betrag</option></select></div></div>
+    <div class="zwei versteckt" id="eAufFreiW"><div><label>Aufbereitung, eigener Betrag €</label><input id="eAufFrei" inputmode="decimal"></div><div></div></div>
+    <div class="ergebnis" id="eErgebnis">Endabrechnung: noch nichts zu berechnen.</div>
+    <a class="knopf" id="eKopieren">Endabrechnung für WhatsApp kopieren</a>
     <div class="drei"><div><label>Datum Rückgabe</label><input id="rD" type="date"></div><div><label>Uhrzeit Rückgabe</label><input id="rU" type="time"></div></div>
     <label>Ort der Rückgabe</label><input id="rOrt">
   </div>
@@ -446,10 +446,7 @@ const plusTage=(isoS,n)=>{const d=new Date(isoS+"T12:00");d.setDate(d.getDate()+
 [...$("schnellDauer").children].forEach(c=>c.onclick=()=>{
   if(c.dataset.d==="we"){const h=iso(new Date()),w=new Date().getDay();const fr=plusTage(h,(5-w+7)%7);$("vonD").value=fr;$("bisD").value=plusTage(fr,3)}
   else{if(!$("vonD").value)$("vonD").value=iso(new Date());$("bisD").value=plusTage($("vonD").value,+c.dataset.d)}tipps()});
-// Alles heute bezahlt: ein Klick für alle Zeilen mit Betrag
-[...$("allesBez").children].forEach(c=>c.onclick=()=>{
-  [["z_anz","anzB","anzAm"],["z_rest","restB","restAm"],["z_kaut","kautB","kautAm"]].forEach(([g,b,d])=>{
-    if(zahl($(b).value)){gs(g,c.dataset.v);$(d).value=iso(new Date())}});meldung("Alles bezahlt eingetragen")});
+// „Alles heute bezahlt mit“ am 28.10.2026 auf Barans Wunsch entfernt
 function gesamt(){return (zahl($("preis1").value)||0)+(zahl($("preis2").value)||0)}
 $("restB").addEventListener("input",()=>restVonHand=true);
 function summe(){const g=gesamt();$("gesamtAnzeige").textContent=eur(g)+" €";
@@ -696,8 +693,10 @@ function formularLaden(){const v=aktuell();if(!v)return;
     $("rD").value=r.datum||iso(new Date());$("rU").value=r.uhr||jetztUhr();$("rOrt").value=r.ort||ORT;
     protokollSetzen("r",Object.assign({aussen:"sauber",innen:"sauber",tank:"voll",gegen:"ja",fotos:"ja",
       reifen:u.reifen,felgen:u.felgen,reserve:u.reserve,marke:u.marke,profil:u.profil},v.rueck||{}));
-    gs("r_auff",r.auff||"nein");$("rBem").value=r.bem||"";rRechne(false);PAD.padR.setzen(r.unterschrift||"");
-    $("rEndab").classList.toggle("versteckt",!v.rueck);$("rEndab").href="https://barankohler.github.io/mietix-endabrechnung/?vertrag="+encodeURIComponent(v.nr)}
+    gs("r_auff",r.auff||"nein");$("rBem").value=r.bem||"";PAD.padR.setzen(r.unterschrift||"");
+    const ea=v.endabrechnung||{};$("eSatz").value=ea.satz!=null?eur(ea.satz):(v.mehrkm||"1,99");
+    $("eAuf").value=ea.aufWahl!=null?ea.aufWahl:"";$("eAufFrei").value=ea.aufWahl==="frei"&&ea.auf?eur(ea.auf):"";
+    rRechne(false)}
   if(SICHT==="schaden"){const s=v.schaden||{};$("sInfo").innerHTML=mieterInfo(v)+"<br>"+fzInfo(v)+"<br>FIN: "+(v.fin||"");
     $("sKm").value=kmText(s.km||(v.rueck&&v.rueck.km)||"");$("sD").value=s.datum||iso(new Date());$("sU").value=s.uhr||jetztUhr();
     $("sOrt").value=s.ort||"Peter-Sander-Straße 43 B";$("sOrtFz").value=s.ortFz||"";$("sArt").value=s.art||"";
@@ -710,13 +709,35 @@ function formularLaden(){const v=aktuell();if(!v)return;
     $("vModell").value=s.modell||"";$("vKz").value=s.kz||"";$("vFin").value=s.fin||"";$("vWert").value=s.wert||"";
     setzeAn("vSchein",s.schein);setzeAn("vBrief",s.brief);$("vSchluessel").value=s.schluessel||"";PAD.padSV.setzen(s.unterschrift||"");setzeAn("svBestaetigt",s.bestaetigt)}}
 function rRechne(schreiben){const v=aktuell();if(!v)return;
-  const km=zahl($("rKm").value),ab=zahl($("rKmAb").value),frei=zahl(v.freikm),satz=zahl(v.mehrkm)||0;
+  const km=zahl($("rKm").value),ab=zahl($("rKmAb").value),frei=zahl(v.freikm),satz=zahl($("eSatz").value)||zahl(v.mehrkm)||0;
   if(km===null||ab===null){$("rErgebnis").textContent="Kilometerstand eintragen, gefahrene km und Mehrkilometer rechnen sich.";return}
   const gef=Math.max(0,km-ab),mehr=frei===null?0:Math.max(0,gef-frei);
   if(schreiben!==false){$("rGef").value=kmText(gef);$("rMehr").value=kmText(mehr)}
   $("rErgebnis").innerHTML=kmText(gef)+" km gefahren"+(frei!==null?", inklusive waren "+kmText(frei)+" km.":".")+"<br>"+
-    (mehr?"<span style='color:var(--rot)'>"+kmText(mehr)+" Mehrkilometer × "+eur(satz)+" € = "+eur(mehr*satz)+" €</span>":"Keine Mehrkilometer.")}
+    (mehr?"<span style='color:var(--rot)'>"+kmText(mehr)+" Mehrkilometer × "+eur(satz)+" € = "+eur(mehr*satz)+" €</span>":"Keine Mehrkilometer.");
+  eRechne()}
 $("rKm").addEventListener("input",()=>rRechne(true));$("rKmAb").addEventListener("input",()=>rRechne(true));
+
+/* ---------- Kleine Endabrechnung direkt in der Rückgabe ---------- */
+function eAufBetrag(){const w=$("eAuf").value;$("eAufFreiW").classList.toggle("versteckt",w!=="frei");
+  return w==="frei"?(zahl($("eAufFrei").value)||0):(parseFloat(w)||0)}
+function eWerte(){const mehr=zahl($("rMehr").value)||0,satz=zahl($("eSatz").value)||0,auf=eAufBetrag();
+  return{mehr,satz,auf,kmB:mehr*satz,summe:mehr*satz+auf}}
+function eRechne(){const e=eWerte();
+  $("eErgebnis").innerHTML="Endabrechnung:<br>"
+    +(e.mehr?kmText(e.mehr)+" Mehrkilometer × "+eur(e.satz)+" € = "+eur(e.kmB)+" €<br>":"Keine Mehrkilometer.<br>")
+    +(e.auf?"Aufbereitung: "+eur(e.auf)+" €<br>":"")
+    +(e.summe?"<b>Gesamt: "+eur(e.summe)+" €</b>":"Nichts nachzuberechnen.")}
+$("eSatz").addEventListener("input",()=>rRechne(false));$("eAufFrei").addEventListener("input",eRechne);
+$("eAuf").addEventListener("change",eRechne);$("rMehr").addEventListener("input",eRechne);$("rGef").addEventListener("input",eRechne);
+$("eKopieren").onclick=async()=>{const v=aktuell();if(!v)return;
+  const e=eWerte(),gef=zahl($("rGef").value)||0,frei=zahl(v.freikm);
+  let t="*Endabrechnung "+(v.auto||"")+"*\n";
+  t+="Gefahren: "+kmText(gef)+" km"+(frei!==null?" (inklusive: "+kmText(frei)+" km)":"")+"\n";
+  t+=e.mehr?("Mehrkilometer: "+kmText(e.mehr)+" km × "+eur(e.satz)+" € = "+eur(e.kmB)+" €\n"):"Mehrkilometer: keine\n";
+  if(e.auf)t+="Aufbereitung: "+eur(e.auf)+" €\n";
+  t+=e.summe?("*Gesamt: "+eur(e.summe)+" €*"):"*Nichts nachzuberechnen.*";
+  try{await navigator.clipboard.writeText(t);meldung("Endabrechnung kopiert, einfach in WhatsApp einfügen.")}catch(err){alert(t)}};
 
 /* ---------- Hauptknopf: speichern und das Formular dieses Reiters drucken ---------- */
 const KNOPF={heute:"Neuer Mietvertrag",vertrag:"Vertrag + Übergabe drucken",uebergabe:"Übergabeprotokoll drucken",rueckgabe:"Rückgabeprotokoll drucken",
@@ -758,10 +779,10 @@ $("haupt").onclick=()=>{
   if(SICHT==="rueckgabe"){if(!$("rKm").value.trim()){alert("Bitte den Kilometerstand bei Rückgabe eintragen.");return}
     const v=aendere(v=>{v.rueck=Object.assign(protokollLesen("r"),{km:$("rKm").value.trim(),gefahren:$("rGef").value.trim(),mehrkm:$("rMehr").value.trim(),
       datum:$("rD").value,uhr:$("rU").value,ort:$("rOrt").value.trim(),auff:gw("r_auff"),bem:$("rBem").value.trim(),ortDatum:heuteDe(),unterschrift:PAD.padR.wert(),unterschriftVermieter:PAD.padR.wert()?vermieterUnterschrift():""});
-      if($("rKmAb").value.trim()){v.ueb=v.ueb||{};v.ueb.km=$("rKmAb").value.trim()}v.status="zurück"});
+      if($("rKmAb").value.trim()){v.ueb=v.ueb||{};v.ueb.km=$("rKmAb").value.trim()}v.status="zurück";
+      const e=eWerte();v.endabrechnung={mehrkm:e.mehr,satz:e.satz,aufWahl:$("eAuf").value,auf:e.auf,summe:e.summe}});
     lerneAuto(v.auto,{km:v.rueck.km,reifen:v.rueck.reifen,felgen:v.rueck.felgen,marke:v.rueck.marke,profil:v.rueck.profil});
-    oeffnen(()=>fuelleRueckgabe(v));meldung("Rückgabe gespeichert. Unten: Endabrechnung an den Kunden.");
-    $("rEndab").classList.remove("versteckt");$("rEndab").href="https://barankohler.github.io/mietix-endabrechnung/?vertrag="+encodeURIComponent(v.nr);
+    oeffnen(()=>fuelleRueckgabe(v));meldung("Rückgabe gespeichert. Endabrechnung steht oben zum Kopieren.");
     if(v.rueck.auff==="ja")weiter("schaden");return}
   if(SICHT==="schaden"){const v=aendere(v=>{v.schaden={km:$("sKm").value.trim(),datum:$("sD").value,uhr:$("sU").value,ort:$("sOrt").value.trim(),
       ortFz:$("sOrtFz").value.trim(),art:$("sArt").value.trim(),besch:$("sBesch").value.trim(),fotos:gw("s_fotos"),besichtigt:gw("s_besichtigt"),
