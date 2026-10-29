@@ -7,7 +7,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <title>Mietix Mietvertrag</title>
 <style>
-input,select,textarea{font-size:16px;font-family:inherit}
+input,select,textarea{font-size:16px;font-family:inherit;max-width:100%;box-sizing:border-box}input[type=date],input[type=time],input[type=datetime-local]{-webkit-appearance:none;appearance:none;min-width:0;max-width:100%;min-height:44px}select{min-width:0}
 
 :root{--rot:#C4161C;--text:#2E2E30;--rand:#E4E4E7;--grau:#6F6F72;--bg:#F6F6F7;--gruen:#1B8A4B;--hell:#FDECEC}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -98,7 +98,7 @@ details summary{cursor:pointer;font-weight:800;color:var(--grau);font-size:14px}
 .schritt div.ok{background:#E8F6EE;color:var(--gruen)}.schritt div.an{outline:2px solid var(--rot);color:var(--rot)}.schritt div.ok.an{color:var(--gruen)}
 .sKopf{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}.sKopf b{font-size:16px;display:block}.sKopf i{font-style:normal;font-size:13px;color:var(--grau)}
 .sKopf a{font-size:13px;color:var(--grau);white-space:nowrap;font-weight:700}
-#wahl.klein{margin-top:8px;font-size:15px;min-height:42px;padding:8px 12px}
+#wahl.klein{margin-top:8px;font-size:16px;min-height:44px;padding:8px 12px}
 .vorgang{cursor:pointer}.vorgang.auf{border-color:var(--rot)}
 .haken{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .haken span{font-size:12px;font-weight:800;border-radius:8px;padding:4px 8px;background:var(--bg);color:var(--grau)}
@@ -152,7 +152,7 @@ h2.gruppe{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(-
   <div class="karte">
     <h2>Mieter</h2>
     <div id="anfragen"></div>
-    <label>Vor- und Nachname *</label><input id="name" autocomplete="off" placeholder="Name, Telefon oder Geburtsdatum tippen, Kunde antippen">
+    <label>Vor- und Nachname *</label><input id="name" autocomplete="off" placeholder="Name, Telefon oder Geburtstag">
     <div class="hinweis" id="stamm"></div>
     <label>Anschrift</label><input id="anschrift">
     <div class="zwei">
@@ -239,7 +239,7 @@ h2.gruppe{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(-
 <!-- ================= VERTRÄGE: alle auf einen Blick, mit Stand ================= -->
 <section id="s_vertraege" class="versteckt">
   <div class="karte"><h2>Verträge</h2>
-    <input id="vSuche" type="search" autocomplete="off" placeholder="Suchen: Name, Nummer, Auto, Kennzeichen">
+    <input id="vSuche" type="search" autocomplete="off" placeholder="Name, Nummer oder Auto">
     <div class="hinweis">Antippen zeigt, was zu dem Vertrag noch zu tun ist. Jeder gespeicherte Vertrag steht hier, auf allen Geräten.</div></div>
   <div id="alleListe"></div>
   <div class="karte" style="margin-top:16px"><h2>Meine Unterschrift (Vermieter)</h2>
