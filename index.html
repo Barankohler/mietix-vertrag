@@ -121,7 +121,7 @@ h2.gruppe{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(-
     <div data-s="uebergabe">Übergabeprotokoll</div>
     <div data-s="rueckgabe">Rückgabeprotokoll</div>
     <div data-s="schaden">Schadensanerkennung</div>
-    <div data-s="ueberlassung">Überlassungserklärung</div>
+    <div data-s="ueberlassung" class="versteckt">Überlassungserklärung</div>
   </div>
 </header>
 <main>
@@ -221,7 +221,7 @@ h2.gruppe{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(-
     <label>Kaution hinterlegt in Form von</label>
     <div class="chips" data-gruppe="k_art"><div class="chip an" data-v="geld">Geldkaution (Betrag siehe Zahlungen)</div><div class="chip" data-v="fahrzeug">Fahrzeug als Sicherheit</div></div>
     <label>Fahrzeugdaten der Sicherheit (Modell, Kennzeichen)</label><input id="kfz">
-    <div class="hinweis">Bei Fahrzeug als Sicherheit: im Reiter Überlassungserklärung den Sicherungsvertrag drucken.</div>
+    <div class="hinweis">Bei Fahrzeug als Sicherheit kommt die Überlassungserklärung bei der Übergabe dran, mit diesen Daten schon eingetragen.</div>
     <label>Selbstbeteiligung im Schadensfall €</label><input id="sb" inputmode="decimal">
   </div>
 
@@ -250,6 +250,9 @@ h2.gruppe{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(-
 
 <!-- ================= ÜBERGABEPROTOKOLL (wie Seite 2) ================= -->
 <section id="s_uebergabe" class="versteckt">
+  <div class="karte versteckt" id="uSvKarte"><h2>Auto des Kunden als Kaution</h2>
+    <div class="hinweis" id="uSvStand" style="margin-top:0"></div>
+    <div class="chips" style="margin-top:10px"><div class="chip an" id="uSvOeffnen">Überlassungserklärung ausfüllen</div></div></div>
   <div class="karte"><h2>Fahrzeug und Übergabe</h2>
     <div class="info" id="uFz"></div>
     <label>Kilometerstand (km)</label><input id="uKm" inputmode="numeric">
@@ -319,6 +322,7 @@ h2.gruppe{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(-
 
 <!-- ================= ÜBERLASSUNGSERKLÄRUNG ================= -->
 <section id="s_ueberlassung" class="versteckt">
+  <div class="chips" style="margin:0 0 10px"><div class="chip" id="svZurueck">‹ Zurück zur Übergabe</div></div>
   <div class="karte"><h2>Vertragsparteien</h2><div class="info" id="vInfo"></div>
     <div class="hinweis">Gedruckt wird euer Sicherungsvertrag „Fahrzeug als Kaution (Pfandrecht)“.</div></div>
   <div class="karte"><h2>Hinterlegtes Sicherungsfahrzeug</h2>
@@ -718,7 +722,8 @@ function aendere(fn){const l=vorgaenge(),v=l.find(x=>x.nr===WAHL);if(!v)return n
 
 /* ---------- Vertrag wählen (für die anderen 4 Formulare) ---------- */
 function wahlFuellen(){const l=vorgaenge().slice().reverse();
-  $("wahl").innerHTML=l.map(v=>'<option value="'+v.nr+'">'+v.nr+"  "+v.name+", "+v.auto+'</option>').join("");
+  const kurz=a=>String(a||"").replace(/^(Audi|Mercedes-Benz|Mercedes|VW|BMW) /,"").replace(/ (Chauffeur-Paket|Limousine|performance|Clubsport)/g,"");   // kurz, damit nichts abgeschnitten wird
+  $("wahl").innerHTML=l.map(v=>'<option value="'+v.nr+'">'+v.nr+" "+v.name+", "+kurz(v.auto)+'</option>').join("");
   $("wahlLeer").classList.toggle("versteckt",l.length>0);$("wahl").classList.toggle("versteckt",!l.length);
   if(!l.length){WAHL=null;$("wahlInfo").textContent="";return}
   if(!WAHL||!l.find(v=>v.nr===WAHL)){const offen=l.find(v=>v.status!=="zurück");WAHL=(offen||l[0]).nr}
@@ -726,7 +731,7 @@ function wahlFuellen(){const l=vorgaenge().slice().reverse();
 function aktuell(){return vorgaenge().find(x=>x.nr===WAHL)||null}
 function wahlInfo(){const v=aktuell();
   $("wahlInfo").textContent=v?"Mietzeitraum "+de(v.vonD)+" bis "+de(v.bisD)+(v.status==="zurück"?", zurückgegeben":""):""}
-$("wahl").onchange=()=>{WAHL=$("wahl").value;wahlInfo();formularLaden(true);schritte()};
+$("wahl").onchange=()=>{WAHL=$("wahl").value;wahlInfo();formularLaden(true);svKarte();schritte()};
 const fzInfo=v=>"Kennzeichen: "+(v.kz||"")+"<br>Hersteller, Modell: "+v.auto;
 const mieterInfo=v=>"Vor- und Nachname: "+v.name+"<br>Telefon: "+(v.telefon||"");
 function protokollSetzen(p,d){["aussen","innen","tank","gegen","fotos","reifen","felgen"].forEach(k=>{if(d[k]!==undefined)gs(p+"_"+k,d[k])});
@@ -765,7 +770,8 @@ function formularLaden(erzwingen){const v=aktuell();if(!v)return;
     $("sKaution").value=s.betrag||((v.zahlung||{}).kaut||{}).betrag||"";PAD.padS.setzen(s.unterschrift||"");setzeAn("sAnerkannt",s.anerkannt);
     $("sBrief").classList.toggle("versteckt",!v.schaden);$("sBrief").href="https://barankohler.github.io/mietix-schadensformular/?vertrag="+encodeURIComponent(v.nr)}
   if(SICHT==="ueberlassung"){const s=v.sv||{};$("vInfo").innerHTML="Mieter: "+v.name+"<br>geb. am: "+de(v.geb)+"<br>Anschrift: "+(v.anschrift||"");
-    $("vModell").value=s.modell||"";$("vKz").value=s.kz||"";$("vFin").value=s.fin||"";$("vWert").value=s.wert||"";
+    const kf=String(v.kfz||"").split(",").map(x=>x.trim()).filter(Boolean),einTeil=kf.length===1?kf[0]:"",istKz=/^[A-ZÄÖÜ]{1,3}[ -]+[A-Z]{1,2}[ -]*\d{1,4}[EH]?$/i.test(einTeil);
+    $("vModell").value=s.modell||(kf.length>1?kf[0]:(einTeil&&!istKz?einTeil:""));$("vKz").value=s.kz||(kf.length>1?kf.slice(1).join(", "):(istKz?einTeil.toUpperCase():""));$("vFin").value=s.fin||"";$("vWert").value=s.wert||"";
     setzeAn("vSchein",s.schein);setzeAn("vBrief",s.brief);$("vSchluessel").value=s.schluessel||"";PAD.padSV.setzen(s.unterschrift||"");setzeAn("svBestaetigt",s.bestaetigt)}}
 function rRechne(schreiben){const v=aktuell();if(!v)return;
   const km=zahl($("rKm").value),ab=zahl($("rKmAb").value),frei=zahl(v.freikm),satz=zahl($("eSatz").value)||zahl(v.mehrkm)||0;
@@ -819,7 +825,7 @@ function vertragSpeichern(){const v=sammle();if(!v)return;
     $("vSenden").classList.remove("versteckt");$("vSenden").onclick=e=>{e.preventDefault();teilen(aktuell())};
     const sv=voll.kautionArt==="fahrzeug"&&!voll.sv;
     nachSheet("Vertrag "+voll.nr+" gespeichert",voll.name+", "+voll.auto+". Die Brücke trägt ihn in die Excel ein. Was jetzt?",[
-      sv?{t:"Weiter: Überlassungserklärung (Fahrzeug als Sicherheit)",voll:true,f:()=>zeige("ueberlassung")}:{t:"Weiter: Übergabe",voll:true,f:()=>zeige("uebergabe")},
+      {t:"Weiter: Übergabe"+(sv?" mit Überlassungserklärung":""),voll:true,f:()=>zeige("uebergabe")},
       {t:"Vertrag + Übergabe drucken",f:()=>DRUCK_BEIDE(voll),bleibt:true},
       {t:"Nur den Mietvertrag drucken",f:()=>oeffnen(()=>seite(()=>fuelleVertrag(aktuell()),0)),bleibt:true},
       {t:"Per WhatsApp an den Kunden",wa:true,f:()=>teilen(aktuell()),bleibt:true},
@@ -833,11 +839,14 @@ $("haupt").onclick=()=>{
       uhr:$("uU").value,ort:$("uOrt").value.trim(),bem:$("uBem").value.trim(),ortDatum:heuteDe(),unterschrift:PAD.padU.wert(),unterschriftVermieter:PAD.padU.wert()?vermieterUnterschrift():""});if(v.ueb.km)v.km=v.ueb.km});
     lerneAuto(v.auto,{km:v.ueb.km,reifen:v.ueb.reifen,felgen:v.ueb.felgen,reserve:v.ueb.reserve,marke:v.ueb.marke,profil:v.ueb.profil});
     meldung("Übergabe gespeichert");GELADEN={};schritte();
-    nachSheet("Übergabe gespeichert",v.name+", "+v.auto+". "+(v.ueb.unterschrift?"Mit Unterschrift.":"Ohne Unterschrift des Mieters.")+" Was jetzt?",[
-      {t:"Übergabeprotokoll drucken",voll:true,f:()=>oeffnen(()=>seite(()=>fuelleVertrag(aktuell()),1)),bleibt:true},
+    const svFehlt=v.kautionArt==="fahrzeug"&&!(v.sv&&v.sv.unterschrift);
+    nachSheet("Übergabe gespeichert",v.name+", "+v.auto+". "+(v.ueb.unterschrift?"Mit Unterschrift.":"Ohne Unterschrift des Mieters.")+(svFehlt?" Auto des Kunden als Kaution: Überlassungserklärung fehlt noch.":"")+" Was jetzt?",[
+      svFehlt?{t:"Weiter: Überlassungserklärung",voll:true,f:()=>zeige("ueberlassung")}:null,
+      v.kautionArt==="fahrzeug"&&v.sv?{t:"Überlassungserklärung drucken",f:()=>oeffnen(()=>fuelleUeberlassung(aktuell())),bleibt:true}:null,
+      {t:"Übergabeprotokoll drucken",voll:!svFehlt,f:()=>oeffnen(()=>seite(()=>fuelleVertrag(aktuell()),1)),bleibt:true},
       {t:"Vertrag + Übergabe drucken",f:()=>oeffnen(()=>fuelleVertrag(aktuell())),bleibt:true},
       {t:"Per WhatsApp an den Kunden",wa:true,f:()=>teilen(aktuell()),bleibt:true},
-      {t:"Fertig, zurück zu Heute",f:HEUTE}]);return}
+      {t:"Fertig, zurück zu Heute",f:HEUTE}].filter(Boolean));return}
   if(SICHT==="rueckgabe"){if(!$("rKm").value.trim()){alert("Bitte den Kilometerstand bei Rückgabe eintragen.");return}
     const v=aendere(v=>{v.rueck=Object.assign(protokollLesen("r"),{km:$("rKm").value.trim(),gefahren:$("rGef").value.trim(),mehrkm:$("rMehr").value.trim(),
       datum:$("rD").value,uhr:$("rU").value,ort:$("rOrt").value.trim(),auff:gw("r_auff"),bem:$("rBem").value.trim(),ortDatum:heuteDe(),unterschrift:PAD.padR.wert(),unterschriftVermieter:PAD.padR.wert()?vermieterUnterschrift():""});
@@ -866,7 +875,7 @@ $("haupt").onclick=()=>{
       v.kautionArt="fahrzeug";if(!v.kfz)v.kfz=[v.sv.modell,v.sv.kz].filter(Boolean).join(", ")});
     meldung("Gespeichert. Im Mietvertrag steht jetzt: Fahrzeug als Sicherheit.");GELADEN={};schritte();
     nachSheet("Überlassungserklärung gespeichert",v.name+", Sicherungsfahrzeug "+(v.sv.modell||"")+". Was jetzt?",[
-      v.ueb?null:{t:"Weiter: Übergabe",voll:true,f:()=>zeige("uebergabe")},
+      {t:v.ueb?"Zurück zur Übergabe":"Weiter: Übergabe",voll:!v.ueb,f:()=>zeige("uebergabe")},
       {t:"Überlassungserklärung drucken",voll:!!v.ueb,f:()=>oeffnen(()=>fuelleUeberlassung(aktuell())),bleibt:true},
       {t:"Vertrag + Übergabe drucken",f:()=>DRUCK_BEIDE(v),bleibt:true},
       {t:"Fertig, zurück zu Heute",f:HEUTE}].filter(Boolean));return}};
@@ -882,7 +891,7 @@ function vKarte(v){const z=v.zahlung||{},rest=z.rest||{},kaut=z.kaut||{};
     '<div class="haken">'+haken.map(([t,ok])=>'<span class="'+(ok?"ok":"")+'">'+(ok?"✓ ":"○ ")+t+'</span>').join("")+
     (mieteOffen?'<span class="rot">Miete offen '+eur(zahl(rest.betrag))+' €</span>':"")+(kautOffen?'<span class="rot">Kaution zurückgeben</span>':"")+(v.schaden?'<span class="rot">Schaden</span>':"")+
     (v.kautionArt==="fahrzeug"?'<span>Fahrzeug als Sicherheit</span>':"")+'</div>'+
-    (AUF===v.nr?'<div class="chips" style="margin-top:10px">'+[["Mietvertrag","vertrag"],["Übergabe","uebergabe"],["Rückgabe","rueckgabe"],["Schadensanerkennung","schaden"],["Überlassung","ueberlassung"]]
+    (AUF===v.nr?'<div class="chips" style="margin-top:10px">'+[["Mietvertrag","vertrag"],["Übergabe","uebergabe"],["Rückgabe","rueckgabe"],["Schadensanerkennung","schaden"]].concat(v.kautionArt==="fahrzeug"?[["Überlassung","ueberlassung"]]:[])
       .map(([t,x])=>'<div class="chip" data-geh="'+x+'">'+t+'</div>').join("")+'<div class="chip" data-druck="1">Drucken</div><div class="chip" data-wa="1" style="background:#25D366;border-color:#25D366;color:#fff">WhatsApp</div></div>':"")+'</div>'}
 function zeichneAlle(){if(!$("alleListe"))return;const q=normS($("vSuche").value).trim();
   const l=vorgaenge().slice().reverse().filter(v=>!q||normS(v.nr+" "+v.name+" "+v.auto+" "+(v.kz||"")).includes(q));
@@ -990,16 +999,23 @@ function zeichneHeute(){const h=iso(new Date()),m=plusTage(h,1),l=vorgaenge().fi
   $("hAnf").innerHTML=anf.length?anf.map(x=>eintrag(x.name||"ohne Namen",[x.auto,de(x.von)].filter(Boolean).join(", "),"Vertrag")).join(""):'<div class="leer">Alle gebuchten Anfragen haben einen Vertrag.</div>';
   [...$("hAnf").children].forEach((e,i)=>e.onclick=()=>{leeren();uebernehmeAnfrage(anf[i]);zeige("vertrag")});
 }
+// Überlassungserklärung hängt an der Übergabe (30.10.2026, Baran): nur sichtbar, wenn das Auto des Kunden die Kaution ist
+function svKarte(){const k=$("uSvKarte");if(!k)return;const v=aktuell(),an=!!(v&&v.kautionArt==="fahrzeug");k.classList.toggle("versteckt",!an);if(!an)return;
+  const sv=v.sv||{},fz=[sv.modell,sv.kz].filter(Boolean).join(", ")||v.kfz||"";
+  $("uSvStand").textContent=(sv.unterschrift?"Überlassungserklärung unterschrieben":sv.modell||sv.kz?"Überlassungserklärung angefangen, Unterschrift fehlt":"Überlassungserklärung noch offen")+(fz?". Sicherungsfahrzeug: "+fz:"")+".";
+  $("uSvOeffnen").textContent=sv.unterschrift?"Überlassungserklärung ansehen":"Überlassungserklärung ausfüllen";$("uSvOeffnen").classList.toggle("an",!sv.unterschrift)}
 function zeige(s){SICHT=s;["heute","vertraege","vertrag","uebergabe","rueckgabe","schaden","ueberlassung"].forEach(x=>$("s_"+x).classList.toggle("versteckt",x!==s));
-  [...$("reiter").children].forEach(c=>{c.classList.toggle("an",c.dataset.s===s);
-    if(c.dataset.s===s)try{c.scrollIntoView({inline:"center",block:"nearest",behavior:"smooth"})}catch(e){}});
+  const reiterS=s==="ueberlassung"?"uebergabe":s;
+  [...$("reiter").children].forEach(c=>{c.classList.toggle("an",c.dataset.s===reiterS);
+    if(c.dataset.s===reiterS)try{c.scrollIntoView({inline:"center",block:"nearest",behavior:"smooth"})}catch(e){}});
   $("haupt").textContent=KNOPF[s];
   if(s==="heute")zeichneHeute();
   else if(s==="vertraege")zeichneAlle();
   else if(s==="vertrag"){if(!NEU&&!$("name").value.trim()&&aktuell())vertragLaden(aktuell());zeichneAnfragen();if(!$("name").value)$("nr").value=neueNr()}
   else{wahlFuellen();formularLaden()}
-  schritte();window.scrollTo(0,0)}
+  svKarte();schritte();window.scrollTo(0,0)}
 [...$("reiter").children].forEach(c=>c.onclick=()=>zeige(c.dataset.s));
+$("uSvOeffnen").onclick=()=>zeige("ueberlassung");$("svZurueck").onclick=()=>zeige("uebergabe");
 
 /* ---------- Start ---------- */
 $("nr").value=neueNr();$("heuteText").textContent=heuteDe();$("kautB").value="1.950";$("sb").value="7.500";
