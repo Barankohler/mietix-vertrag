@@ -7,6 +7,8 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <title>Mietix Mietvertrag</title>
 <style>
+input,select,textarea{font-size:16px;font-family:inherit}
+
 :root{--rot:#C4161C;--text:#2E2E30;--rand:#E4E4E7;--grau:#6F6F72;--bg:#F6F6F7;--gruen:#1B8A4B;--hell:#FDECEC}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);
@@ -26,7 +28,7 @@ main{max-width:680px;margin:0 auto;padding:16px}
 .karte h2{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--rot);margin-bottom:10px}
 label{display:block;font-size:12px;font-weight:700;color:var(--grau);margin:10px 0 4px}
 input,select,textarea{width:100%;border:1px solid var(--rand);border-radius:12px;padding:12px 13px;
-  font:600 17px inherit;color:var(--text);background:#fff;min-height:48px}
+  font-weight:600;font-size:17px;font-family:inherit;color:var(--text);background:#fff;min-height:48px}
 textarea{font-weight:400;min-height:64px}
 input:focus,select:focus,textarea:focus{outline:2px solid var(--rot);outline-offset:-2px}
 .zwei{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -52,9 +54,9 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--rot);outline-off
 .leiste{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--rand);
   padding:12px 16px calc(12px + env(safe-area-inset-bottom));z-index:6}
 .leiste button{width:100%;max-width:680px;display:block;margin:0 auto;background:var(--rot);color:#fff;border:0;
-  border-radius:16px;padding:17px;font:800 18px inherit;cursor:pointer}
+  border-radius:16px;padding:17px;font-weight:800;font-size:18px;font-family:inherit;cursor:pointer}
 .knopf{display:block;width:100%;border:1px solid var(--rot);color:var(--rot);background:#fff;border-radius:14px;
-  padding:13px;font:800 16px inherit;margin-top:10px;cursor:pointer;text-align:center}
+  padding:13px;font-weight:800;font-size:16px;font-family:inherit;margin-top:10px;cursor:pointer;text-align:center}
 .vorgang{background:#fff;border:1px solid var(--rand);border-radius:16px;padding:12px;margin-top:8px}
 .vorgang b{font-size:15px}.vorgang div{font-size:13px;color:var(--grau);margin-top:2px}
 .leer{color:var(--grau);text-align:center;padding:20px 10px}
@@ -67,10 +69,14 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--rot);outline-off
 .pad .weg{position:absolute;right:8px;top:6px;font-size:12px;color:var(--grau);cursor:pointer;background:#fff;padding:4px 8px;border-radius:8px}
 .pad.hat .tipp{display:none}
 .pad .gross{position:absolute;left:8px;bottom:6px;font-size:12px;color:var(--grau);font-weight:700;pointer-events:none}
-#ug{position:fixed;inset:0;background:#fff;z-index:50;display:flex;flex-direction:column}
+#ug{position:fixed;left:0;top:0;width:100%;height:100%;height:100dvh;background:#fff;z-index:50;overflow:hidden;touch-action:none;overscroll-behavior:none;-webkit-user-select:none;user-select:none}
+#ug .kopf .chip{touch-action:manipulation}
+body.ugOffen{position:fixed;left:0;right:0;overflow:hidden}
+#ugInnen{position:absolute;left:0;top:0;width:100%;height:100%;display:flex;flex-direction:column;background:#fff;transform-origin:0 0}
 #ug .kopf{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:calc(10px + env(safe-area-inset-top)) 14px 8px;border-bottom:1px solid var(--rand)}
-#ug .kopf b{font-size:15px}
-#ug canvas{flex:1;width:100%;touch-action:none;background:#fff}
+#ug .kopf b{font-size:15px;min-width:0}
+#ug .kopf .chips{flex-wrap:nowrap;flex:0 0 auto}
+#ug canvas{flex:1;min-height:0;width:100%;touch-action:none;background:#fff;display:block}
 #ug .linie{position:absolute;left:8%;right:8%;bottom:calc(60px + env(safe-area-inset-bottom));border-bottom:2px solid #C9C9CE;pointer-events:none}
 #ug .fuss{padding:8px 14px calc(10px + env(safe-area-inset-bottom));font-size:13px;color:var(--grau);text-align:center}
 .vmStand{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--bg);border-radius:12px;padding:10px 12px;margin-top:8px;font-size:14px;font-weight:700}
@@ -329,8 +335,8 @@ h2.gruppe{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(-
     <div class="chips" style="margin-top:8px"><div class="chip" id="svBestaetigt">Mieter bestätigt (hat gelesen)</div></div></div>
 </section>
 </main>
-<div id="ug" class="versteckt"><div class="kopf"><b id="ugTitel">Unterschrift</b><div class="chips"><div class="chip" id="ugWeg">Löschen</div><div class="chip an" id="ugFertig">Fertig</div></div></div>
-  <canvas id="ugCanvas"></canvas><div class="linie"></div><div class="fuss">Mit dem Finger unterschreiben, gern das Handy quer halten. Danach „Fertig“.</div></div>
+<div id="ug" class="versteckt"><div id="ugInnen"><div class="kopf"><b id="ugTitel">Unterschrift</b><div class="chips"><div class="chip" id="ugWeg">Löschen</div><div class="chip an" id="ugFertig">Fertig</div></div></div>
+  <canvas id="ugCanvas"></canvas><div class="linie"></div><div class="fuss">Handy quer halten, mit dem Finger unterschreiben, dann „Fertig“.</div></div></div>
 <div class="leiste"><div class="knoepfe"><button id="haupt">Neuer Mietvertrag</button></div></div>
 <div id="nachBg" class="versteckt"></div><div id="nach" class="versteckt"></div>
 <div class="meldung" id="meldung"></div>
@@ -388,26 +394,59 @@ function padMachen(id){const el=$(id),c=el.querySelector("canvas"),ctx=c.getCont
   const zieh=e=>{if(!malt)return;const[x,y]=pos(e);ctx.lineTo(x,y);ctx.stroke();e.preventDefault()};
   const ende=()=>{malt=false};
   c.addEventListener("pointerdown",e=>{e.preventDefault();grossOeffnen(id)});
-  el.querySelector(".weg").onclick=()=>{if(id==="padVM"&&hat&&!confirm("Deine hinterlegte Unterschrift wirklich löschen?"))return;ctx.clearRect(0,0,c.width,c.height);hat=false;el.classList.remove("hat");if(id==="padVM"){try{localStorage.removeItem("mietixUnterschriftVermieter")}catch(e){}vmStand()}};
-  return{wert:()=>hat?c.toDataURL("image/png"):"",setzen:d=>{ctx.clearRect(0,0,c.width,c.height);hat=false;el.classList.remove("hat");if(!d)return;
-    const im=new Image();im.onload=()=>{ctx.drawImage(im,0,0,c.width,c.height);hat=true;el.classList.add("hat")};im.src=d}}}
+  el.querySelector(".weg").onclick=()=>{if(id==="padVM"&&hat&&!confirm("Deine hinterlegte Unterschrift wirklich löschen?"))return;ctx.clearRect(0,0,c.width,c.height);hat=false;bild="";el.classList.remove("hat");if(id==="padVM"){try{localStorage.removeItem("mietixUnterschriftVermieter")}catch(e){}vmStand()}};
+  // Das Bild wird unverändert gemerkt (so kommt es auch ins PDF) und im Feld ohne Verzerrung mittig gezeigt
+  let bild="";
+  return{wert:()=>hat?bild:"",setzen:d=>{ctx.clearRect(0,0,c.width,c.height);hat=false;bild="";el.classList.remove("hat");if(!d)return;
+    bild=d;hat=true;el.classList.add("hat");
+    const im=new Image();im.onload=()=>{if(bild!==d)return;const f=Math.min(c.width*.92/im.width,c.height*.86/im.height),w=im.width*f,h=im.height*f;
+      ctx.clearRect(0,0,c.width,c.height);ctx.drawImage(im,(c.width-w)/2,(c.height-h)/2,w,h)};im.src=d}}}
 // Vollbild zum Unterschreiben: der ganze Bildschirm ist die Fläche, "Fertig" übernimmt in das kleine Feld
 const TITEL={padV:"Unterschrift Mieter (Mietvertrag)",padU:"Unterschrift Mieter (Übergabe)",padR:"Unterschrift Mieter (Rückgabe)",padS:"Unterschrift Mieter (Schaden)",padSV:"Unterschrift Mieter (Sicherungsvertrag)",padVM:"Meine Unterschrift (Vermieter)"};
 let UG=null;
-function grossOeffnen(padId){const ug=$("ug"),c=$("ugCanvas");ug.classList.remove("versteckt");$("ugTitel").textContent=TITEL[padId]||"Unterschrift";
-  c.width=Math.max(300,c.clientWidth)*2;c.height=Math.max(200,c.clientHeight)*2;const ctx=c.getContext("2d");ctx.lineWidth=6;ctx.lineCap="round";ctx.lineJoin="round";ctx.strokeStyle="#1a1a1a";
-  UG={padId,ctx,c,hat:false,malt:false,minX:1e9,maxX:0,minY:1e9,maxY:0};
-  try{document.body.style.overflow="hidden"}catch(e){}}
-function ugPos(e){const r=UG.c.getBoundingClientRect(),p=e.touches?e.touches[0]:e;return[(p.clientX-r.left)*UG.c.width/r.width,(p.clientY-r.top)*UG.c.height/r.height]}
-$("ugCanvas").addEventListener("pointerdown",e=>{if(!UG)return;UG.malt=true;UG.hat=true;const[x,y]=ugPos(e);UG.ctx.beginPath();UG.ctx.moveTo(x,y);e.preventDefault()});
-$("ugCanvas").addEventListener("pointermove",e=>{if(!UG||!UG.malt)return;const[x,y]=ugPos(e);UG.ctx.lineTo(x,y);UG.ctx.stroke();
-  UG.minX=Math.min(UG.minX,x);UG.maxX=Math.max(UG.maxX,x);UG.minY=Math.min(UG.minY,y);UG.maxY=Math.max(UG.maxY,y);e.preventDefault()});
-window.addEventListener("pointerup",()=>{if(UG)UG.malt=false});
-$("ugWeg").onclick=()=>{if(!UG)return;UG.ctx.clearRect(0,0,UG.c.width,UG.c.height);UG.hat=false;UG.minX=1e9;UG.maxX=0;UG.minY=1e9;UG.maxY=0};
+// Striche werden als Punkte gemerkt (in Bildschirm-Punkten), damit beim Drehen des Handys nichts verrutscht oder verzerrt
+function ugLage(){const ug=$("ug"),inn=$("ugInnen"),W=ug.clientWidth||innerWidth,H=ug.clientHeight||innerHeight,hoch=H>W;
+  // Hochkant gehalten: Fläche um 90 Grad gedreht zeigen, damit man das Handy quer dreht und das lange Feld hat
+  ug.classList.toggle("quer",hoch);if(hoch){inn.style.width=H+"px";inn.style.height=W+"px";inn.style.transform="translate("+W+"px,0) rotate(90deg)"}else{inn.style.width="";inn.style.height="";inn.style.transform=""}
+  return{W,hoch}}
+function ugGroesse(){if(!UG)return;UG.lage=ugLage();const c=UG.c,dpr=Math.min(window.devicePixelRatio||2,3),w=Math.max(200,c.clientWidth),h=Math.max(150,c.clientHeight);
+  if(UG.w&&UG.w===w&&UG.h===h)return;
+  if(UG.w&&UG.striche.length){const f=Math.min(w/UG.w,h/UG.h);UG.striche=UG.striche.map(st=>st.map(([x,y])=>[(x-UG.w/2)*f+w/2,(y-UG.h/2)*f+h/2]))}
+  UG.w=w;UG.h=h;UG.dpr=dpr;c.width=Math.round(w*dpr);c.height=Math.round(h*dpr);ugMalen()}
+function ugMalen(){const ctx=UG.ctx,d=UG.dpr;ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,UG.c.width,UG.c.height);ctx.setTransform(d,0,0,d,0,0);
+  ctx.lineWidth=3;ctx.lineCap="round";ctx.lineJoin="round";ctx.strokeStyle="#1a1a1a";
+  UG.striche.forEach(st=>{ctx.beginPath();ctx.moveTo(st[0][0],st[0][1]);if(st.length===1)ctx.lineTo(st[0][0]+.1,st[0][1]);st.forEach(([x,y])=>ctx.lineTo(x,y));ctx.stroke()})}
+function ugSperre(e){if(UG&&!(e.target.closest&&e.target.closest(".chip")))e.preventDefault()}
+function grossOeffnen(padId){try{document.activeElement&&document.activeElement.blur&&document.activeElement.blur()}catch(e){}
+  const ug=$("ug"),c=$("ugCanvas"),y=window.scrollY||0;
+  document.body.style.top=(-y)+"px";document.body.classList.add("ugOffen");
+  ug.classList.remove("versteckt");$("ugTitel").textContent=TITEL[padId]||"Unterschrift";
+  UG={padId,ctx:c.getContext("2d"),c,striche:[],aktiv:null,w:0,h:0,dpr:2,scrollY:y};ugGroesse();
+  requestAnimationFrame(ugGroesse);setTimeout(ugGroesse,350)}
+function ugZu(){const y=UG?UG.scrollY:0;$("ug").classList.add("versteckt");document.body.classList.remove("ugOffen");document.body.style.top="";UG=null;window.scrollTo(0,y)}
+window.addEventListener("resize",()=>{if(UG){setTimeout(ugGroesse,60);setTimeout(ugGroesse,400)}});
+window.addEventListener("orientationchange",()=>{if(UG)setTimeout(ugGroesse,400)});
+document.addEventListener("touchmove",ugSperre,{passive:false});
+document.addEventListener("gesturestart",e=>{if(UG)e.preventDefault()});
+function ugPunkt(e){const L=UG.lage||{hoch:false},lx=L.hoch?e.clientY:e.clientX,ly=L.hoch?L.W-e.clientX:e.clientY;return[lx-UG.c.offsetLeft,ly-UG.c.offsetTop]}
+const UGC=$("ugCanvas");
+UGC.addEventListener("pointerdown",e=>{if(!UG||UG.aktiv!==null)return;e.preventDefault();UG.aktiv=e.pointerId;try{UGC.setPointerCapture(e.pointerId)}catch(x){}
+  ugGroesse();
+  const st=[ugPunkt(e)];UG.striche.push(st);ugMalen()});
+UGC.addEventListener("pointermove",e=>{if(!UG||UG.aktiv!==e.pointerId)return;e.preventDefault();const st=UG.striche[UG.striche.length-1];
+  let liste=e.getCoalescedEvents?e.getCoalescedEvents():[];if(!liste.length)liste=[e];
+  const vorher=st.length-1;liste.forEach(p=>st.push(ugPunkt(p)));
+  const ctx=UG.ctx;ctx.beginPath();ctx.moveTo(st[vorher][0],st[vorher][1]);for(let i=vorher+1;i<st.length;i++)ctx.lineTo(st[i][0],st[i][1]);ctx.stroke()});
+const ugLos=e=>{if(UG&&UG.aktiv===e.pointerId)UG.aktiv=null};
+UGC.addEventListener("pointerup",ugLos);UGC.addEventListener("pointercancel",ugLos);UGC.addEventListener("lostpointercapture",ugLos);
+$("ugWeg").onclick=()=>{if(!UG)return;UG.striche=[];UG.aktiv=null;ugMalen()};
 $("ugFertig").onclick=()=>{if(!UG)return;let daten="";
-  if(UG.hat){const r=24,x0=Math.max(0,UG.minX-r),y0=Math.max(0,UG.minY-r),w=Math.min(UG.c.width,UG.maxX+r)-x0,h=Math.min(UG.c.height,UG.maxY+r)-y0;   // nur den beschriebenen Teil übernehmen
-    const z=document.createElement("canvas");z.width=Math.max(w,10);z.height=Math.max(h,10);z.getContext("2d").drawImage(UG.c,x0,y0,w,h,0,0,z.width,z.height);daten=z.toDataURL("image/png")}
-  const padId=UG.padId;$("ug").classList.add("versteckt");document.body.style.overflow="";UG=null;
+  const pkte=[].concat(...UG.striche);
+  if(pkte.length>1){const d=UG.dpr,r=12,xs=pkte.map(p=>p[0]),ys=pkte.map(p=>p[1]);   // nur den beschriebenen Teil übernehmen
+    const x0=Math.max(0,Math.min(...xs)-r),y0=Math.max(0,Math.min(...ys)-r),x1=Math.min(UG.w,Math.max(...xs)+r),y1=Math.min(UG.h,Math.max(...ys)+r);
+    const z=document.createElement("canvas");z.width=Math.max(10,Math.round((x1-x0)*d));z.height=Math.max(10,Math.round((y1-y0)*d));
+    z.getContext("2d").drawImage(UG.c,x0*d,y0*d,(x1-x0)*d,(y1-y0)*d,0,0,z.width,z.height);daten=z.toDataURL("image/png")}
+  const padId=UG.padId;ugZu();
   if(daten){PAD[padId].setzen(daten);if(padId==="padVM"){try{localStorage.setItem("mietixUnterschriftVermieter",daten)}catch(e){}setTimeout(vmStand,100)}}};
 const PAD={};["padV","padU","padR","padS","padSV","padVM"].forEach(id=>{if($(id))PAD[id]=padMachen(id)});
 const vermieterUnterschrift=()=>{try{return localStorage.getItem("mietixUnterschriftVermieter")||""}catch(e){return""}};
@@ -422,7 +461,7 @@ vmStand();
 const LINIE={vertrag1:92,vertrag2:168,rueck:131,schaden:176,sv:289};
 async function stempel(doc,seite,yLinie,mieterPng,vermieterPng){const p=doc.getPages()[seite];
   for(const[png,x]of[[mieterPng,440],[vermieterPng,283]]){if(!png)continue;
-    try{const im=await doc.embedPng(png);const w=104,h=Math.min(30,im.height*w/im.width);p.drawImage(im,{x:x+4,y:yLinie+1,width:w,height:h})}catch(e){}}}
+    try{const im=await doc.embedPng(png);const f=Math.min(104/im.width,30/im.height),w=im.width*f,h=im.height*f;p.drawImage(im,{x:x+4+(104-w)/2,y:yLinie+1,width:w,height:h})}catch(e){}}}
 
 /* ---------- Kästchen (antippen = ankreuzen) ---------- */
 function chipWahl(el,wert){[...el.children].forEach(c=>c.classList.toggle("an",c.dataset.v===wert))}
@@ -1223,8 +1262,8 @@ function zeigen(){const el=document.getElementById("abgleich");if(!el)return;
 const css=document.createElement("style");
 css.textContent=".abgl{background:#fff;border:1px solid #E4E4E7;border-radius:16px;padding:14px;margin-bottom:14px}"+
   ".abgl b{display:block;font-size:15px;margin-bottom:4px}.abgl-text{font-size:13px;color:#6F6F72;margin-bottom:8px}"+
-  ".abgl input{width:100%;border:1px solid #E4E4E7;border-radius:12px;padding:12px;font:600 16px inherit;margin-top:6px;min-height:46px;box-sizing:border-box}"+
-  ".abgl button{width:100%;margin-top:8px;background:#C4161C;color:#fff;border:0;border-radius:12px;padding:13px;font:800 16px inherit;cursor:pointer}"+
+  ".abgl input{width:100%;border:1px solid #E4E4E7;border-radius:12px;padding:12px;font-weight:600;font-size:16px;font-family:inherit;margin-top:6px;min-height:46px;box-sizing:border-box}"+
+  ".abgl button{width:100%;margin-top:8px;background:#C4161C;color:#fff;border:0;border-radius:12px;padding:13px;font-weight:800;font-size:16px;font-family:inherit;cursor:pointer}"+
   ".abgl-fehler{color:#C4161C;font-size:13px;font-weight:700;margin-top:6px}"+
   ".abgl-link{display:block;text-align:center;margin-top:10px;font-size:13px;color:#6F6F72}"+
   ".abgl.klein{display:flex;justify-content:space-between;gap:10px;font-size:13px;color:#6F6F72;padding:10px 14px}.abgl.klein a{color:#6F6F72}"+
