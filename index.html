@@ -588,7 +588,7 @@ function kundeEintragen(k){$("name").value=k.name;["telefon","anschrift","geb","
   const tr=window.mietixKunden.finde(q),k=tr.find(e=>e.name===q)||tr[0];if(k){leeren();kundeEintragen(k);zeige("vertrag")}};
   if(window.mietixKunden)los();else window.addEventListener("mietix-kunden-bereit",los)})();   // kundensuche.js steht weiter unten
 // Fortlaufende Mietvertragsnummer, sechsstellig. Stand 26.10.2026: zuletzt vergeben 000531 (Baran).
-const LETZTE_NR=531;
+const LETZTE_NR=532;   // 000532 war der Testvertrag (gelöscht 30.10.2026), die Nummer ist verbraucht
 function neueNr(){let max=LETZTE_NR;vorgaenge().forEach(v=>{const s=String(v.nr||"");if(/^\d{6}$/.test(s)&&+s>max)max=+s});
   return String(max+1).padStart(6,"0")}
 
