@@ -973,6 +973,12 @@ fetch("https://barankohler.github.io/mietix-preise/preise.json",{cache:"no-store
 (()=>{const id=new URLSearchParams(location.search).get("anfrage");if(!id)return;
   const x=lies("mietixAnfragen",[]).find(x=>x.id===id);history.replaceState(null,"",location.pathname);
   if(x){leeren();uebernehmeAnfrage(x);zeige("vertrag")}})();
+// Von der Belegungstafel: ...mietix-vertrag/?auto=NAME&von=JJJJ-MM-TT&bis=JJJJ-MM-TT öffnet einen neuen Vertrag mit Auto und Zeitraum (29.10.2026)
+(()=>{const q=new URLSearchParams(location.search),a=q.get("auto");if(!a&&!q.get("von"))return;if(q.get("nr")||q.get("anfrage")||q.get("kunde"))return;
+  history.replaceState(null,"",location.pathname);leeren();
+  const setzen=()=>{if(a){const f=fahrzeugListe().find(f=>f.name===a);if(f)waehleAuto(f);else{AUTO=a;$("modell").value=a}}
+    if(q.get("von"))$("vonD").value=q.get("von");if(q.get("bis"))$("bisD").value=q.get("bis");tipps()};
+  setzen();zeige("vertrag");setTimeout(setzen,1500)})();   // nochmal, wenn die Preisdatei da ist (Preis, Kaution)
 setTimeout(zeichneHeute,0);   // erst wenn der Abgleich-Baustein geladen ist
 // Von der Zentrale: ?nr=000532&zeige=uebergabe springt direkt in das Formular
 (()=>{const q=new URLSearchParams(location.search),nr=q.get("nr"),z=q.get("zeige");if(!nr&&!z)return;history.replaceState(null,"",location.pathname);
