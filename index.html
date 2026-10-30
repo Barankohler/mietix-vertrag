@@ -104,6 +104,7 @@ details summary{cursor:pointer;font-weight:800;color:var(--grau);font-size:14px}
 .vorgang{cursor:pointer}.vorgang.auf{border-color:var(--rot)}
 .haken{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .haken span{font-size:12px;font-weight:800;border-radius:8px;padding:4px 8px;background:var(--bg);color:var(--grau)}
+.offenTag{display:inline-block;margin-left:8px;font-size:11px;font-weight:800;border-radius:8px;padding:2px 7px;background:var(--bg);color:var(--grau);border:1px solid var(--rand);vertical-align:2px}
 .haken span.ok{background:#E8F6EE;color:var(--gruen)}.haken span.rot{background:var(--hell);color:var(--rot)}
 h2.gruppe{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--grau);margin:16px 4px 6px}
 #nachBg{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:30}
@@ -243,6 +244,7 @@ h2.gruppe{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(-
   <div class="karte"><h2>Verträge</h2>
     <input id="vSuche" type="search" autocomplete="off" placeholder="Name, Nummer oder Auto">
     <div class="hinweis">Antippen zeigt, was zu dem Vertrag noch zu tun ist. Jeder gespeicherte Vertrag steht hier, auf allen Geräten.</div></div>
+  <div id="vEntwurf"></div>
   <div id="alleListe"></div>
   <div class="karte" style="margin-top:16px"><h2>Meine Unterschrift (Vermieter)</h2>
     <div class="hinweis" style="margin-top:0">Einmal unterschreiben, sie kommt dann in jeden Druck.</div>
@@ -576,20 +578,29 @@ function entwurfMerken(){if(entwurfAus||SICHT!=="vertrag")return;clearTimeout(en
   try{localStorage.setItem("mietixEntwurfVertrag",JSON.stringify(e))}catch(x){}},300)}
 function entwurfWeg(){clearTimeout(entwurfTimer);try{localStorage.removeItem("mietixEntwurfVertrag")}catch(x){}$("entwurf").classList.add("versteckt")}
 ["input","change","click","wahl"].forEach(ev=>$("s_vertrag").addEventListener(ev,entwurfMerken,true));
-function entwurfLaden(){let e=null;try{e=JSON.parse(localStorage.getItem("mietixEntwurfVertrag")||"null")}catch(x){}
-  if(!e||!e.f||Date.now()-new Date(e.zeit).getTime()>48*3600e3)return;
-  const d=new Date(e.zeit);
-  $("entwurf").innerHTML='<b>Angefangener Vertrag</b> von '+pad(d.getHours())+':'+pad(d.getMinutes())+(e.f.name?' ('+e.f.name.replace(/</g,"&lt;")+')':'')+', noch nicht gespeichert.'+
-    '<div class="chips" style="margin-top:8px"><div class="chip an" id="entwurfWeiter">Weitermachen</div><div class="chip" id="entwurfVerwerfen">Verwerfen</div></div>';
-  $("entwurf").classList.remove("versteckt");
-  $("entwurfWeiter").onclick=()=>{entwurfAus=true;leeren();
+function entwurfHolen(){let e=null;try{e=JSON.parse(localStorage.getItem("mietixEntwurfVertrag")||"null")}catch(x){}
+  return e&&e.f&&Date.now()-new Date(e.zeit).getTime()<=48*3600e3?e:null}
+function entwurfFortsetzen(e){entwurfAus=true;leeren();
     const setzen=()=>Object.keys(e.f).forEach(id=>{const el=$(id);if(el&&e.f[id]!==undefined)el.value=e.f[id]});setzen();
     if(e.auto){const f=fahrzeugListe().find(f=>f.name===e.auto);if(f){waehleAuto(f);setzen()}else{AUTO=e.auto;$("modell").value=e.auto}}
     Object.keys(e.chips||{}).forEach(g=>{if(gruppe(g))gs(g,e.chips[g])});(e.an||[]).forEach(i=>setzeAn(i,true));
     if((e.f.preis1||"").trim())preisAuto=false;if((e.f.km||"").trim())kmAuto=false;nrVonHand=true;stammFuellen();summe();tipps();
     if(e.u&&PAD.padV)PAD.padV.setzen(e.u);if(e.anfrage)ANFRAGE=e.anfrage;   // Unterschrift und Anfrage kommen mit zurück (30.10.2026)
-    entwurfAus=false;$("entwurf").classList.add("versteckt");zeige("vertrag");meldung("Entwurf geladen, nichts verloren")};
-  $("entwurfVerwerfen").onclick=()=>{if(confirm("Den angefangenen Vertrag wirklich verwerfen?"))entwurfWeg()}}
+    entwurfAus=false;$("entwurf").classList.add("versteckt");zeige("vertrag");meldung("Entwurf geladen, nichts verloren")}
+// Verwerfen legt den Entwurf in den Papierkorb (Kasten Mietverträge), dort holt "Wiederherstellen" ihn zurück (30.10.2026)
+function entwurfVerwerfen(){const e=entwurfHolen();if(!confirm("Den angefangenen Vertrag verwerfen? Er liegt danach im Papierkorb."))return;
+  if(e){let pk=[];try{pk=JSON.parse(localStorage.getItem("mietixPapierkorb")||"[]")||[]}catch(x){}
+    pk.push({id:"mietixEntwurfVertrag:"+Date.now(),ablage:"mietixEntwurfVertrag",schluessel:"entwurf",eintrag:e,zeit:new Date().toISOString(),
+      text:"Angefangener Vertrag: "+([(e.f.name||"").trim(),e.auto].filter(Boolean).join(", ")||"ohne Namen")});
+    try{localStorage.setItem("mietixPapierkorb",JSON.stringify(pk))}catch(x){}}
+  entwurfWeg();if(SICHT==="vertraege")zeichneAlle();meldung("Verworfen, liegt im Papierkorb")}
+function entwurfLaden(){const e=entwurfHolen();if(!e)return;
+  const d=new Date(e.zeit);
+  $("entwurf").innerHTML='<b>Angefangener Vertrag</b> von '+pad(d.getHours())+':'+pad(d.getMinutes())+(e.f.name?' ('+e.f.name.replace(/</g,"&lt;")+')':'')+', noch nicht gespeichert.'+
+    '<div class="chips" style="margin-top:8px"><div class="chip an" id="entwurfWeiter">Weitermachen</div><div class="chip" id="entwurfVerwerfen">Verwerfen</div></div>';
+  $("entwurf").classList.remove("versteckt");
+  $("entwurfWeiter").onclick=()=>entwurfFortsetzen(e);
+  $("entwurfVerwerfen").onclick=entwurfVerwerfen}
 // Kundenbuch: Treffer unter dem Namensfeld, antippen trägt alles ein (Name, Telefon, Anschrift, Geburtsdatum, Geburtsort, E-Mail)
 function kundeEintragen(k){$("name").value=k.name;["telefon","anschrift","geb","gebort","email"].forEach(f=>{if(k[f])$(f).value=k[f]});stammFuellen();tipps()}
 (function(){const los=()=>{window.mietixKunden.anhaengen($("name"),kundeEintragen);
@@ -896,16 +907,25 @@ const normS=t=>String(t||"").toLowerCase();
 function vKarte(v){const z=v.zahlung||{},rest=z.rest||{},kaut=z.kaut||{};
   const mieteOffen=zahl(rest.betrag)&&!rest.am,kautOffen=v.status==="zurück"&&kaut.am&&!v.kautionRueck;
   const haken=[["Vertrag",true],["Übergabe",!!v.ueb],["Rückgabe",v.status==="zurück"]];
-  return'<div class="vorgang'+(AUF===v.nr?" auf":"")+'" data-nr="'+esc(v.nr)+'"><b>'+esc(v.nr)+"  "+esc(v.name)+'</b><div>'+esc(v.auto)+(v.kz?" ("+esc(v.kz)+")":"")+", "+de(v.vonD)+" bis "+de(v.bisD)+'</div>'+
+  return'<div class="vorgang'+(AUF===v.nr?" auf":"")+'" data-nr="'+esc(v.nr)+'"><b>'+esc(v.nr)+"  "+esc(v.name)+'</b>'+(v.status!=="zurück"?'<span class="offenTag">offen</span>':"")+'<div>'+esc(v.auto)+(v.kz?" ("+esc(v.kz)+")":"")+", "+de(v.vonD)+" bis "+de(v.bisD)+'</div>'+
     '<div class="haken">'+haken.map(([t,ok])=>'<span class="'+(ok?"ok":"")+'">'+(ok?"✓ ":"○ ")+t+'</span>').join("")+
     (mieteOffen?'<span class="rot">Miete offen '+eur(zahl(rest.betrag))+' €</span>':"")+(kautOffen?'<span class="rot">Kaution zurückgeben</span>':"")+(v.schaden?'<span class="rot">Schaden</span>':"")+
     (v.kautionArt==="fahrzeug"?'<span>Fahrzeug als Sicherheit</span>':"")+'</div>'+
     (AUF===v.nr?'<div class="chips" style="margin-top:10px">'+[["Mietvertrag","vertrag"],["Übergabe","uebergabe"],["Rückgabe","rueckgabe"],["Schadensanerkennung","schaden"]].concat(v.kautionArt==="fahrzeug"?[["Überlassung","ueberlassung"]]:[])
       .map(([t,x])=>'<div class="chip" data-geh="'+x+'">'+t+'</div>').join("")+'<div class="chip" data-druck="1">Drucken</div><div class="chip" data-wa="1" style="background:#25D366;border-color:#25D366;color:#fff">WhatsApp</div></div>':"")+'</div>'}
+// Angefangener Vertrag (noch nicht gespeichert) steht ganz oben im Reiter Verträge (30.10.2026)
+function zeichneEntwurfKarte(e){const el=$("vEntwurf");if(!el)return;if(!e){el.innerHTML="";return}
+  const f=e.f,zr=f.vonD?de(f.vonD)+(f.vonU?" "+f.vonU:"")+(f.bisD?" bis "+de(f.bisD)+(f.bisU?" "+f.bisU:""):""):"";
+  el.innerHTML='<div class="vorgang" style="border:2px solid var(--rot);cursor:default"><b>'+esc((f.name||"").trim()||"Ohne Namen")+'</b><span class="offenTag">offen</span>'+
+    ((e.auto||zr)?'<div>'+[esc(e.auto||""),zr].filter(Boolean).join(", ")+'</div>':"")+
+    '<div class="haken"><span class="rot">Angefangen, noch nicht gespeichert</span></div>'+
+    '<div class="chips" style="margin-top:10px"><div class="chip an" id="vEntwurfWeiter">Weitermachen</div><div class="chip" id="vEntwurfVerwerfen">Verwerfen</div></div></div>';
+  $("vEntwurfWeiter").onclick=()=>entwurfFortsetzen(e);$("vEntwurfVerwerfen").onclick=entwurfVerwerfen}
 function zeichneAlle(){if(!$("alleListe"))return;const q=normS($("vSuche").value).trim();
   const l=vorgaenge().slice().reverse().filter(v=>!q||normS(v.nr+" "+v.name+" "+v.auto+" "+(v.kz||"")).includes(q));
   const gr=[["Unterwegs",v=>v.ueb&&v.status!=="zurück"],["Gebucht, Übergabe offen",v=>!v.ueb&&v.status!=="zurück"],["Zurück",v=>v.status==="zurück"]];
-  $("alleListe").innerHTML=l.length?gr.map(([t,f])=>{const g=l.filter(f);return g.length?'<h2 class="gruppe">'+t+' ('+g.length+')</h2>'+g.map(vKarte).join(""):""}).join(""):'<div class="leer">'+(q?"Nichts gefunden.":"Noch kein Vertrag. Unten auf „Neuer Mietvertrag“ geht es los.")+'</div>';
+  const ew=!q&&entwurfHolen();zeichneEntwurfKarte(ew);
+  $("alleListe").innerHTML=l.length?gr.map(([t,f])=>{const g=l.filter(f);return g.length?'<h2 class="gruppe">'+t+' ('+g.length+')</h2>'+g.map(vKarte).join(""):""}).join(""):(ew?"":'<div class="leer">'+(q?"Nichts gefunden.":"Noch kein Vertrag. Unten auf „Neuer Mietvertrag“ geht es los.")+'</div>');
   [...$("alleListe").querySelectorAll(".vorgang")].forEach(el=>{el.onclick=()=>{AUF=AUF===el.dataset.nr?null:el.dataset.nr;zeichneAlle()};
     const v=vorgaenge().find(x=>x.nr===el.dataset.nr);if(!v)return;
     [...el.querySelectorAll("[data-geh]")].forEach(c=>c.onclick=ev=>{ev.stopPropagation();WAHL=v.nr;if(c.dataset.geh==="vertrag")vertragLaden(v);zeige(c.dataset.geh)});
@@ -1292,6 +1312,9 @@ function rueckgaengig(){if(!burst)return;
   const el=document.getElementById("mietixRueck");if(el){el.querySelector("span").textContent="Zurückgeholt.";clearTimeout(rueckTimer);rueckTimer=setTimeout(()=>el.classList.remove("an"),1500)}
   window.dispatchEvent(new CustomEvent("mietix-abgleich",{detail:Object.keys(b)}));clearTimeout(warte);warte=setTimeout(abgleichen,800)}
 window.mietixWiederherstellen=function(id){const pk=lies("mietixPapierkorb",[]),e=pk.find(x=>x.id===id);if(!e)return false;
+  if(e.ablage==="mietixEntwurfVertrag"){merk("mietixPapierkorb",pk.filter(x=>x.id!==id));   // angefangener Vertrag: liegt nur auf dem Gerät, frisch für 48 Stunden
+    roh.call(localStorage,"mietixEntwurfVertrag",JSON.stringify(Object.assign({},e.eintrag,{zeit:new Date().toISOString()})));
+    window.dispatchEvent(new CustomEvent("mietix-abgleich",{detail:["mietixPapierkorb"]}));clearTimeout(warte);warte=setTimeout(abgleichen,800);return true}
   const c=SPEICHER[e.ablage];if(!c)return false;const m=alsMap(e.ablage,lies(e.ablage,c.liste?[]:{}));m[e.schluessel]=e.eintrag;
   merk("mietixPapierkorb",pk.filter(x=>x.id!==id));localStorage.setItem(e.ablage,JSON.stringify(ausMap(e.ablage,m)));
   window.dispatchEvent(new CustomEvent("mietix-abgleich",{detail:[e.ablage,"mietixPapierkorb"]}));return true};
