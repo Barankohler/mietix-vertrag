@@ -116,6 +116,12 @@ h2.gruppe{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(-
 #nach .zu{display:block;text-align:center;font-size:13px;color:var(--grau);margin-top:12px;font-weight:700}
 .meldung{position:fixed;left:16px;right:16px;bottom:96px;background:var(--gruen);color:#fff;border-radius:14px;
   padding:14px;font-weight:800;text-align:center;z-index:9;display:none}
+.druckreihe{margin-top:12px;padding-top:12px;border-top:1px solid #E4E4E7}
+.druckreihe b{display:block;font-size:13px;text-transform:uppercase;letter-spacing:1px;color:#C4161C;margin-bottom:8px}
+.druckreihe .dk{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.druckreihe .dknopf{background:#2E2E30;color:#fff;border-radius:12px;padding:13px 8px;text-align:center;font-weight:800;font-size:14px;cursor:pointer}
+.druckreihe .dknopf:first-child{grid-column:1/-1;background:#C4161C}
+.druckreihe .klein{margin-top:8px}
 </style></head><body>
 <header>
   <h1>MIETIX <span>VERTRÄGE</span> <i id="abgleichPunkt" title="Abgleich aller Geräte" style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#B0B0B3;vertical-align:middle;margin-left:4px"></i></h1>
@@ -923,7 +929,14 @@ function vKarte(v){const z=v.zahlung||{},rest=z.rest||{},kaut=z.kaut||{};
     (mieteOffen?'<span class="rot">Miete offen '+eur(zahl(rest.betrag))+' €</span>':"")+(kautOffen?'<span class="rot">Kaution zurückgeben</span>':"")+(v.schaden?'<span class="rot">Schaden</span>':"")+
     (v.kautionArt==="fahrzeug"?'<span>Fahrzeug als Sicherheit</span>':"")+'</div>'+
     (AUF===v.nr?'<div class="chips" style="margin-top:10px">'+[["Mietvertrag","vertrag"],["Übergabe","uebergabe"],["Rückgabe","rueckgabe"],["Schadensanerkennung","schaden"]].concat(v.kautionArt==="fahrzeug"?[["Überlassung","ueberlassung"]]:[])
-      .map(([t,x])=>'<div class="chip" data-geh="'+x+'">'+t+'</div>').join("")+'<div class="chip" data-druck="1">Drucken</div><div class="chip" data-wa="1" style="background:#25D366;border-color:#25D366;color:#fff">WhatsApp</div></div>':"")+'</div>'}
+      .map(([t,x])=>'<div class="chip" data-geh="'+x+'">'+t+'</div>').join("")+'<div class="chip" data-wa="1" style="background:#25D366;border-color:#25D366;color:#fff">WhatsApp</div></div>'+druckReihe(v):"")+'</div>'}
+// Drucken ganz einfach: ein Knopf pro Dokument, das es zu diesem Vertrag schon gibt (30.10.2026, Baran)
+function druckDocs(v){return [["Vertrag + Übergabe","beide",true],["Nur Mietvertrag","vertrag",true],["Übergabeprotokoll","uebergabe",!!v.ueb],
+  ["Rückgabeprotokoll","rueckgabe",!!v.rueck||v.status==="zurück"],["Schadensanerkennung","schaden",!!v.schaden],["Überlassungserklärung","ueberlassung",!!v.sv]].filter(d=>d[2])}
+function druckReihe(v){return '<div class="druckreihe"><b>Drucken</b><div class="dk">'+druckDocs(v).map(([t,x])=>'<div class="dknopf" data-dr="'+x+'">'+t+'</div>').join("")+
+  '</div><div class="klein">'+(DIREKT?"Öffnet gleich das Druckfenster.":"Öffnet das PDF. Dann unten auf Teilen tippen und Drucken wählen.")+'</div></div>'}
+function druckeDoc(v,x){const m={beide:()=>fuelleVertrag(v),vertrag:()=>seite(()=>fuelleVertrag(v),0),uebergabe:()=>seite(()=>fuelleVertrag(v),1),
+  rueckgabe:()=>fuelleRueckgabe(v),schaden:()=>fuelleSchaden(v),ueberlassung:()=>fuelleUeberlassung(v)}[x];if(m)oeffnen(m)}
 // Angefangener Vertrag (noch nicht gespeichert) steht ganz oben im Reiter Verträge (30.10.2026)
 function zeichneEntwurfKarte(e){const el=$("vEntwurf");if(!el)return;if(!e){el.innerHTML="";return}
   const f=e.f,zr=f.vonD?de(f.vonD)+(f.vonU?" "+f.vonU:"")+(f.bisD?" bis "+de(f.bisD)+(f.bisU?" "+f.bisU:""):""):"";
@@ -940,7 +953,7 @@ function zeichneAlle(){if(!$("alleListe"))return;const q=normS($("vSuche").value
   [...$("alleListe").querySelectorAll(".vorgang")].forEach(el=>{el.onclick=()=>{AUF=AUF===el.dataset.nr?null:el.dataset.nr;zeichneAlle()};
     const v=vorgaenge().find(x=>x.nr===el.dataset.nr);if(!v)return;
     [...el.querySelectorAll("[data-geh]")].forEach(c=>c.onclick=ev=>{ev.stopPropagation();WAHL=v.nr;if(c.dataset.geh==="vertrag")vertragLaden(v);zeige(c.dataset.geh)});
-    const d=el.querySelector("[data-druck]");if(d)d.onclick=ev=>{ev.stopPropagation();oeffnen(()=>fuelleVertrag(v))};
+    el.querySelectorAll("[data-dr]").forEach(d=>d.onclick=ev=>{ev.stopPropagation();druckeDoc(v,d.dataset.dr)});
     const w=el.querySelector("[data-wa]");if(w)w.onclick=ev=>{ev.stopPropagation();teilen(v)}})}
 $("vSuche").addEventListener("input",zeichneAlle);
 // Gespeicherten Vertrag ins Formular holen (ansehen, ändern, noch einmal drucken). Speichern ersetzt ihn unter derselben Nummer.
