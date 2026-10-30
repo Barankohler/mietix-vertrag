@@ -1007,8 +1007,13 @@ function belegtDurch(v){const ueber=(a1,b1,a2,b2)=>a1<b2&&b1>a2,t=[];
 function vertragSpeichern(){const v=sammle();if(!v)return;
   const ueber=(a1,b1,a2,b2)=>a1<b2&&b1>a2;
   const selbe=vorgaenge().find(x=>x.nr!==v.nr&&nameGleich(x.name,v.name)&&x.auto===v.auto&&x.status!=="zurück"&&x.vonD&&x.bisD&&ueber(v.vonD,v.bisD,x.vonD,x.bisD));
-  if(selbe){if(!confirm(v.name+" hat für "+v.auto+" in diesem Zeitraum schon Mietvertrag "+selbe.nr+".\n\nOK = diesen Mietvertrag "+selbe.nr+" mit den Angaben hier aktualisieren (kein zweiter Mietvertrag).\nAbbrechen = nichts speichern."))return;
-    v.nr=selbe.nr;$("nr").value=selbe.nr;nrVonHand=true;WAHL=selbe.nr;NEU=false;NEU_FREI=true}
+  // Nie den vorhandenen mit einem fast leeren neuen Formular überschreiben (Kaution, Zahlungen gingen sonst verloren): den vorhandenen öffnen,
+  // das hier Getippte liegt im Papierkorb (30.10.2026)
+  if(selbe){if(!confirm(v.name+" hat für "+v.auto+" in diesem Zeitraum schon Mietvertrag "+selbe.nr+". Es wird kein zweiter angelegt.\n\nOK = Mietvertrag "+selbe.nr+" öffnen (das hier Getippte liegt im Papierkorb)\nAbbrechen = hier bleiben, nichts speichern"))return;
+    try{const e=entwurfSchnappschuss(),pk=JSON.parse(localStorage.getItem("mietixPapierkorb")||"[]")||[];
+      pk.push({id:"mietixEntwurfVertrag:"+Date.now(),ablage:"mietixEntwurfVertrag",schluessel:"entwurf",eintrag:e,zeit:new Date().toISOString(),text:"Angefangener Mietvertrag: "+v.name+", "+v.auto+" (schon "+selbe.nr+")"});
+      localStorage.setItem("mietixPapierkorb",JSON.stringify(pk))}catch(x){}
+    entwurfWeg();WAHL=selbe.nr;NEU_FREI=true;vertragLaden(selbe);zeige("vertrag");meldung("Mietvertrag "+selbe.nr+" geöffnet");return}
   const b=belegtDurch(v);if(b.length&&!confirm("ACHTUNG, "+v.auto+" ist in dem Zeitraum schon vergeben:\n\n"+b.join("\n")+"\n\nTrotzdem speichern?"))return;
   const neu=!nrVonHand&&!vorgaenge().some(x=>x.nr===v.nr&&x.name===v.name);
   const fertig=()=>{merke(v);ANFRAGE=null;nrVonHand=true;$("nr").value=v.nr;NEU=false;GELADEN={};standMerken();
@@ -1200,7 +1205,8 @@ function protHolen(){const v=aktuell();if(!v||!["uebergabe","rueckgabe"].include
     Object.entries(d.a||{}).forEach(([i,x])=>setzeAn(i,x));Object.entries(d.p||{}).forEach(([k,x])=>{if(PAD[k]&&x)PAD[k].setzen(x)});
     if(SICHT==="rueckgabe"){schadenZeigen();try{rRechne(false)}catch(e){}}}finally{protLaedt=false}
   if(!PROT_GEMELDET[v.nr+"|"+SICHT]){PROT_GEMELDET[v.nr+"|"+SICHT]=1;meldung("Weiter, wo du warst: Getipptes ist wieder da")}}
-["input","change","click","wahl","touchend"].forEach(ev=>document.addEventListener(ev,()=>protMerken(),true));   // auch Unterschrift im Vollbild
+// nur Eingaben im Formular selbst oder im Unterschrift-Vollbild merken; ein Tipp auf Drucken oder Fertig nach dem Speichern legt keinen alten Stand mehr an (30.10.2026)
+["input","change","click","wahl","touchend"].forEach(ev=>document.addEventListener(ev,e=>{const t=e.target;if(t&&t.closest&&(t.closest("#s_"+SICHT)||t.closest("#ug")))protMerken()},true));   // auch Unterschrift im Vollbild
 
 /* ---------- Verlängern (30.10.2026, Baran: Kunden rufen am Rückgabetag an und verlängern) ---------- */
 let VERL_ZAHL="rueckgabe";
