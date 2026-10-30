@@ -144,7 +144,13 @@ h2.gruppe{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(-
   <div class="hinweis" id="wahlLeer">Noch kein Mietvertrag gespeichert. Erst im Reiter Mietvertrag anlegen.</div>
 </div>
 
-<!-- ================= HEUTE: wer holt ab, wer bringt zurück (ein Klick öffnet das richtige Formular) ================= -->
+<!-- Neuer Vertrag in Arbeit: Übergabe und Co. zeigen keinen alten Vertrag (30.10.2026, Baran) -->
+  <div class="karte versteckt" id="neuSperre">
+    <h2>Neuer Mietvertrag noch nicht gespeichert</h2>
+    <div class="hinweis" id="neuSperreText" style="margin-top:0"></div>
+    <div class="chips" style="margin-top:10px"><div class="chip an" id="neuZurueck">Zurück zum neuen Mietvertrag</div><div class="chip" id="neuAnderer">Anderen, gespeicherten Vertrag öffnen</div></div>
+  </div>
+  <!-- ================= HEUTE: wer holt ab, wer bringt zurück (ein Klick öffnet das richtige Formular) ================= -->
 <section id="s_heute">
   <div id="abgleich"></div>
   <!-- Abholen und Zurück stehen auf der Startseite unter Heute (30.10.2026), hier nur noch das, was sonst offen ist -->
@@ -889,6 +895,7 @@ function vertragSpeichern(){const v=sammle();if(!v)return;
       {t:"Fertig, zur Startseite",f:HEUTE}])};
   if(neu&&window.mietixNeueNummer&&navigator.onLine)window.mietixNeueNummer().then(n=>{if(n)v.nr=n;fertig()}).catch(fertig);else fertig()}
 $("haupt").onclick=()=>{
+  if(gesperrt(SICHT)){zeige("vertrag");return}   // nie in einen alten Vertrag speichern, solange ein neuer offen ist
   if(SICHT==="heute"||SICHT==="vertraege"){leeren();zeige("vertrag");return}
   if(SICHT==="vertrag"){vertragSpeichern();return}
   if(!aktuell()){meldung("Erst im Reiter Mietvertrag einen Vertrag anlegen.");return}
@@ -1026,7 +1033,7 @@ const HEUTE=()=>{AUF=null;location.href="https://barankohler.github.io/mietix-ze
 let NEU=true;   // true = das Formular ist ein neuer Vertrag; false = ein gespeicherter Vertrag ist geladen (zurück zeigt ihn wieder, nichts geht verloren)
 
 /* ---------- Reiter ---------- */
-function leeren(){NEU=true;GELADEN={};$("s_vertrag").querySelectorAll("input,textarea").forEach(e=>e.value="");
+function leeren(){NEU=true;NEU_FREI=false;GELADEN={};$("s_vertrag").querySelectorAll("input,textarea").forEach(e=>e.value="");
   $("vonU").value="10:00";$("bisU").value="10:00";$("mehrkm").value="3";$("kautB").value="1.950";$("sb").value="7.500";
   ["z_anz","z_rest","z_kaut"].forEach(g=>gs(g,""));gs("k_art","geld");$("stamm").textContent="";
   PAD.padV.setzen("");setzeAn("avbHaken",true);$("vSenden").classList.add("versteckt");AUTO=null;ANFRAGE=null;ABGEMACHT=null;restVonHand=false;nrVonHand=false;preisAuto=true;kmAuto=true;$("nr").value=neueNr();zeichneAutos();summe();tipps()}
@@ -1080,6 +1087,9 @@ function svKarte(){const k=$("uSvKarte");if(!k)return;const v=aktuell(),an=!!(v&
   const sv=v.sv||{},fz=[sv.modell,sv.kz].filter(Boolean).join(", ")||v.kfz||"";
   $("uSvStand").textContent=(sv.unterschrift?"Überlassungserklärung unterschrieben":sv.modell||sv.kz?"Überlassungserklärung angefangen, Unterschrift fehlt":"Überlassungserklärung noch offen")+(fz?". Sicherungsfahrzeug: "+fz:"")+".";
   $("uSvOeffnen").textContent=sv.unterschrift?"Überlassungserklärung ansehen":"Überlassungserklärung ausfüllen";$("uSvOeffnen").classList.toggle("an",!sv.unterschrift)}
+let NEU_FREI=false;   // true = bewusst einen gespeicherten Vertrag geöffnet, obwohl ein neuer angefangen ist
+const neuInArbeit=()=>NEU&&!!$("name").value.trim();
+const gesperrt=s=>["uebergabe","rueckgabe","schaden","ueberlassung"].includes(s)&&neuInArbeit()&&!NEU_FREI;
 function zeige(s){SICHT=s;["heute","vertraege","vertrag","uebergabe","rueckgabe","schaden","ueberlassung"].forEach(x=>$("s_"+x).classList.toggle("versteckt",x!==s));
   const reiterS=s;
   [...$("reiter").children].forEach(c=>{c.classList.toggle("an",c.dataset.s===reiterS);
@@ -1089,8 +1099,14 @@ function zeige(s){SICHT=s;["heute","vertraege","vertrag","uebergabe","rueckgabe"
   else if(s==="vertraege")zeichneAlle();
   else if(s==="vertrag"){if(!NEU&&!$("name").value.trim()&&aktuell())vertragLaden(aktuell());zeichneAnfragen();if(!$("name").value)$("nr").value=neueNr()}
   else{wahlFuellen();formularLaden()}
-  svKarte();schritte();window.scrollTo(0,0)}
+  svKarte();schritte();
+  const sp=gesperrt(s);$("neuSperre").classList.toggle("versteckt",!sp);
+  if(sp){$("s_"+s).classList.add("versteckt");$("wahlKarte").classList.add("versteckt");$("haupt").textContent="Zurück zum neuen Mietvertrag";
+    $("neuSperreText").textContent="Du schreibst gerade einen neuen Vertrag für "+$("name").value.trim()+". Erst unten im Mietvertrag „Speichern“ tippen, dann geht es hier mit genau diesem Vertrag weiter."}
+  window.scrollTo(0,0)}
 [...$("reiter").children].forEach(c=>c.onclick=()=>zeige(c.dataset.s));
+$("neuZurueck").onclick=()=>zeige("vertrag");
+$("neuAnderer").onclick=()=>{NEU_FREI=true;WAHL_OFFEN=true;zeige(SICHT)};
 $("uSvOeffnen").onclick=()=>zeige("ueberlassung");$("svZurueck").onclick=()=>zeige("uebergabe");
 
 /* ---------- Kaution Geld oder Fahrzeug verbinden ---------- */
