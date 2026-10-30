@@ -255,7 +255,8 @@ h2.gruppe{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(-
     <div class="kurz" id="kFz"><span></span><a href="#">ändern</a></div>
     <div id="wFz"><label>Kennzeichen</label><input id="kz">
     <label>Fahrgestellnummer (FIN)</label><input id="fin">
-    <label>Kilometerstand bei Abholung (km)</label><input id="km" inputmode="numeric" placeholder="wird bei der Übergabe eingetragen"></div>
+    <div class="versteckt"><!-- Kilometerstand nur im Übergabeprotokoll (30.10.2026, Baran: kein Doppelgemoppe); Feld bleibt für Druck und Speicher -->
+    <label>Kilometerstand bei Abholung (km)</label><input id="km" inputmode="numeric"></div></div>
   </div>
 
   <div class="karte">
@@ -1263,7 +1264,7 @@ function zustText(p){const L={sauber:"sauber",leicht:"leicht verschmutzt",stark:
   return "<b>✓ Zustand</b><br>Außen "+g("aussen")+", innen "+g("innen")+", Tank "+g("tank")+", "+(gw(p+"_gegen")==="nein"?"Abweichungen":"alles vollständig")+", "+g("reifen")+", "+g("felgen")}
 function kurzAlle(){
   kurzZeile("kNr","wNr","Mietvertrag-Nr. <b>"+kfmt($("nr").value)+"</b>",!!$("nr").value);
-  kurzZeile("kFz","wFz","Kennzeichen <b>"+kfmt($("kz").value)+"</b>, FIN …"+kfmt(String($("fin").value).slice(-6))+($("km").value?", "+$("km").value+" km":""),!!$("kz").value);
+  kurzZeile("kFz","wFz","Kennzeichen <b>"+kfmt($("kz").value)+"</b>, FIN …"+kfmt(String($("fin").value).slice(-6)),!!$("kz").value);
   kurzZeile("kKm","wKm","Inklusive <b>"+kfmt($("freikm").value)+" km</b>, Mehr-km <b>"+kfmt($("mehrkm").value)+" €</b>, Selbstbeteiligung <b>"+kfmt($("sb").value)+" €</b>",!!$("freikm").value&&!!$("mehrkm").value&&!!$("sb").value);
   kurzZeile("kUZeit","wUZeit",kfmt(de($("uD").value))+", "+kfmt($("uU").value)+" Uhr, "+kfmt($("uOrt").value),!!$("uD").value);
   kurzZeile("kRZeit","wRZeit",kfmt(de($("rD").value))+", "+kfmt($("rU").value)+" Uhr, "+kfmt($("rOrt").value),!!$("rD").value);
