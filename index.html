@@ -243,11 +243,12 @@ h2.gruppe{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(-
   </div>
 
   <div class="karte">
-    <h2>Kaution und Selbstbeteiligung</h2>
+    <h2>Selbstbeteiligung</h2>
+    <div class="versteckt"><!-- Kautionsart und Fahrzeug wählt man oben bei den Zahlungen, hier nur die Ablage für das Papier -->
     <label>Kaution hinterlegt in Form von</label>
     <div class="chips" data-gruppe="k_art"><div class="chip an" data-v="geld">Geldkaution (Betrag siehe Zahlungen)</div><div class="chip" data-v="fahrzeug">Fahrzeug als Sicherheit</div></div>
     <label>Fahrzeugdaten der Sicherheit (Modell, Kennzeichen)</label><input id="kfz" placeholder="leer lassen geht">
-    <div class="hinweis">Kommt aus der Überlassungserklärung bei der Übergabe.</div>
+    </div>
     <label>Selbstbeteiligung im Schadensfall €</label><input id="sb" inputmode="decimal">
   </div>
 
@@ -572,16 +573,21 @@ function fahrzeugListe(){
   // Gelerntes zuerst, Fahrzeugschein (FZ_STAMM) gewinnt bei Kennzeichen, FIN, SB und Reifengröße
   return namen.map(n=>{const s=FZ_STAMM.find(f=>f.name===n)||{},w=Object.assign({name:n},gelernt[n]||{});
     ["kz","fin","sb","groesse"].forEach(k=>{if(s[k])w[k]=s[k];else if(!w[k])w[k]=""});return w})}
-function zeichneAutos(){const l=fahrzeugListe();
-  $("autos").innerHTML=l.map((a,i)=>'<div class="auto'+(AUTO===a.name?" an":"")+'" data-i="'+i+'"><b>'+a.name+'</b><i>'+(a.kz||"&nbsp;")+'</i></div>').join("");
-  [...$("autos").children].forEach(e=>e.onclick=()=>waehleAuto(l[+e.dataset.i]))}
-function waehleAuto(a){AUTO=a.name;$("modell").value=a.name;$("kz").value=a.kz||"";$("fin").value=a.fin||"";if(a.km)$("km").value=kmText(a.km);
+let AUTO_AUF=false;   // false: nach der Wahl nur das gewählte Auto zeigen (kurzer Weg zum Preis)
+function zeichneAutos(){const l=fahrzeugListe(),zu=!!AUTO&&!AUTO_AUF&&l.some(a=>a.name===AUTO);
+  $("autos").innerHTML=l.map((a,i)=>(zu&&a.name!==AUTO)?"":'<div class="auto'+(AUTO===a.name?" an":"")+'" data-i="'+i+'"><b>'+a.name+'</b><i>'+(a.kz||"&nbsp;")+'</i></div>').join("")+
+    (zu?'<div class="auto" id="autoAndere" style="display:flex;align-items:center;justify-content:center"><b>Anderes Auto</b></div>':"");
+  [...$("autos").querySelectorAll("[data-i]")].forEach(e=>e.onclick=()=>waehleAuto(l[+e.dataset.i]));
+  const an=$("autoAndere");if(an)an.onclick=()=>{AUTO_AUF=true;zeichneAutos()}}
+function waehleAuto(a){AUTO=a.name;AUTO_AUF=false;$("modell").value=a.name;$("kz").value=a.kz||"";$("fin").value=a.fin||"";if(a.km)$("km").value=kmText(a.km);
   const p=autoPreis(a.name);if(p&&p.kaution&&gw("k_art")!=="fahrzeug")$("kautB").value=wie(p.kaution);$("sb").value=a.sb||"7.500";zeichneAutos();tipps()}
 
 /* ---------- Kunden: Anfragen-Buch und Stammkunden ---------- */
 function zeichneAnfragen(){
   const grenze=new Date();grenze.setDate(grenze.getDate()-21);
-  const a=lies("mietixAnfragen",[]).filter(x=>x.status!=="abgesagt"&&x.tag>=iso(grenze)).slice(-6).reverse();
+  const vs=vorgaenge(),gleich=(p,q)=>String(p||"").trim().toLowerCase()===String(q||"").trim().toLowerCase();
+  const hatVertrag=x=>!!x.vertrag||vs.some(v=>x.name&&gleich(v.name,x.name)&&(!x.von||v.vonD===x.von));   // schon ein Vertrag dazu: nicht nochmal anbieten (30.10.2026)
+  const a=lies("mietixAnfragen",[]).filter(x=>x.status!=="abgesagt"&&x.tag>=iso(grenze)&&!hatVertrag(x)).slice(-6).reverse();
   if(!a.length){$("anfragen").innerHTML="";return}
   $("anfragen").innerHTML='<div class="hinweis" style="margin:0 0 4px">Aus dem Anfragen-Buch übernehmen:</div>'+
     a.map((x,i)=>'<div class="anfrage" data-i="'+i+'"><b>'+(x.name||"ohne Namen")+'</b><div>'+
@@ -772,7 +778,7 @@ function merke(v){entwurfWeg();
   const k=kunden(),nm=window.mietixKunden&&window.mietixKunden.norm,schl=(nm&&Object.keys(k).find(n=>nm(n)===nm(v.name)))||v.name,kn=Object.assign({},k[schl]||{});
   ["telefon","anschrift","geb","gebort","email"].forEach(f=>{if(v[f])kn[f]=v[f]});k[schl]=kn;schreib("mietixKunden",k);
   lerneAuto(v.auto,{kz:v.kz,fin:v.fin,sb:v.sb,km:v.km});kundenListe();WAHL=v.nr;
-  if(ANFRAGE){const a=lies("mietixAnfragen",[]),x=a.find(x=>x.id===ANFRAGE);if(x){x.status="gebucht";schreib("mietixAnfragen",a)}}}
+  if(ANFRAGE){const a=lies("mietixAnfragen",[]),x=a.find(x=>x.id===ANFRAGE);if(x){x.status="gebucht";x.vertrag=v.nr;schreib("mietixAnfragen",a)}}}
 // Excel (Mietix Zentrale, Reiter Buchungen): Zeile ab Spalte Kunde bis Bezahlt, wird beim Speichern kopiert
 function alter(geb){if(!geb)return"";const g=new Date(geb),h=new Date();let a=h.getFullYear()-g.getFullYear();
   if(h.getMonth()<g.getMonth()||(h.getMonth()===g.getMonth()&&h.getDate()<g.getDate()))a--;return a>0&&a<100?String(a):""}
@@ -1109,6 +1115,8 @@ $("neuZurueck").onclick=()=>zeige("vertrag");
 $("neuAnderer").onclick=()=>{NEU_FREI=true;WAHL_OFFEN=true;zeige(SICHT)};
 $("uSvOeffnen").onclick=()=>zeige("ueberlassung");$("svZurueck").onclick=()=>zeige("uebergabe");
 
+/* ---------- Zahlart antippen setzt "Bezahlt am" auf heute, wenn noch leer (30.10.2026) ---------- */
+[["z_anz","anzAm"],["z_rest","restAm"],["z_kaut","kautAm"]].forEach(([g,d])=>gruppe(g).addEventListener("wahl",()=>{if(gw(g)&&!$(d).value){$(d).value=iso(new Date());$(d).dispatchEvent(new Event("input",{bubbles:true}))}}));
 /* ---------- Kaution Geld oder Fahrzeug verbinden ---------- */
 [...$("kautWahl").children].forEach(c=>c.onclick=()=>kautSetzen(c.dataset.ka));
 gruppe("k_art").addEventListener("wahl",()=>{if(!gw("k_art"))gs("k_art","geld");kautSetzen(gw("k_art"))});
