@@ -105,6 +105,8 @@ details summary{cursor:pointer;font-weight:800;color:var(--grau);font-size:14px}
 .haken{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .haken span{font-size:12px;font-weight:800;border-radius:8px;padding:4px 8px;background:var(--bg);color:var(--grau)}
 .offenTag{display:inline-block;margin-left:8px;font-size:11px;font-weight:800;border-radius:8px;padding:2px 7px;background:var(--bg);color:var(--grau);border:1px solid var(--rand);vertical-align:2px}
+.vmZeile{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px}.vmHaken{flex:none;width:26px;height:26px;border-radius:50%;background:#E8F6EE;color:var(--gruen);font-weight:900;display:flex;align-items:center;justify-content:center}
+.vmText{flex:1 1 220px;font-weight:700;font-size:14px;line-height:1.3}#vmBild{flex:none;height:34px;max-width:110px;object-fit:contain;margin-left:36px}#vmAendern{flex:none;margin-left:auto}
 .haken span.ok{background:#E8F6EE;color:var(--gruen)}.haken span.rot{background:var(--hell);color:var(--rot)}
 h2.gruppe{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--grau);margin:16px 4px 6px}
 #nachBg{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:30}
@@ -247,8 +249,11 @@ h2.gruppe{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(-
   <div id="vEntwurf"></div>
   <div id="alleListe"></div>
   <div class="karte" style="margin-top:16px"><h2>Meine Unterschrift (Vermieter)</h2>
-    <div class="hinweis" style="margin-top:0">Einmal unterschreiben, sie kommt dann in jeden Druck.</div>
+    <div id="vmZu" class="versteckt"><div class="vmZeile"><span class="vmHaken">✓</span><span class="vmText">Deine Unterschrift ist gespeichert und kommt in jeden Vertrag.</span><img id="vmBild" alt=""><div class="chip" id="vmAendern">Ändern</div></div>
+      <div class="hinweis">Gilt für dieses Gerät. Auf jedem Handy einmal unterschreiben.</div></div>
+    <div id="vmAuf"><div class="hinweis" style="margin-top:0">Einmal unterschreiben, gilt dann für dieses Gerät.</div>
     <label>Unterschrift Vermieter (mit dem Finger, am besten quer)</label><div class="pad" id="padVM"><canvas width="900" height="300"></canvas><div class="tipp">Antippen, dann groß unterschreiben</div><div class="weg">Löschen</div><div class="gross">Antippen für Vollbild</div></div>
+    <div class="chip versteckt" id="vmZuklappen" style="margin-top:8px">Zuklappen</div></div>
   </div>
 </section>
 
@@ -401,7 +406,7 @@ function padMachen(id){const el=$(id),c=el.querySelector("canvas"),ctx=c.getCont
   const zieh=e=>{if(!malt)return;const[x,y]=pos(e);ctx.lineTo(x,y);ctx.stroke();e.preventDefault()};
   const ende=()=>{malt=false};
   c.addEventListener("pointerdown",e=>{e.preventDefault();grossOeffnen(id)});
-  el.querySelector(".weg").onclick=()=>{if(id==="padVM"&&hat&&!confirm("Deine hinterlegte Unterschrift wirklich löschen?"))return;ctx.clearRect(0,0,c.width,c.height);hat=false;bild="";el.classList.remove("hat");if(id==="padVM"){try{localStorage.removeItem("mietixUnterschriftVermieter")}catch(e){}vmStand()}};
+  el.querySelector(".weg").onclick=()=>{if(id==="padVM"&&hat&&!confirm("Deine hinterlegte Unterschrift wirklich löschen?"))return;ctx.clearRect(0,0,c.width,c.height);hat=false;bild="";el.classList.remove("hat");if(id==="padVM"){try{localStorage.removeItem("mietixUnterschriftVermieter")}catch(e){}vmStand();if(typeof vmKarte==="function")vmKarte()}};
   // Das Bild wird unverändert gemerkt (so kommt es auch ins PDF) und im Feld ohne Verzerrung mittig gezeigt
   let bild="";
   return{wert:()=>hat?bild:"",setzen:d=>{ctx.clearRect(0,0,c.width,c.height);hat=false;bild="";el.classList.remove("hat");if(!d)return;
@@ -454,7 +459,7 @@ $("ugFertig").onclick=()=>{if(!UG)return;let daten="";
     const z=document.createElement("canvas");z.width=Math.max(10,Math.round((x1-x0)*d));z.height=Math.max(10,Math.round((y1-y0)*d));
     z.getContext("2d").drawImage(UG.c,x0*d,y0*d,(x1-x0)*d,(y1-y0)*d,0,0,z.width,z.height);daten=z.toDataURL("image/png")}
   const padId=UG.padId;ugZu();
-  if(daten){PAD[padId].setzen(daten);if(padId==="padVM"){try{localStorage.setItem("mietixUnterschriftVermieter",daten)}catch(e){}setTimeout(vmStand,100)}
+  if(daten){PAD[padId].setzen(daten);if(padId==="padVM"){try{localStorage.setItem("mietixUnterschriftVermieter",daten)}catch(e){}VM_AUF=false;setTimeout(()=>{vmStand();vmKarte()},100);meldung("Unterschrift gespeichert")}
     if(padId==="padV"&&typeof entwurfMerken==="function")entwurfMerken()}};   // Unterschrift landet sofort im Entwurf (30.10.2026)
 const PAD={};["padV","padU","padR","padS","padSV","padVM"].forEach(id=>{if($(id))PAD[id]=padMachen(id)});
 const vermieterUnterschrift=()=>{try{return localStorage.getItem("mietixUnterschriftVermieter")||""}catch(e){return""}};
@@ -465,6 +470,12 @@ function vmStand(){const el=$("vmStand");if(!el)return;const u=vermieterUntersch
     :'<span>Unterschrift Vermieter: noch nicht hinterlegt</span><div class="chip an" id="vmNeu">jetzt unterschreiben</div>';
   $("vmNeu").onclick=()=>grossOeffnen("padVM")}
 vmStand();
+// Kasten "Meine Unterschrift": gespeichert = eine schmale Zeile, "Ändern" klappt auf (30.10.2026, Baran: "das ist die ganze Zeit offen")
+let VM_AUF=false;
+function vmKarte(){if(!$("vmZu"))return;const u=vermieterUnterschrift(),zu=!!u&&!VM_AUF;
+  $("vmZu").classList.toggle("versteckt",!zu);$("vmAuf").classList.toggle("versteckt",zu);$("vmZuklappen").classList.toggle("versteckt",!u);
+  if(u)$("vmBild").src=u}
+if($("vmZu")){$("vmAendern").onclick=()=>{VM_AUF=true;vmKarte();grossOeffnen("padVM")};$("vmZuklappen").onclick=()=>{VM_AUF=false;vmKarte()};vmKarte()}
 // Unterschriften ins PDF: über die Linien "Unterschrift Mieter" und "Unterschrift Vermieter" (Lage aus den Vorlagen gemessen)
 const LINIE={vertrag1:92,vertrag2:168,rueck:131,schaden:176,sv:289};
 async function stempel(doc,seite,yLinie,mieterPng,vermieterPng){const p=doc.getPages()[seite];
