@@ -694,14 +694,17 @@ let entwurfTimer=null,entwurfAus=false;
 function entwurfSchnappschuss(){const f={};$("s_vertrag").querySelectorAll("input,textarea,select").forEach(e=>{if(e.id)f[e.id]=e.value});
   const chips={};document.querySelectorAll("#s_vertrag [data-gruppe]").forEach(g=>chips[g.dataset.gruppe]=chipWert(g));
   return{f,chips,an:["avbHaken"].filter(i=>$(i).classList.contains("an")),auto:AUTO,u:PAD.padV?PAD.padV.wert():"",anfrage:ANFRAGE,zeit:new Date().toISOString()}}
-function entwurfMerken(){if(entwurfAus||SICHT!=="vertrag")return;clearTimeout(entwurfTimer);entwurfTimer=setTimeout(()=>{ungespeichertZeigen();if(!NEU&&!ungespeichert()){try{localStorage.removeItem("mietixEntwurfVertrag")}catch(x){}return}const e=entwurfSchnappschuss();
+function entwurfMerken(){if(entwurfAus||SICHT!=="vertrag")return;clearTimeout(entwurfTimer);entwurfTimer=setTimeout(()=>{ungespeichertZeigen();if(!NEU){try{localStorage.removeItem("mietixEntwurfVertrag")}catch(x){}return}const e=entwurfSchnappschuss();
   if(!(e.f.name||"").trim()&&!e.auto){try{localStorage.removeItem("mietixEntwurfVertrag")}catch(x){}return}
   try{localStorage.setItem("mietixEntwurfVertrag",JSON.stringify(e))}catch(x){}},300)}
 function entwurfWeg(){clearTimeout(entwurfTimer);try{localStorage.removeItem("mietixEntwurfVertrag")}catch(x){}$("entwurf").classList.add("versteckt")}
 ["input","change","click","wahl"].forEach(ev=>$("s_vertrag").addEventListener(ev,entwurfMerken,true));
 function entwurfHolen(){let e=null;try{e=JSON.parse(localStorage.getItem("mietixEntwurfVertrag")||"null")}catch(x){}
   return e&&e.f&&Date.now()-new Date(e.zeit).getTime()<=48*3600e3?e:null}
-function entwurfFortsetzen(e){entwurfAus=true;leeren();
+function entwurfFortsetzen(e){
+  const gl=vorgaenge().find(x=>x.nr===(e.f.nr||"")&&nameGleich(x.name,e.f.name));
+  if(gl){entwurfWeg();WAHL=gl.nr;NEU_FREI=true;vertragLaden(gl);zeige("vertrag");meldung("Mietvertrag "+gl.nr+" geöffnet");return}
+  entwurfAus=true;leeren();
     const setzen=()=>Object.keys(e.f).forEach(id=>{const el=$(id);if(el&&e.f[id]!==undefined)el.value=e.f[id]});setzen();
     if(e.auto){const f=fahrzeugListe().find(f=>f.name===e.auto);if(f){waehleAuto(f);setzen()}else{AUTO=e.auto;$("modell").value=e.auto}}
     Object.keys(e.chips||{}).forEach(g=>{if(gruppe(g))gs(g,e.chips[g])});(e.an||[]).forEach(i=>setzeAn(i,true));
@@ -956,6 +959,7 @@ const KNOPF={mappe:"Weiter",heute:"Neuer Mietvertrag",vertraege:"Neuer Mietvertr
 // Ohne Internet bleibt die Nummer vom Gerät. Die Excel-Zeile wird noch im Klick kopiert (sonst sperrt das iPhone).
 let nrVonHand=false;$("nr").addEventListener("input",()=>nrVonHand=true);
 // Doppelbelegung: ein anderer Mietvertrag (nicht zurück), eine gebuchte Anfrage oder eine Sperre mit demselben Auto im Zeitraum
+const nameGleich=(a,b)=>String(a||"").toLowerCase().replace(/\s+/g,"")===String(b||"").toLowerCase().replace(/\s+/g,"");
 function belegtDurch(v){const ueber=(a1,b1,a2,b2)=>a1<b2&&b1>a2,t=[];
   vorgaenge().forEach(x=>{if(x.nr!==v.nr&&x.auto===v.auto&&x.status!=="zurück"&&x.vonD&&x.bisD&&ueber(v.vonD,v.bisD,x.vonD,x.bisD))t.push(x.name+" (Mietvertrag "+x.nr+", bis "+de(x.bisD)+")")});
   lies("mietixAnfragen",[]).forEach(a=>{if(a.id!==ANFRAGE&&a.status==="gebucht"&&a.auto===v.auto&&a.von&&a.bis&&a.name!==v.name&&ueber(v.vonD,v.bisD,a.von,a.bis))t.push(a.name+" (gebucht, bis "+de(a.bis)+")")});
@@ -963,6 +967,10 @@ function belegtDurch(v){const ueber=(a1,b1,a2,b2)=>a1<b2&&b1>a2,t=[];
   return t}
 // Speichern ist vom Drucken getrennt (29.10.2026): erst sichern, dann im Blatt wählen: drucken, WhatsApp, weiter zur Übergabe.
 function vertragSpeichern(){const v=sammle();if(!v)return;
+  const ueber=(a1,b1,a2,b2)=>a1<b2&&b1>a2;
+  const selbe=vorgaenge().find(x=>x.nr!==v.nr&&nameGleich(x.name,v.name)&&x.auto===v.auto&&x.status!=="zurück"&&x.vonD&&x.bisD&&ueber(v.vonD,v.bisD,x.vonD,x.bisD));
+  if(selbe){if(!confirm(v.name+" hat für "+v.auto+" in diesem Zeitraum schon Mietvertrag "+selbe.nr+".\n\nOK = diesen Mietvertrag "+selbe.nr+" mit den Angaben hier aktualisieren (kein zweiter Mietvertrag).\nAbbrechen = nichts speichern."))return;
+    v.nr=selbe.nr;$("nr").value=selbe.nr;nrVonHand=true;WAHL=selbe.nr;NEU=false;NEU_FREI=true}
   const b=belegtDurch(v);if(b.length&&!confirm("ACHTUNG, "+v.auto+" ist in dem Zeitraum schon vergeben:\n\n"+b.join("\n")+"\n\nTrotzdem speichern?"))return;
   const neu=!nrVonHand&&!vorgaenge().some(x=>x.nr===v.nr&&x.name===v.name);
   const fertig=()=>{merke(v);ANFRAGE=null;nrVonHand=true;$("nr").value=v.nr;NEU=false;GELADEN={};standMerken();
@@ -974,13 +982,17 @@ function vertragSpeichern(){const v=sammle();if(!v)return;
       {t:"Mietvertrag drucken",f:()=>oeffnen(()=>seite(()=>fuelleVertrag(aktuell()),0)),bleibt:true},
       {t:"Per WhatsApp an den Kunden",wa:true,f:()=>teilen(aktuell()),bleibt:true}])};
   if(neu&&window.mietixNeueNummer&&navigator.onLine)window.mietixNeueNummer().then(n=>{if(n)v.nr=n;fertig()}).catch(fertig);else fertig()}
+// Unterschrift nie still verlieren (30.10.2026, Fehler bei Hassan): fehlt sie im Feld, aus dem Zwischenspeicher holen, sonst nachfragen
+function unterschriftDa(pad,was){if(PAD[pad].wert())return true;
+  const d=protAlle()[WAHL+"|"+SICHT];if(d&&d.p&&d.p[pad]){PAD[pad].setzen(d.p[pad]);return true}
+  return confirm("Der Mieter hat die "+was+" noch nicht unterschrieben.\n\nOK = trotzdem ohne Unterschrift speichern\nAbbrechen = erst unterschreiben lassen")}
 $("haupt").onclick=()=>{
-  if(gesperrt(SICHT)){zeige("vertrag");return}
+  if(gesperrt(SICHT)&&!(aktuell()&&!$("s_"+SICHT).classList.contains("versteckt"))){zeige("vertrag");return}
   if(SICHT==="mappe"){const v=aktuell();if(MAPPE_NX&&v){if(MAPPE_NX==="vertrag")vertragLaden(v);zeige(MAPPE_NX)}else{leeren();zeige("vertrag")}return}   // nie in einen alten Mietvertrag speichern, solange ein neuer offen ist
   if(SICHT==="heute"||SICHT==="vertraege"){leeren();zeige("vertrag");return}
   if(SICHT==="vertrag"){vertragSpeichern();return}
   if(!aktuell()){meldung("Erst oben unter „Neuer Mietvertrag“ einen Mietvertrag anlegen.");return}
-  if(SICHT==="uebergabe"){if(!$("svSlot").classList.contains("versteckt"))svSpeichern();const v=aendere(v=>{v.ueb=Object.assign(protokollLesen("u"),{km:$("uKm").value.trim(),datum:$("uD").value,
+  if(SICHT==="uebergabe"){if(!unterschriftDa("padU","Übergabe"))return;if(!$("svSlot").classList.contains("versteckt"))svSpeichern();const v=aendere(v=>{v.ueb=Object.assign(protokollLesen("u"),{km:$("uKm").value.trim(),datum:$("uD").value,
       uhr:$("uU").value,ort:$("uOrt").value.trim(),bem:$("uBem").value.trim(),ortDatum:heuteDe(),unterschrift:PAD.padU.wert(),unterschriftVermieter:PAD.padU.wert()?vermieterUnterschrift():""});if(v.ueb.km)v.km=v.ueb.km});
     lerneAuto(v.auto,{km:v.ueb.km,reifen:v.ueb.reifen,felgen:v.ueb.felgen,reserve:v.ueb.reserve,marke:v.ueb.marke,profil:v.ueb.profil});
     protWeg(v.nr,"uebergabe");meldung("Übergabe gespeichert");GELADEN={};schritte();
@@ -990,6 +1002,7 @@ $("haupt").onclick=()=>{
       {t:"Drucken: Mietvertrag + Übergabe"+(mitSv?" + Kaution":""),voll:true,f:()=>oeffnen(()=>docsZusammen([fuelleVertrag(aktuell())].concat(mitSv?[fuelleUeberlassung(aktuell())]:[]))),bleibt:true},
       {t:"Per WhatsApp an den Kunden",wa:true,f:()=>teilen(aktuell()),bleibt:true}]);return}
   if(SICHT==="rueckgabe"){if(!$("rKm").value.trim()){alert("Bitte den Kilometerstand bei Rückgabe eintragen.");return}
+    if(!unterschriftDa("padR","Rückgabe"))return;
     if(gw("r_auff")==="ja")schadenSpeichern();
     const v=aendere(v=>{v.rueck=Object.assign(protokollLesen("r"),{km:$("rKm").value.trim(),gefahren:$("rGef").value.trim(),mehrkm:$("rMehr").value.trim(),
       datum:$("rD").value,uhr:$("rU").value,ort:$("rOrt").value.trim(),auff:gw("r_auff"),bem:$("rBem").value.trim(),ortDatum:heuteDe(),unterschrift:PAD.padR.wert(),unterschriftVermieter:PAD.padR.wert()?vermieterUnterschrift():""});
@@ -1349,7 +1362,7 @@ window.addEventListener("mietix-abgleich",e=>{if(!ANFRAGE||!(e.detail||[]).inclu
 setTimeout(zeichneHeute,0);   // erst wenn der Abgleich-Baustein geladen ist
 // Von der Zentrale: ?nr=000532&zeige=uebergabe springt direkt in das Formular
 (()=>{const q=new URLSearchParams(location.search),nr=q.get("nr"),z=q.get("zeige");if(!nr&&!z)return;history.replaceState(null,"",location.pathname);
-  if(nr&&vorgaenge().some(v=>v.nr===nr))WAHL=nr;if(z&&$("s_"+z))zeige(z)})();
+  if(nr&&vorgaenge().some(v=>v.nr===nr)){WAHL=nr;NEU_FREI=true}if(z&&$("s_"+z))zeige(z)})();
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&SICHT==="heute")zeichneHeute()});
 // Neuer Stand von einem anderen Gerät: Listen neu zeichnen, ein angefangenes Formular bleibt wie es ist
 window.addEventListener("mietix-abgleich",()=>{kundenListe();if(SICHT==="vertraege")zeichneAlle();
