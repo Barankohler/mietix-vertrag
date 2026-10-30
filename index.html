@@ -497,9 +497,21 @@ function vmKarte(){if(!$("vmZu"))return;const u=vermieterUnterschrift(),zu=!!u&&
 if($("vmZu")){$("vmAendern").onclick=()=>{VM_AUF=true;vmKarte();grossOeffnen("padVM")};$("vmZuklappen").onclick=()=>{VM_AUF=false;vmKarte()};vmKarte()}
 // Unterschriften ins PDF: über die Linien "Unterschrift Mieter" und "Unterschrift Vermieter" (Lage aus den Vorlagen gemessen)
 const LINIE={vertrag1:92,vertrag2:168,rueck:131,schaden:176,sv:289};
+// Freier Platz über jeder Linie bis zum nächsten Text oder Feld, in den Vorlagen gemessen (30.10.2026): [Vermieter, Mieter].
+// Die Unterschrift darf die Linie 3 pt nach unten kreuzen (darunter steht "Unterschrift ..." erst nach 7 pt), oben bleibt 1,5 pt Luft.
+const PLATZ={92:[14.8,45.2],168:[16,16],131:[15.5,15.5],176:[26.8,57.7],289:[23.2,23.2]};
+// Leeren Rand um die Unterschrift abschneiden, damit sie den freien Platz ganz nutzt (30.10.2026)
+const ZUGESCHNITTEN={};
+function zuschneiden(png){if(ZUGESCHNITTEN[png])return Promise.resolve(ZUGESCHNITTEN[png]);
+  return new Promise(ok=>{const im=new Image();im.onload=()=>{try{const c=document.createElement("canvas");c.width=im.width;c.height=im.height;const x=c.getContext("2d");x.drawImage(im,0,0);
+    const d=x.getImageData(0,0,c.width,c.height).data;let x0=c.width,y0=c.height,x1=-1,y1=-1;
+    for(let y=0;y<c.height;y++)for(let i=0;i<c.width;i++){const k=(y*c.width+i)*4;if(d[k+3]>30&&d[k]+d[k+1]+d[k+2]<560){if(i<x0)x0=i;if(i>x1)x1=i;if(y<y0)y0=y;if(y>y1)y1=y}}
+    if(x1<0)return ok(png);const r=4;x0=Math.max(0,x0-r);y0=Math.max(0,y0-r);x1=Math.min(c.width-1,x1+r);y1=Math.min(c.height-1,y1+r);
+    const z=document.createElement("canvas");z.width=x1-x0+1;z.height=y1-y0+1;z.getContext("2d").drawImage(c,x0,y0,z.width,z.height,0,0,z.width,z.height);
+    ok(ZUGESCHNITTEN[png]=z.toDataURL("image/png"))}catch(e){ok(png)}};im.onerror=()=>ok(png);im.src=png})}
 async function stempel(doc,seite,yLinie,mieterPng,vermieterPng){const p=doc.getPages()[seite];
   for(const[png,x]of[[mieterPng,440],[vermieterPng,283]]){if(!png)continue;
-    try{const im=await doc.embedPng(png);const f=Math.min(112/im.width,34/im.height),w=im.width*f,h=im.height*f,x0=x+(112-w)/2,y0=yLinie+1;for(const[dx,dy]of[[0,0],[0.45,0],[-0.45,0],[0,0.45],[0,-0.45],[0.32,0.32],[-0.32,-0.32],[0.32,-0.32],[-0.32,0.32]])p.drawImage(im,{x:x0+dx,y:y0+dy,width:w,height:h})}catch(e){}}}
+    try{const im=await doc.embedPng(await zuschneiden(png));const g=(PLATZ[yLinie]||[20,20])[x===283?0:1],hMax=Math.min(28,g-1.5+3),f=Math.min(112/im.width,hMax/im.height),w=im.width*f,h=im.height*f,x0=x+(112-w)/2,y0=yLinie-3;for(const[dx,dy]of[[0,0],[0.45,0],[-0.45,0],[0,0.45],[0,-0.45],[0.32,0.32],[-0.32,-0.32],[0.32,-0.32],[-0.32,0.32]])p.drawImage(im,{x:x0+dx,y:y0+dy,width:w,height:h})}catch(e){}}}
 
 /* ---------- Kästchen (antippen = ankreuzen) ---------- */
 function chipWahl(el,wert){[...el.children].forEach(c=>c.classList.toggle("an",c.dataset.v===wert))}
