@@ -149,7 +149,7 @@ h2.gruppe{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(-
   <div id="schritte"></div>
   <select id="wahl" class="klein versteckt" data-zu="1"></select>
   <div class="wahlinfo versteckt" id="wahlInfo"></div>
-  <div class="hinweis" id="wahlLeer">Noch kein Mietvertrag gespeichert. Erst im Reiter Mietvertrag anlegen.</div>
+  <div class="hinweis" id="wahlLeer">Noch kein Mietvertrag gespeichert. Erst oben unter „Neuer Vertrag“ anlegen.</div>
 </div>
 
 <!-- Neuer Vertrag in Arbeit: Übergabe und Co. zeigen keinen alten Vertrag (30.10.2026, Baran) -->
@@ -203,7 +203,7 @@ h2.gruppe{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(-
     <input id="modell" placeholder="oder hier eintippen">
     <label>Kennzeichen</label><input id="kz">
     <label>Fahrgestellnummer (FIN)</label><input id="fin">
-    <label>Kilometerstand (km)</label><input id="km" inputmode="numeric" placeholder="kommt aus der Übergabe">
+    <label>Kilometerstand bei Abholung (km)</label><input id="km" inputmode="numeric" placeholder="wird bei der Übergabe eingetragen">
   </div>
 
   <div class="karte">
@@ -227,7 +227,7 @@ h2.gruppe{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(-
     <div class="zeile">
       <div class="zwei">
         <div><label>Inklusive Freikilometer (km)</label><input id="freikm" inputmode="numeric"></div>
-        <div><label>Mehrkilometer €/km kostenpflichtig</label><input id="mehrkm" value="3" inputmode="decimal"></div>
+        <div><label>Preis je Mehrkilometer €</label><input id="mehrkm" value="3" inputmode="decimal"></div>
       </div>
       <div class="chips" id="kmTipp"></div></div>
   </div>
@@ -268,9 +268,9 @@ h2.gruppe{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(-
 
   <div class="karte"><h2>Unterschriften</h2>
     <div class="hinweis" style="margin-top:0">Wiesbaden, den <span id="heuteText"></span></div>
-    <label>Unterschrift Mieter (mit dem Finger, am besten quer)</label><div class="pad" id="padV"><canvas width="900" height="300"></canvas><div class="tipp">Antippen, dann groß unterschreiben</div><div class="weg">Löschen</div><div class="gross">Antippen für Vollbild</div></div>
+    <label>Unterschrift Mieter</label><div class="pad" id="padV"><canvas width="900" height="300"></canvas><div class="tipp">Antippen, dann groß unterschreiben</div><div class="weg">Löschen</div><div class="gross">Antippen für Vollbild</div></div>
     <div class="vmStand" id="vmStand"></div>
-    <div class="chips" style="margin-top:8px"><div class="chip" id="avbHaken">Bedingungen und Datenschutz erhalten (Kunde hat bestätigt)</div></div>
+    <div class="chips" style="margin-top:8px"><div class="chip" id="avbHaken">Mietbedingungen und Datenschutz erhalten (wird mit der Unterschrift angekreuzt)</div></div>
     <a class="knopf versteckt" id="vSenden">Vertrag per WhatsApp an den Kunden</a></div>
 
 </section>
@@ -279,14 +279,14 @@ h2.gruppe{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(-
 <section id="s_vertraege" class="versteckt">
   <div class="karte"><h2>Verträge</h2>
     <input id="vSuche" type="search" autocomplete="off" placeholder="Name, Nummer oder Auto">
-    <div class="hinweis">Antippen zeigt, was zu dem Vertrag noch zu tun ist. Jeder gespeicherte Vertrag steht hier, auf allen Geräten.</div></div>
+    <div class="hinweis">Antippen öffnet die Mappe des Kunden mit allen Schritten, Drucken und WhatsApp. Jeder gespeicherte Vertrag steht hier, auf allen Geräten.</div></div>
   <div id="vEntwurf"></div>
   <div id="alleListe"></div>
   <div class="karte" style="margin-top:16px"><h2>Meine Unterschrift (Vermieter)</h2>
     <div id="vmZu" class="versteckt"><div class="vmZeile"><span class="vmHaken">✓</span><span class="vmText">Deine Unterschrift ist gespeichert und kommt in jeden Vertrag.</span><img id="vmBild" alt=""><div class="chip" id="vmAendern">Ändern</div></div>
       <div class="hinweis">Gilt für dieses Gerät. Auf jedem Handy einmal unterschreiben.</div></div>
     <div id="vmAuf"><div class="hinweis" style="margin-top:0">Einmal unterschreiben, gilt dann für dieses Gerät.</div>
-    <label>Unterschrift Vermieter (mit dem Finger, am besten quer)</label><div class="pad" id="padVM"><canvas width="900" height="300"></canvas><div class="tipp">Antippen, dann groß unterschreiben</div><div class="weg">Löschen</div><div class="gross">Antippen für Vollbild</div></div>
+    <label>Unterschrift Vermieter</label><div class="pad" id="padVM"><canvas width="900" height="300"></canvas><div class="tipp">Antippen, dann groß unterschreiben</div><div class="weg">Löschen</div><div class="gross">Antippen für Vollbild</div></div>
     <div class="chip versteckt" id="vmZuklappen" style="margin-top:8px">Zuklappen</div></div>
   </div>
 </section>
@@ -309,15 +309,15 @@ h2.gruppe{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(-
     <label>Fotos zur Dokumentation</label><div class="chips" data-gruppe="u_fotos"><div class="chip an" data-v="ja">ja</div><div class="chip" data-v="nein">nein</div></div></div>
   <div class="karte"><h2>Bemerkungen</h2><textarea id="uBem"></textarea></div>
   <div id="svSlot" class="versteckt"></div>   <!-- Auto des Kunden als Kaution: kommt beim Start aus dem Abschnitt Überlassung hierher (30.10.2026) -->
-  <div class="karte"><h2>Unterschrift</h2><label>Unterschrift Mieter (Übergabe) (mit dem Finger, am besten quer)</label><div class="pad" id="padU"><canvas width="900" height="300"></canvas><div class="tipp">Antippen, dann groß unterschreiben</div><div class="weg">Löschen</div><div class="gross">Antippen für Vollbild</div></div></div>
+  <div class="karte"><h2>Unterschrift</h2><label>Unterschrift Mieter (Übergabe)</label><div class="pad" id="padU"><canvas width="900" height="300"></canvas><div class="tipp">Antippen, dann groß unterschreiben</div><div class="weg">Löschen</div><div class="gross">Antippen für Vollbild</div></div></div>
 </section>
 
 <!-- ================= RÜCKGABEPROTOKOLL ================= -->
 <section id="s_rueckgabe" class="versteckt">
   <div class="karte"><h2>Fahrzeug und Rückgabe</h2>
     <div class="info" id="rFz"></div>
-    <div class="zwei"><div><label>Kilometerstand (km) *</label><input id="rKm" inputmode="numeric"></div>
-      <div><label>km bei Übergabe</label><input id="rKmAb" inputmode="numeric"></div></div>
+    <div class="zwei"><div><label>Kilometerstand jetzt (km) *</label><input id="rKm" inputmode="numeric"></div>
+      <div><label>Kilometerstand bei Übergabe (km)</label><input id="rKmAb" inputmode="numeric"></div></div>
     <input id="rGef" type="hidden"><input id="rMehr" type="hidden">
     <div class="ergebnis" id="rErgebnis">Kilometerstand eintragen, gefahrene km und Mehrkilometer rechnen sich.</div>
     <div class="zwei"><div><label>Preis je Mehrkilometer €</label><input id="eSatz" inputmode="decimal"></div>
@@ -336,7 +336,7 @@ h2.gruppe{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(-
     <label>Neue Beschädigungen, Gerüche (z. B. Rauch) oder Auffälligkeiten festgestellt</label><div class="chips" data-gruppe="r_auff"><div class="chip" data-v="ja">ja</div><div class="chip an" data-v="nein">nein</div></div></div>
   <div id="schadenSlot" class="versteckt"></div>   <!-- Schadensanerkennung: erscheint, sobald Auffälligkeiten "ja" -->
   <div class="karte"><h2>Bemerkungen</h2><textarea id="rBem"></textarea></div>
-  <div class="karte"><h2>Unterschrift</h2><label>Unterschrift Mieter (Rückgabe) (mit dem Finger, am besten quer)</label><div class="pad" id="padR"><canvas width="900" height="300"></canvas><div class="tipp">Antippen, dann groß unterschreiben</div><div class="weg">Löschen</div><div class="gross">Antippen für Vollbild</div></div></div>
+  <div class="karte"><h2>Unterschrift</h2><label>Unterschrift Mieter (Rückgabe)</label><div class="pad" id="padR"><canvas width="900" height="300"></canvas><div class="tipp">Antippen, dann groß unterschreiben</div><div class="weg">Löschen</div><div class="gross">Antippen für Vollbild</div></div></div>
 </section>
 
 <!-- ================= SCHADENSANERKENNUNG ================= -->
@@ -358,10 +358,10 @@ h2.gruppe{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(-
     <label>Weiteres Vorgehen</label><div class="chips" data-gruppe="s_weiter"><div class="chip" data-v="gutachter">Sachverständigengutachten wird beauftragt</div><div class="chip" data-v="kv">Kostenvoranschlag folgt</div></div>
     <label>Einbehaltene Kaution</label><div class="chips" data-gruppe="s_kaution"><div class="chip an" data-v="geld">Geldkaution</div><div class="chip" data-v="fahrzeug">Fahrzeug des Mieters (gemäß Sicherungsvertrag)</div></div>
     <label>Geldkaution in Höhe von €</label><input id="sKaution" inputmode="decimal">
-    <div class="hinweis">Das Kästchen „Mit der Unterschrift erkennt der Mieter …“ kreuzt der Mieter selbst an.</div>
+    <div class="hinweis">Das Kästchen „Mit der Unterschrift erkennt der Mieter …“ wird nur angekreuzt, wenn unten „Mieter erkennt den Schaden an“ angetippt ist. Das entscheidet der Mieter selbst.</div>
   </div>
-  <div class="karte"><h2>Unterschrift</h2><label>Unterschrift Mieter (Schaden) (mit dem Finger, am besten quer)</label><div class="pad" id="padS"><canvas width="900" height="300"></canvas><div class="tipp">Antippen, dann groß unterschreiben</div><div class="weg">Löschen</div><div class="gross">Antippen für Vollbild</div></div>
-    <div class="chips" style="margin-top:8px"><div class="chip" id="sAnerkannt">Mieter erkennt den Schaden an (bestätigt)</div></div></div>
+  <div class="karte"><h2>Unterschrift</h2><label>Unterschrift Mieter (Schadensanerkennung)</label><div class="pad" id="padS"><canvas width="900" height="300"></canvas><div class="tipp">Antippen, dann groß unterschreiben</div><div class="weg">Löschen</div><div class="gross">Antippen für Vollbild</div></div>
+    <div class="chips" style="margin-top:8px"><div class="chip" id="sAnerkannt">Mieter erkennt den Schaden an</div></div></div>
 </section>
 
 <!-- ================= ÜBERLASSUNGSERKLÄRUNG ================= -->
@@ -372,15 +372,15 @@ h2.gruppe{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(-
   <div class="karte"><h2>Hinterlegtes Sicherungsfahrzeug</h2>
     <label>Marke, Modell</label><input id="vModell">
     <label>Kennzeichen</label><input id="vKz">
-    <label>Fahrgestellnr. (FIN)</label><input id="vFin">
-    <label>Geschätzter Wert (EUR)</label><input id="vWert" inputmode="decimal">
+    <label>Fahrgestellnummer (FIN)</label><input id="vFin">
+    <label>Geschätzter Wert € (mindestens 2.500)</label><input id="vWert" inputmode="decimal">
     <label>Zugleich übergeben</label>
-    <div class="chips"><div class="chip" id="vSchein">Fahrzeugschein (ZB I)</div><div class="chip" id="vBrief">Zulassungsbesch. Teil II (Brief)</div></div>
+    <div class="chips"><div class="chip" id="vSchein">Fahrzeugschein (ZB I)</div><div class="chip" id="vBrief">Fahrzeugbrief (ZB II)</div></div>
     <label>Schlüssel (Stück)</label><input id="vSchluessel" inputmode="numeric">
-    <div class="hinweis">Das Kästchen „Der Mieter bestätigt …“ kreuzt der Mieter selbst an, oder er bestätigt hier.</div>
+    <div class="hinweis">Das Kästchen „Der Mieter bestätigt die Angaben zu Eigentum und Lastenfreiheit“ wird mit der Unterschrift angekreuzt.</div>
   </div>
-  <div class="karte"><h2>Unterschrift</h2><label>Unterschrift Mieter (Sicherungsvertrag) (mit dem Finger, am besten quer)</label><div class="pad" id="padSV"><canvas width="900" height="300"></canvas><div class="tipp">Antippen, dann groß unterschreiben</div><div class="weg">Löschen</div><div class="gross">Antippen für Vollbild</div></div>
-    <div class="chips" style="margin-top:8px"><div class="chip" id="svBestaetigt">Mieter bestätigt (hat gelesen)</div></div></div>
+  <div class="karte"><h2>Unterschrift</h2><label>Unterschrift Mieter (Fahrzeug als Kaution)</label><div class="pad" id="padSV"><canvas width="900" height="300"></canvas><div class="tipp">Antippen, dann groß unterschreiben</div><div class="weg">Löschen</div><div class="gross">Antippen für Vollbild</div></div>
+    <div class="chips" style="margin-top:8px"><div class="chip" id="svBestaetigt">Mieter bestätigt Eigentum und Lastenfreiheit</div></div></div>
 </section>
 </main>
 <div id="ug" class="versteckt"><div id="ugInnen"><div class="kopf"><b id="ugTitel">Unterschrift</b><div class="chips"><div class="chip" id="ugWeg">Löschen</div><div class="chip an" id="ugFertig">Fertig</div></div></div>
@@ -934,7 +934,7 @@ $("haupt").onclick=()=>{
   if(SICHT==="mappe"){const v=aktuell();if(MAPPE_NX&&v){if(MAPPE_NX==="vertrag")vertragLaden(v);zeige(MAPPE_NX)}else{leeren();zeige("vertrag")}return}   // nie in einen alten Vertrag speichern, solange ein neuer offen ist
   if(SICHT==="heute"||SICHT==="vertraege"){leeren();zeige("vertrag");return}
   if(SICHT==="vertrag"){vertragSpeichern();return}
-  if(!aktuell()){meldung("Erst im Reiter Mietvertrag einen Vertrag anlegen.");return}
+  if(!aktuell()){meldung("Erst oben unter „Neuer Vertrag“ einen Vertrag anlegen.");return}
   if(SICHT==="uebergabe"){if(!$("svSlot").classList.contains("versteckt"))svSpeichern();const v=aendere(v=>{v.ueb=Object.assign(protokollLesen("u"),{km:$("uKm").value.trim(),datum:$("uD").value,
       uhr:$("uU").value,ort:$("uOrt").value.trim(),bem:$("uBem").value.trim(),ortDatum:heuteDe(),unterschrift:PAD.padU.wert(),unterschriftVermieter:PAD.padU.wert()?vermieterUnterschrift():""});if(v.ueb.km)v.km=v.ueb.km});
     lerneAuto(v.auto,{km:v.ueb.km,reifen:v.ueb.reifen,felgen:v.ueb.felgen,reserve:v.ueb.reserve,marke:v.ueb.marke,profil:v.ueb.profil});
@@ -959,7 +959,7 @@ $("haupt").onclick=()=>{
       schaden?{t:"Schadensanerkennung drucken",voll:true,f:()=>oeffnen(()=>fuelleSchaden(aktuell())),bleibt:true}:null,
       {t:"Rückgabeprotokoll drucken",voll:!schaden,f:()=>oeffnen(()=>fuelleRueckgabe(aktuell())),bleibt:true},
       e.summe?{t:"Endabrechnung für WhatsApp kopieren",wa:true,f:()=>$("eKopieren").click(),bleibt:true}:null,
-      (((v.zahlung||{}).kaut||{}).am&&!v.kautionRueck)?{t:"Kaution zurückgeben (unter Offen)",f:()=>{AUF=null;zeige("heute")}}:null,
+      (((v.zahlung||{}).kaut||{}).am&&!v.kautionRueck)?{t:"Kaution zurückgeben (unter Heute)",f:()=>{AUF=null;zeige("heute")}}:null,
       {t:"Fertig, zur Startseite",f:HEUTE}].filter(Boolean));return}
   if(SICHT==="schaden"){const v=aendere(v=>{v.schaden={km:$("sKm").value.trim(),datum:$("sD").value,uhr:$("sU").value,ort:$("sOrt").value.trim(),
       ortFz:$("sOrtFz").value.trim(),art:$("sArt").value.trim(),besch:$("sBesch").value.trim(),fotos:gw("s_fotos"),besichtigt:gw("s_besichtigt"),
