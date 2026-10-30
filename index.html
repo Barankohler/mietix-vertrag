@@ -137,6 +137,9 @@ h2.gruppe{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(-
 .mSchritt b{flex:1;font-size:16px}.mSchritt i{font-style:normal;font-size:12px;color:#6F6F72;text-align:right}
 .mSchritt.ok{background:#E8F6EE}.mSchritt.ok .nr{background:#1B8A4B;border-color:#1B8A4B;color:#fff}
 .mSchritt.weiter{border-color:#C4161C;background:#FDECEC}.mSchritt.weiter .nr{background:#C4161C;border-color:#C4161C;color:#fff}.mSchritt.weiter i{color:#C4161C;font-weight:800}
+.knoepfe button.aus{background:#B9B9BE!important;box-shadow:none!important}
+.fNav a.teilen{font-weight:800;color:#C4161C;text-decoration:none;background:#FDECEC;border-radius:999px;padding:9px 13px;font-size:14px}
+.gesichert{font-size:12px;font-weight:700;color:#1B8A4B;margin-top:6px}
 .fNav{display:flex;align-items:center;gap:8px;flex:0 0 auto}.fNav a.mz{font-weight:800;color:#2E2E30;text-decoration:none;background:#F2F2F4;border-radius:999px;padding:9px 13px;font-size:14px}
 .mVerlKnopf{display:block;text-align:center;margin-top:12px;border:1.5px solid #E4E4E7;border-radius:14px;padding:12px;font-weight:800;color:#2E2E30;text-decoration:none}
 #mVerlInfo .vz{margin-top:10px;background:#FFF6E5;border-radius:12px;padding:10px 12px;font-size:14px}#mVerlInfo .vz b{color:#B26A00}
@@ -218,7 +221,7 @@ h2.gruppe{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(-
     <div class="zwei"><div><label>Aufpreis €</label><input id="verlAuf" inputmode="decimal"></div><div><label>Inklusive km neu (gesamt)</label><input id="verlKm" inputmode="numeric"></div></div>
     <div class="ergebnis" id="verlInfo">Neues Datum wählen.</div>
     <div id="verlZahlW" class="versteckt"><label>Der Aufpreis wird</label><div class="chips"><div class="chip an" data-vz="rueckgabe">bei Rückgabe bezahlt</div><div class="chip" data-vz="jetzt">schon bezahlt</div></div></div>
-    <a class="knopf voll" id="verlOk" style="margin-top:12px">Verlängerung speichern</a>
+    <a class="knopf voll" id="verlOk" style="margin-top:12px">Verlängern ✓</a>
     <a href="#" class="zu" id="verlAb" style="display:block;text-align:center;margin-top:10px;color:#6F6F72;font-weight:700">Abbrechen</a>
   </div>
   <div class="karte" id="mDruck"></div>
@@ -1022,8 +1025,18 @@ $("eKopieren").onclick=async()=>{const v=aktuell();if(!v)return;
   try{await navigator.clipboard.writeText(t)}catch(err){}waOeffnen(v,t);meldung("WhatsApp mit der Endabrechnung geöffnet")};   // direkt der Chat mit dem Kunden (Liste Punkt 16)
 
 /* ---------- Hauptknopf: speichern und das Formular dieses Reiters drucken ---------- */
-const KNOPF={mappe:"Weiter",heute:"Neuer Mietvertrag",vertraege:"Neuer Mietvertrag",vertrag:"Speichern",uebergabe:"Übergabe speichern",rueckgabe:"Rückgabe speichern",
-  schaden:"Schadensanerkennung speichern",ueberlassung:"Überlassung speichern"};
+const KNOPF={mappe:"Weiter",heute:"Neuer Mietvertrag",vertraege:"Neuer Mietvertrag",vertrag:"Weiter zur Übergabe ›",uebergabe:"Auto übergeben ✓",rueckgabe:"Auto zurück ✓",
+  schaden:"Schaden festhalten ✓",ueberlassung:"Weiter zur Übergabe ›"};
+// Der große Knopf sagt immer, was als Nächstes passiert (30.10.2026, Baran: "Speichern" passt nicht, altmodisch)
+function fehltNoch(){const f=[];if(!$("name").value.trim())f.push(["name","Name"]);if(!$("modell").value.trim())f.push(["modell","Auto"]);
+  if(!$("vonD").value||!$("bisD").value)f.push([!$("vonD").value?"vonD":"bisD","Zeitraum"]);return f}
+function hauptText(){const k=$("haupt");k.classList.remove("aus");if(gesperrt(SICHT))return;
+  if(SICHT==="vertrag"){const f=fehltNoch();if(f.length){k.textContent="Noch fehlt: "+f.map(x=>x[1]).join(", ");k.classList.add("aus");return}
+    const v=bearbeitet()?aktuell():null;
+    k.textContent=v&&v.ueb?"Fertig ✓":$("vonD").value>iso(new Date())?(v?"Fertig ✓":"Mietvertrag anlegen ✓"):"Weiter zur Übergabe ›";return}
+  const v=aktuell();if(!v)return;
+  if(SICHT==="uebergabe"&&v.ueb)k.textContent="Fertig ✓";
+  if(SICHT==="rueckgabe"&&v.status==="zurück")k.textContent="Fertig ✓"}
 // Neue Mietverträge holen ihre Nummer beim Speichern aus dem gemeinsamen Speicher (keine doppelten Nummern auf zwei Geräten).
 // Ohne Internet bleibt die Nummer vom Gerät. Die Excel-Zeile wird noch im Klick kopiert (sonst sperrt das iPhone).
 let nrVonHand=false;$("nr").addEventListener("input",()=>nrVonHand=true);
@@ -1040,42 +1053,37 @@ function vertragSpeichern(){const v=sammle();if(!v)return;
   const selbe=vorgaenge().find(x=>x.nr!==v.nr&&nameGleich(x.name,v.name)&&x.auto===v.auto&&x.status!=="zurück"&&x.vonD&&x.bisD&&ueber(v.vonD,v.bisD,x.vonD,x.bisD));
   // Nie den vorhandenen mit einem fast leeren neuen Formular überschreiben (Kaution, Zahlungen gingen sonst verloren): den vorhandenen öffnen,
   // das hier Getippte liegt im Papierkorb (30.10.2026)
-  if(selbe){if(!confirm(v.name+" hat für "+v.auto+" in diesem Zeitraum schon Mietvertrag "+selbe.nr+". Es wird kein zweiter angelegt.\n\nOK = Mietvertrag "+selbe.nr+" öffnen (das hier Getippte liegt im Papierkorb)\nAbbrechen = hier bleiben, nichts speichern"))return;
+  if(selbe){if(!confirm(v.name+" hat für "+v.auto+" in diesem Zeitraum schon Mietvertrag "+selbe.nr+". Es wird kein zweiter angelegt.\n\nOK = Mietvertrag "+selbe.nr+" öffnen (das hier Getippte liegt im Papierkorb)\nAbbrechen = hier bleiben"))return;
     try{const e=entwurfSchnappschuss(),pk=JSON.parse(localStorage.getItem("mietixPapierkorb")||"[]")||[];
       pk.push({id:"mietixEntwurfVertrag:"+Date.now(),ablage:"mietixEntwurfVertrag",schluessel:"entwurf",eintrag:e,zeit:new Date().toISOString(),text:"Angefangener Mietvertrag: "+v.name+", "+v.auto+" (schon "+selbe.nr+")"});
       localStorage.setItem("mietixPapierkorb",JSON.stringify(pk))}catch(x){}
     entwurfWeg();WAHL=selbe.nr;NEU_FREI=true;vertragLaden(selbe);zeige("vertrag");meldung("Mietvertrag "+selbe.nr+" geöffnet");return}
-  const b=belegtDurch(v);if(b.length&&!confirm("ACHTUNG, "+v.auto+" ist in dem Zeitraum schon vergeben:\n\n"+b.join("\n")+"\n\nTrotzdem speichern?"))return;
+  const b=belegtDurch(v);if(b.length&&!confirm("ACHTUNG, "+v.auto+" ist in dem Zeitraum schon vergeben:\n\n"+b.join("\n")+"\n\nTrotzdem weiter?"))return;
   const neu=!nrVonHand&&!vorgaenge().some(x=>x.nr===v.nr&&x.name===v.name);
-  if(neu&&!navigator.onLine&&!confirm("Kein Internet: Die Nummer "+v.nr+" ist nur vorläufig.\n\nBitte am anderen Handy nicht gleichzeitig einen neuen Mietvertrag anlegen, sonst gibt es die Nummer doppelt.\n\nOK = trotzdem speichern"))return;
+  if(neu&&!navigator.onLine&&!confirm("Kein Internet: Die Nummer "+v.nr+" ist nur vorläufig.\n\nBitte am anderen Handy nicht gleichzeitig einen neuen Mietvertrag anlegen, sonst gibt es die Nummer doppelt.\n\nOK = trotzdem weiter"))return;
   const fertig=()=>{merke(v);try{if(+v.nr>(+(localStorage.getItem("mietixHoechsteNr")||0)||0))localStorage.setItem("mietixHoechsteNr",String(+v.nr))}catch(x){}ANFRAGE=null;nrVonHand=true;$("nr").value=v.nr;NEU=false;GELADEN={};standMerken();
-    const voll=aktuell();meldung("Gespeichert: Nr. "+voll.nr);schritte();
+    const voll=aktuell();schritte();
     $("vSenden").classList.remove("versteckt");$("vSenden").onclick=e=>{e.preventDefault();teilen(aktuell())};
-    const sv=voll.kautionArt==="fahrzeug"&&!voll.sv;
-    nachSheet("✓ Mietvertrag "+voll.nr+" gespeichert",voll.name+", "+voll.auto,[
-      {t:"Weiter zur Übergabe",voll:true,f:()=>zeige("uebergabe")},
-      {t:"Mietvertrag drucken",f:()=>oeffnen(()=>seite(()=>fuelleVertrag(aktuell()),0)),bleibt:true},
-      {t:"Per WhatsApp an den Kunden",wa:true,f:()=>teilen(aktuell()),bleibt:true}])};
+    // Übergabe heute oder schon fällig: gleich weiter; liegt sie in der Zukunft oder ist sie schon gemacht: zur Mappe
+    if(!voll.ueb&&voll.vonD<=iso(new Date())){zeige("uebergabe");meldung("✓ Mietvertrag "+voll.nr+" steht. Jetzt die Übergabe.")}
+    else{zeige("mappe");meldung(voll.ueb?"✓ Mietvertrag "+voll.nr+" geändert":"✓ Mietvertrag "+voll.nr+" steht. Übergabe am "+de(voll.vonD)+(voll.vonU?" um "+voll.vonU+" Uhr":""))}};
   if(neu&&window.mietixNeueNummer&&navigator.onLine)window.mietixNeueNummer().then(n=>{if(n)v.nr=n;fertig()}).catch(fertig);else fertig()}
 // Unterschrift nie still verlieren (30.10.2026, Fehler bei Hassan): fehlt sie im Feld, aus dem Zwischenspeicher holen, sonst nachfragen
 function unterschriftDa(pad,was){if(PAD[pad].wert())return true;
   const d=protAlle()[WAHL+"|"+SICHT];if(d&&d.p&&d.p[pad]){PAD[pad].setzen(d.p[pad]);return true}
-  return confirm("Der Mieter hat die "+was+" noch nicht unterschrieben.\n\nOK = trotzdem ohne Unterschrift speichern\nAbbrechen = erst unterschreiben lassen")}
+  return confirm("Der Mieter hat die "+was+" noch nicht unterschrieben.\n\nOK = trotzdem ohne Unterschrift weiter\nAbbrechen = erst unterschreiben lassen")}
 $("haupt").onclick=()=>{
   if(gesperrt(SICHT)&&!(aktuell()&&!$("s_"+SICHT).classList.contains("versteckt"))){zeige("vertrag");return}
   if(SICHT==="mappe"){const v=aktuell();if(MAPPE_NX&&v){if(MAPPE_NX==="vertrag")vertragLaden(v);zeige(MAPPE_NX)}else{leeren();zeige("vertrag")}return}   // nie in einen alten Mietvertrag speichern, solange ein neuer offen ist
   if(SICHT==="heute"||SICHT==="vertraege"){leeren();zeige("vertrag");return}
-  if(SICHT==="vertrag"){vertragSpeichern();return}
+  if(SICHT==="vertrag"){const f=fehltNoch();if(f.length){const el=$(f[0][0]);try{el.scrollIntoView({block:"center",behavior:"smooth"});el.focus()}catch(x){}meldung("Noch fehlt: "+f.map(x=>x[1]).join(", "));return}
+    vertragSpeichern();return}
   if(!aktuell()){meldung("Erst oben unter „Neuer Mietvertrag“ einen Mietvertrag anlegen.");return}
   if(SICHT==="uebergabe"){if(!unterschriftDa("padU","Übergabe"))return;if(!$("svSlot").classList.contains("versteckt"))svSpeichern();const v=aendere(v=>{v.ueb=Object.assign(protokollLesen("u"),{km:$("uKm").value.trim(),datum:$("uD").value,
       uhr:$("uU").value,ort:$("uOrt").value.trim(),bem:$("uBem").value.trim(),ortDatum:heuteDe(),unterschrift:PAD.padU.wert(),unterschriftVermieter:PAD.padU.wert()?vermieterUnterschrift():""});if(v.ueb.km)v.km=v.ueb.km});
     lerneAuto(v.auto,{km:v.ueb.km,reifen:v.ueb.reifen,felgen:v.ueb.felgen,reserve:v.ueb.reserve,marke:v.ueb.marke,profil:v.ueb.profil});
-    protWeg(v.nr,"uebergabe");meldung("Übergabe gespeichert");GELADEN={};schritte();
-    const svFehlt=false;   // steckt jetzt in der Übergabe
-    const mitSv=v.kautionArt==="fahrzeug"&&!!v.sv;
-    nachSheet("✓ Übergabe gespeichert",v.name+", "+v.auto+(v.ueb.unterschrift?"":". Achtung: ohne Unterschrift des Mieters"),[
-      {t:"Drucken: Mietvertrag + Übergabe"+(mitSv?" + Kaution":""),voll:true,f:()=>oeffnen(()=>docsZusammen([fuelleVertrag(aktuell())].concat(mitSv?[fuelleUeberlassung(aktuell())]:[]))),bleibt:true},
-      {t:"Per WhatsApp an den Kunden",wa:true,f:()=>teilen(aktuell()),bleibt:true}]);return}
+    protWeg(v.nr,"uebergabe");GELADEN={};zeige("mappe");
+    meldung("✓ Übergeben. Zurück am "+de(v.bisD)+(v.bisU?" um "+v.bisU+" Uhr":"")+(v.ueb.unterschrift?"":". Ohne Unterschrift des Mieters!"));return}
   if(SICHT==="rueckgabe"){if(!$("rKm").value.trim()){alert("Bitte den Kilometerstand bei Rückgabe eintragen.");return}
     if(!unterschriftDa("padR","Rückgabe"))return;
     if(gw("r_auff")==="ja")schadenSpeichern();
@@ -1084,27 +1092,20 @@ $("haupt").onclick=()=>{
       if($("rKmAb").value.trim()){v.ueb=v.ueb||{};v.ueb.km=$("rKmAb").value.trim()}v.status="zurück";
       const e=eWerte();v.endabrechnung={mehrkm:e.mehr,satz:e.satz,aufWahl:$("eAuf").value,auf:e.auf,liter:e.liter,tank:e.tank,versp:e.versp,extra:e.extra,summe:e.summe}});
     lerneAuto(v.auto,{km:v.rueck.km,reifen:v.rueck.reifen,felgen:v.rueck.felgen,marke:v.rueck.marke,profil:v.rueck.profil});
-    protWeg(v.nr,"rueckgabe");meldung("Rückgabe gespeichert");GELADEN={};schritte();const e=v.endabrechnung||{},schaden=v.rueck.auff==="ja";
+    protWeg(v.nr,"rueckgabe");GELADEN={};const e=v.endabrechnung||{};
     const kautZurueck=((v.zahlung||{}).kaut||{}).am&&!v.kautionRueck;
-    nachSheet("✓ Rückgabe gespeichert",v.name+", "+v.auto+(e.summe?". Zusatzkosten: "+eur(e.summe)+" €":". Keine Zusatzkosten")+(kautZurueck?". Kaution zurückgeben: unter Heute":""),[
-      {t:"Drucken: Rückgabe"+(schaden?" + Schaden":""),voll:true,f:()=>oeffnen(()=>docsZusammen([fuelleRueckgabe(aktuell())].concat(schaden?[fuelleSchaden(aktuell())]:[]))),bleibt:true},
-      e.summe?{t:"Endabrechnung per WhatsApp an den Kunden",wa:true,f:()=>$("eKopieren").click(),bleibt:true}:null].filter(Boolean));return}
+    zeige("mappe");
+    if(e.summe)nachSheet("Abrechnung: "+eur(e.summe)+" € offen",v.name+", "+v.auto+(kautZurueck?". Kaution zurückgeben: unter Heute":""),[
+      {t:"Endabrechnung per WhatsApp an den Kunden",wa:true,voll:true,f:()=>$("eKopieren").click(),bleibt:true}]);
+    else meldung("✓ Auto zurück. Nichts nachzuberechnen"+(kautZurueck?", Kaution zurückgeben":""));return}
   if(SICHT==="schaden"){const v=aendere(v=>{v.schaden={km:$("sKm").value.trim(),datum:$("sD").value,uhr:$("sU").value,ort:$("sOrt").value.trim(),
       ortFz:$("sOrtFz").value.trim(),art:$("sArt").value.trim(),besch:$("sBesch").value.trim(),fotos:gw("s_fotos"),besichtigt:gw("s_besichtigt"),
       sb:betrag("sSb"),weiter:gw("s_weiter"),kaution:gw("s_kaution"),betrag:betrag("sKaution"),ortDatum:heuteDe(),unterschrift:PAD.padS.wert(),unterschriftVermieter:PAD.padS.wert()?vermieterUnterschrift():"",anerkannt:an("sAnerkannt")}});
-    meldung("Schadensanerkennung gespeichert");GELADEN={};schritte();
-    nachSheet("Schadensanerkennung gespeichert",v.name+", "+v.auto+". "+(v.schaden.anerkannt?"Vom Mieter anerkannt.":"Noch nicht vom Mieter bestätigt.")+" Was jetzt?",[
-      {t:"Schadensanerkennung drucken",voll:true,f:()=>oeffnen(()=>fuelleSchaden(aktuell())),bleibt:true},
-      {t:"Fertig, zur Startseite",f:HEUTE}]);return}
+    GELADEN={};zeige("mappe");meldung("✓ Schaden festgehalten"+(v.schaden.anerkannt?", vom Mieter anerkannt":", noch nicht vom Mieter bestätigt"));return}
   if(SICHT==="ueberlassung"){const v=aendere(v=>{v.sv={modell:$("vModell").value.trim(),kz:$("vKz").value.trim(),fin:$("vFin").value.trim(),
       wert:betrag("vWert"),schein:an("vSchein"),brief:an("vBrief"),schluessel:$("vSchluessel").value.trim(),ortDatum:heuteDe(),unterschrift:PAD.padSV.wert(),unterschriftVermieter:PAD.padSV.wert()?vermieterUnterschrift():"",bestaetigt:an("svBestaetigt")||!!PAD.padSV.wert()};
       v.kautionArt="fahrzeug";const kf=[v.sv.modell,v.sv.kz].filter(Boolean).join(", ");if(kf)v.kfz=kf});
-    meldung("Gespeichert. Im Mietvertrag steht jetzt: Fahrzeug als Sicherheit.");GELADEN={};schritte();
-    nachSheet("Überlassungserklärung gespeichert",v.name+", Sicherungsfahrzeug "+(v.sv.modell||"")+". Was jetzt?",[
-      {t:v.ueb?"Zurück zur Übergabe":"Weiter: Übergabe",voll:!v.ueb,f:()=>zeige("uebergabe")},
-      {t:"Überlassungserklärung drucken",voll:!!v.ueb,f:()=>oeffnen(()=>fuelleUeberlassung(aktuell())),bleibt:true},
-      {t:allesName(aktuell()||v),f:()=>{const u=aendere(x=>{if(!x.ueb)x.ueb=uebStandard(x)})||v;oeffnen(()=>alleDocs(aktuell()||u))},bleibt:true},
-      {t:"Fertig, zur Startseite",f:HEUTE}].filter(Boolean));return}};
+    GELADEN={};zeige(v.ueb?"mappe":"uebergabe");meldung("✓ Überlassungserklärung steht. Im Mietvertrag: Fahrzeug als Sicherheit");return}};
 
 /* ---------- Reiter Mietverträge: Karten mit Stand (29.10.2026) ---------- */
 let AUF=null;
@@ -1180,20 +1181,21 @@ function schritte(){const el=$("schritte");if(!el)return;
   const v=SICHT==="vertrag"?(bearbeitet()?aktuell():null):aktuell();
   $("wahl").classList.toggle("versteckt",SICHT==="vertrag"||!vorgaenge().length||(!!v&&!WAHL_OFFEN));   // Auswahl nur auf Wunsch, oben steht der Mietvertrag schon
   $("wahlLeer").classList.toggle("versteckt",SICHT==="vertrag"||vorgaenge().length>0);
-  if(!v){el.innerHTML='<div class="sKopf"><div><b>Neuer Mietvertrag</b><i>Übergabe und Rückgabe machst du später bei diesem Mietvertrag, auch Tage oder Wochen danach. Dazwischen gehen andere Mietverträge ganz normal.</i></div><a href="#" class="fX" id="sX" title="Schließen">✕</a></div>';
+  if(!v){el.innerHTML='<div class="sKopf"><div><b>Neuer Mietvertrag</b><i>Übergabe und Rückgabe machst du später bei diesem Mietvertrag, auch Tage oder Wochen danach. Dazwischen gehen andere Mietverträge ganz normal.</i><div class="gesichert">✓ Was du tippst, ist automatisch gesichert</div></div><a href="#" class="fX" id="sX" title="Schließen">✕</a></div>';
     $("sX").onclick=e=>{e.preventDefault();try{if(neuInArbeit()){clearTimeout(entwurfTimer);localStorage.setItem("mietixEntwurfVertrag",JSON.stringify(entwurfSchnappschuss()))}}catch(_){}zeige("vertraege");if(neuInArbeit())meldung("Angefangen, steht oben unter Mietverträge zum Weitermachen")};return}
   const st=[["vertrag","Mietvertrag",true],["uebergabe","Übergabe",!!v.ueb],["rueckgabe","Rückgabe",v.status==="zurück"]];
   el.innerHTML='<div class="sKopf"><div><b>'+esc(v.nr)+"  "+esc(v.name)+'</b><i>'+esc(v.auto)+", "+de(v.vonD)+" bis "+de(v.bisD)+(v.status==="zurück"?", zurückgegeben":"")+'</i></div>'+
-    (WAHL_OFFEN?'<a href="#" id="sAlle">zu</a>':'<span class="fNav"><a href="#" class="mz" id="sMappe">‹ Mappe</a><a href="#" class="fX" id="sX" title="Schließen">✕</a></span>')+'</div>'+
+    (WAHL_OFFEN?'<a href="#" id="sAlle">zu</a>':'<span class="fNav"><a href="#" class="teilen" id="sTeilen">Teilen</a><a href="#" class="mz" id="sMappe">‹ Mappe</a><a href="#" class="fX" id="sX" title="Schließen">✕</a></span>')+'</div>'+
     '<div class="sTitel">Stand dieses Mietvertrags</div>'+
     '<div class="schritt" style="margin-top:6px">'+st.map(([x,t,ok])=>'<div class="'+(ok?"ok":"")+(SICHT===x?" an":"")+'" data-s="'+x+'">'+(ok?"✓ ":"")+t+'<small>'+(ok?"erledigt":"offen")+'</small></div>').join("")+'</div>'+
-    (SICHT==="vertrag"?'<div id="ungesp" class="versteckt" style="margin-top:8px;color:var(--rot);font-size:13px;font-weight:800">Änderungen noch nicht gespeichert. Unten „Speichern“ tippen.</div>'+
-      '<a href="#" id="sNeu" class="hinweis" style="display:block;margin-top:8px">Das ist der gespeicherte Mietvertrag '+esc(v.nr)+'. Einen anderen, neuen Mietvertrag anfangen?</a>':"");
+    (SICHT==="vertrag"?'<div id="ungesp" class="versteckt" style="margin-top:8px;color:var(--rot);font-size:13px;font-weight:800">Geändert. Unten auf „Fertig ✓“ tippen, dann gilt es.</div>'+
+      '<a href="#" id="sNeu" class="hinweis" style="display:block;margin-top:8px">Das ist Mietvertrag '+esc(v.nr)+'. Einen anderen, neuen Mietvertrag anfangen?</a>':"");
+  const te=$("sTeilen");if(te)te.onclick=e=>{e.preventDefault();teilenBlatt(v)};
   [...el.querySelectorAll("[data-s]")].forEach(c=>c.onclick=()=>{if(c.dataset.s==="vertrag"){if(bearbeitet())return;vertragLaden(v)}zeige(c.dataset.s)});
-  const n=$("sNeu");if(n)n.onclick=e=>{e.preventDefault();if(ungespeichert()&&!confirm("Deine Änderungen an Mietvertrag "+v.nr+" sind noch nicht gespeichert. Trotzdem einen neuen Mietvertrag anfangen?"))return;leeren();schritte();meldung("Neuer Mietvertrag, leeres Formular")};
+  const n=$("sNeu");if(n)n.onclick=e=>{e.preventDefault();if(ungespeichert()&&!confirm("Deine Änderungen an Mietvertrag "+v.nr+" gelten noch nicht. Trotzdem einen neuen Mietvertrag anfangen?"))return;leeren();schritte();meldung("Neuer Mietvertrag, leeres Formular")};
   ungespeichertZeigen();
   const a=$("sAlle");if(a)a.onclick=e=>{e.preventDefault();WAHL_OFFEN=!WAHL_OFFEN;schritte()};
-  const weg=ziel=>e=>{e.preventDefault();if(SICHT==="vertrag"&&ungespeichert()&&!confirm("Deine Änderungen an Mietvertrag "+v.nr+" sind noch nicht gespeichert. Trotzdem schließen?"))return;zeige(ziel)};
+  const weg=ziel=>e=>{e.preventDefault();if(SICHT==="vertrag"&&ungespeichert()&&!confirm("Deine Änderungen an Mietvertrag "+v.nr+" gelten noch nicht. Trotzdem schließen?"))return;zeige(ziel)};
   const sm=$("sMappe");if(sm)sm.onclick=weg("mappe");const sx=$("sX");if(sx)sx.onclick=weg("vertraege")}
 
 /* ---------- Kaution-Auto in der Übergabe, Schaden in der Rückgabe (30.10.2026, Baran: einfacher, gut verbunden) ---------- */
@@ -1392,6 +1394,12 @@ function nachSheet(titel,unter,aktionen){$("nach").innerHTML='<h3>'+esc(titel)+'
   const zu=()=>{$("nach").classList.add("versteckt");$("nachBg").classList.add("versteckt")};
   [...$("nach").querySelectorAll("[data-i]")].forEach(k=>k.onclick=()=>{const a=aktionen[+k.dataset.i];if(!a.bleibt)zu();a.f()});
   const zm=zurMappe();$("nachZu").onclick=e=>{e.preventDefault();zu();if(zm)zeige("mappe")};$("nachBg").onclick=zu}
+function teilenBlatt(v){v=aktuell()||v;$("nach").innerHTML='<h3>Teilen</h3><div class="unter">'+esc(v.nr+"  "+v.name+", "+v.auto)+'</div>'+druckReihe(v)+
+    '<div class="knopf wa" id="tWa">Mietvertrag per WhatsApp an den Kunden</div><a href="#" class="zu" id="nachZu">Schließen</a>';
+  $("nach").classList.remove("versteckt");$("nachBg").classList.remove("versteckt");
+  const zu=()=>{$("nach").classList.add("versteckt");$("nachBg").classList.add("versteckt")};
+  $("nach").querySelectorAll("[data-dr]").forEach(d=>d.onclick=e=>{e.preventDefault();druckeDoc(v,d.dataset.dr)});
+  $("tWa").onclick=()=>teilen(v);$("nachZu").onclick=e=>{e.preventDefault();zu()};$("nachBg").onclick=zu}
 const DRUCK_BEIDE=v=>{const u=aendere(x=>{if(!x.ueb)x.ueb=uebStandard(x)})||v;lerneAuto(u.auto,{reifen:u.ueb.reifen,felgen:u.ueb.felgen,marke:u.ueb.marke});oeffnen(()=>fuelleVertrag(aktuell()||u))};
 const HEUTE=()=>{AUF=null;location.href="https://barankohler.github.io/mietix-zentrale/"};   // Fertig: zur Startseite mit Heute (30.10.2026)
 let NEU=true;   // true = das Formular ist ein neuer Mietvertrag; false = ein gespeicherter Mietvertrag ist geladen (zurück zeigt ihn wieder, nichts geht verloren)
@@ -1483,14 +1491,15 @@ function zeige(s){SICHT=s;["heute","vertraege","mappe","vertrag","uebergabe","ru
   else if(s==="mappe")zeichneMappe();
   else if(s==="vertrag"){if(!NEU&&!$("name").value.trim()&&aktuell())vertragLaden(aktuell());zeichneAnfragen();if(!$("name").value)$("nr").value=neueNr()}
   else{wahlFuellen();formularLaden()}
-  svKarte();schritte();
+  svKarte();schritte();hauptText();
   const sp=gesperrt(s);$("neuSperre").classList.toggle("versteckt",!sp);
   if(sp){$("s_"+s).classList.add("versteckt");$("wahlKarte").classList.add("versteckt");$("haupt").textContent="Zurück zum neuen Mietvertrag";
-    $("neuSperreText").textContent="Du schreibst gerade einen neuen Mietvertrag für "+$("name").value.trim()+". Erst unten im Mietvertrag „Speichern“ tippen, dann geht es hier mit genau diesem Mietvertrag weiter."}
+    $("neuSperreText").textContent="Du schreibst gerade einen neuen Mietvertrag für "+$("name").value.trim()+". Erst den Mietvertrag unten abschließen, dann geht es hier mit genau diesem Mietvertrag weiter."}
   window.scrollTo(0,0)}
 [...$("reiter").children].forEach(c=>c.onclick=()=>zeige(c.dataset.s));
 $("neuZurueck").onclick=()=>zeige("vertrag");
-[...$("reiter").children].find(c=>c.dataset.s==="vertrag").onclick=()=>{if(!NEU){if(ungespeichert()&&!confirm("Deine Änderungen sind noch nicht gespeichert. Trotzdem einen neuen Mietvertrag anfangen?"))return;leeren()}zeige("vertrag")};
+["input","change"].forEach(t=>$("s_vertrag").addEventListener(t,()=>{if(SICHT==="vertrag")hauptText()}));
+[...$("reiter").children].find(c=>c.dataset.s==="vertrag").onclick=()=>{if(!NEU){if(ungespeichert()&&!confirm("Deine Änderungen gelten noch nicht. Trotzdem einen neuen Mietvertrag anfangen?"))return;leeren()}zeige("vertrag")};
 $("neuAnderer").onclick=()=>{NEU_FREI=true;WAHL_OFFEN=true;zeige(SICHT)};
 $("uSvOeffnen").onclick=()=>zeige("ueberlassung");$("svZurueck").onclick=()=>zeige("uebergabe");
 
@@ -1501,7 +1510,7 @@ $("uSvOeffnen").onclick=()=>zeige("ueberlassung");$("svZurueck").onclick=()=>zei
 gruppe("k_art").addEventListener("wahl",()=>{if(!gw("k_art"))gs("k_art","geld");kautSetzen(gw("k_art"))});
 $("kfz2").addEventListener("input",()=>{$("kfz").value=$("kfz2").value;$("kfz").dispatchEvent(new Event("input",{bubbles:true}))});
 $("kfz").addEventListener("input",()=>{if(document.activeElement!==$("kfz2"))$("kfz2").value=$("kfz").value});
-$("kautZurSv").onclick=()=>{if(aktuell()&&bearbeitet()){zeige("uebergabe")}else alert("Erst den Mietvertrag speichern. Die Überlassungserklärung ist dann Teil der Übergabe, alles Getippte steht schon drin.")};
+$("kautZurSv").onclick=()=>{if(aktuell()&&bearbeitet()){zeige("uebergabe")}else alert("Erst den Mietvertrag unten abschließen. Die Überlassungserklärung ist dann Teil der Übergabe, alles Getippte steht schon drin.")};
 {const _vl=vertragLaden;vertragLaden=function(v){_vl(v);kautAnzeigen();MEHR_HAND=true;ZF_HAND=!!v.preis2;delete JN.zfJn;delete JN.anzJn;kurzZu()};const _le=leeren;leeren=function(){_le();kautAnzeigen();ZF_HAND=false;delete JN.zfJn;delete JN.anzJn;kurzZu()};const _el=entwurfLaden;entwurfLaden=function(){_el();kautAnzeigen()}}
 einbetten();gruppe("r_auff").addEventListener("wahl",schadenZeigen);
 $("uSvKarte").remove();   // alte Hinweiskarte, Kaution-Auto steht jetzt direkt in der Übergabe
@@ -1763,7 +1772,7 @@ let rueckLaeuft=false,rueckTimer=null;
 function rueckZeigen(text){let el=document.getElementById("mietixRueck");
   if(!el){el=document.createElement("div");el.id="mietixRueck";el.innerHTML='<span></span><button type="button">Rückgängig</button>';document.body.appendChild(el);
     el.querySelector("button").onclick=rueckgaengig}
-  el.querySelector("span").textContent="Gespeichert: "+text;el.classList.add("an");clearTimeout(rueckTimer);rueckTimer=setTimeout(()=>el.classList.remove("an"),8000)}
+  el.querySelector("span").textContent="✓ Gesichert: "+text;el.classList.add("an");clearTimeout(rueckTimer);rueckTimer=setTimeout(()=>el.classList.remove("an"),8000)}
 function rueckgaengig(){if(!burst)return;
   if("mietixVorgaenge" in burst&&!confirm("Die letzte Änderung am Mietvertrag wird zurückgenommen (zum Beispiel das Speichern). Was im Formular steht, bleibt stehen. Weiter?"))return;
   const b=burst;burst=null;rueckLaeuft=true;
