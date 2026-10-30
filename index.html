@@ -122,17 +122,25 @@ h2.gruppe{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(-
 .druckreihe .dknopf{min-width:0;background:#2E2E30;color:#fff;border-radius:12px;padding:13px 6px;text-align:center;font-weight:800;font-size:13px;cursor:pointer;overflow-wrap:anywhere;hyphens:auto}
 .druckreihe .dknopf:first-child{grid-column:1/-1;background:#C4161C}
 .druckreihe .klein{margin-top:8px}
+.mZeile{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}.mZeile b{display:block;font-size:20px}.mZeile i{display:block;font-style:normal;color:var(--grau,#6F6F72);margin-top:4px;font-size:14px}
+.fX{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:50%;background:#F2F2F4;color:#2E2E30;font-size:18px;font-weight:800;text-decoration:none}
+.mSchritt{display:flex;align-items:center;gap:12px;padding:14px 12px;border-radius:14px;background:#F6F6F7;margin-top:8px;cursor:pointer;border:2px solid transparent}
+.mSchritt .nr{flex:0 0 32px;height:32px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;border:1.5px solid #E4E4E7}
+.mSchritt b{flex:1;font-size:16px}.mSchritt i{font-style:normal;font-size:12px;color:#6F6F72;text-align:right}
+.mSchritt.ok{background:#E8F6EE}.mSchritt.ok .nr{background:#1B8A4B;border-color:#1B8A4B;color:#fff}
+.mSchritt.weiter{border-color:#C4161C;background:#FDECEC}.mSchritt.weiter .nr{background:#C4161C;border-color:#C4161C;color:#fff}.mSchritt.weiter i{color:#C4161C;font-weight:800}
+.fNav{display:flex;align-items:center;gap:8px;flex:0 0 auto}.fNav a.mz{font-weight:800;color:#2E2E30;text-decoration:none;background:#F2F2F4;border-radius:999px;padding:9px 13px;font-size:14px}
 </style></head><body>
 <header>
   <h1>MIETIX <span>VERTRÄGE</span> <i id="abgleichPunkt" title="Abgleich aller Geräte" style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#B0B0B3;vertical-align:middle;margin-left:4px"></i></h1>
   <div class="reiter" id="reiter">
-    <div data-s="heute" class="an">Offen</div>
+    <div data-s="heute" class="an">Heute</div>
     <div data-s="vertraege">Verträge</div>
-    <div data-s="vertrag">Mietvertrag</div>
-    <div data-s="uebergabe">Übergabeprotokoll</div>
-    <div data-s="ueberlassung">Fahrzeug als Kaution</div>
-    <div data-s="rueckgabe">Rückgabeprotokoll</div>
-    <div data-s="schaden">Schadensanerkennung</div>
+    <div data-s="vertrag">Neuer Vertrag</div>
+    <div data-s="uebergabe" class="versteckt">Übergabeprotokoll</div>
+    <div data-s="ueberlassung" class="versteckt">Fahrzeug als Kaution</div>
+    <div data-s="rueckgabe" class="versteckt">Rückgabeprotokoll</div>
+    <div data-s="schaden" class="versteckt">Schadensanerkennung</div>
   </div>
 </header>
 <main>
@@ -159,6 +167,13 @@ h2.gruppe{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(-
   <div class="karte versteckt" id="hKautKarte"><h2>Kaution zurückgeben</h2><div id="hKaut"></div></div>
   <div class="karte versteckt" id="hMahnKarte"><h2>Miete noch offen</h2><div id="hMahn"></div></div>
   <div class="karte"><h2>Gebucht, noch kein Vertrag</h2><div id="hAnf"></div></div>
+</section>
+
+<!-- ================= MAPPE: ein Kunde, alle Schritte (30.10.2026, Baran) ================= -->
+<section id="s_mappe" class="versteckt">
+  <div class="karte mKopf"><div class="mZeile"><div><b id="mName"></b><i id="mInfo"></i></div><a href="#" class="fX" id="mZu" title="Schließen">✕</a></div></div>
+  <div class="karte"><h2>Schritte</h2><div id="mSchritte"></div></div>
+  <div class="karte" id="mDruck"></div>
 </section>
 
 <!-- ================= MIETVERTRAG (wie Seite 1 eurer Vorlage) ================= -->
@@ -885,7 +900,7 @@ $("eKopieren").onclick=async()=>{const v=aktuell();if(!v)return;
   try{await navigator.clipboard.writeText(t);meldung("Endabrechnung kopiert, einfach in WhatsApp einfügen.")}catch(err){alert(t)}};
 
 /* ---------- Hauptknopf: speichern und das Formular dieses Reiters drucken ---------- */
-const KNOPF={heute:"Neuer Mietvertrag",vertraege:"Neuer Mietvertrag",vertrag:"Speichern",uebergabe:"Übergabe speichern",rueckgabe:"Rückgabe speichern",
+const KNOPF={mappe:"Weiter",heute:"Neuer Mietvertrag",vertraege:"Neuer Mietvertrag",vertrag:"Speichern",uebergabe:"Übergabe speichern",rueckgabe:"Rückgabe speichern",
   schaden:"Schadensanerkennung speichern",ueberlassung:"Überlassung speichern"};
 // Neue Verträge holen ihre Nummer beim Speichern aus dem gemeinsamen Speicher (keine doppelten Nummern auf zwei Geräten).
 // Ohne Internet bleibt die Nummer vom Gerät. Die Excel-Zeile wird noch im Klick kopiert (sonst sperrt das iPhone).
@@ -912,7 +927,8 @@ function vertragSpeichern(){const v=sammle();if(!v)return;
       {t:"Fertig, zur Startseite",f:HEUTE}])};
   if(neu&&window.mietixNeueNummer&&navigator.onLine)window.mietixNeueNummer().then(n=>{if(n)v.nr=n;fertig()}).catch(fertig);else fertig()}
 $("haupt").onclick=()=>{
-  if(gesperrt(SICHT)){zeige("vertrag");return}   // nie in einen alten Vertrag speichern, solange ein neuer offen ist
+  if(gesperrt(SICHT)){zeige("vertrag");return}
+  if(SICHT==="mappe"){const v=aktuell();if(MAPPE_NX&&v){if(MAPPE_NX==="vertrag")vertragLaden(v);zeige(MAPPE_NX)}else{leeren();zeige("vertrag")}return}   // nie in einen alten Vertrag speichern, solange ein neuer offen ist
   if(SICHT==="heute"||SICHT==="vertraege"){leeren();zeige("vertrag");return}
   if(SICHT==="vertrag"){vertragSpeichern();return}
   if(!aktuell()){meldung("Erst im Reiter Mietvertrag einen Vertrag anlegen.");return}
@@ -996,7 +1012,7 @@ function zeichneAlle(){if(!$("alleListe"))return;const q=normS($("vSuche").value
   const gr=[["Unterwegs",v=>v.ueb&&v.status!=="zurück"],["Gebucht, Übergabe offen",v=>!v.ueb&&v.status!=="zurück"],["Zurück",v=>v.status==="zurück"]];
   const ew=!q&&entwurfHolen();zeichneEntwurfKarte(ew);
   $("alleListe").innerHTML=l.length?gr.map(([t,f])=>{const g=l.filter(f);return g.length?'<h2 class="gruppe">'+t+' ('+g.length+')</h2>'+g.map(vKarte).join(""):""}).join(""):(ew?"":'<div class="leer">'+(q?"Nichts gefunden.":"Noch kein Vertrag. Unten auf „Neuer Mietvertrag“ geht es los.")+'</div>');
-  [...$("alleListe").querySelectorAll(".vorgang")].forEach(el=>{el.onclick=()=>{AUF=AUF===el.dataset.nr?null:el.dataset.nr;zeichneAlle()};
+  [...$("alleListe").querySelectorAll(".vorgang")].forEach(el=>{el.onclick=()=>mappeOeffnen(el.dataset.nr);
     const v=vorgaenge().find(x=>x.nr===el.dataset.nr);if(!v)return;
     [...el.querySelectorAll("[data-geh]")].forEach(c=>c.onclick=ev=>{ev.stopPropagation();WAHL=v.nr;if(c.dataset.geh==="vertrag")vertragLaden(v);zeige(c.dataset.geh)});
     el.querySelectorAll("[data-dr]").forEach(d=>d.onclick=ev=>{ev.stopPropagation();druckeDoc(v,d.dataset.dr)});
@@ -1025,10 +1041,11 @@ function schritte(){const el=$("schritte");if(!el)return;
   const v=SICHT==="vertrag"?(bearbeitet()?aktuell():null):aktuell();
   $("wahl").classList.toggle("versteckt",SICHT==="vertrag"||!vorgaenge().length||(!!v&&!WAHL_OFFEN));   // Auswahl nur auf Wunsch, oben steht der Vertrag schon
   $("wahlLeer").classList.toggle("versteckt",SICHT==="vertrag"||vorgaenge().length>0);
-  if(!v){el.innerHTML='<div class="sKopf"><div><b>Neuer Mietvertrag</b><i>Übergabe und Rückgabe machst du später bei diesem Vertrag, auch Tage oder Wochen danach. Dazwischen gehen andere Verträge ganz normal.</i></div></div>';return}
+  if(!v){el.innerHTML='<div class="sKopf"><div><b>Neuer Mietvertrag</b><i>Übergabe und Rückgabe machst du später bei diesem Vertrag, auch Tage oder Wochen danach. Dazwischen gehen andere Verträge ganz normal.</i></div><a href="#" class="fX" id="sX" title="Schließen">✕</a></div>';
+    $("sX").onclick=e=>{e.preventDefault();try{if(neuInArbeit()){clearTimeout(entwurfTimer);localStorage.setItem("mietixEntwurfVertrag",JSON.stringify(entwurfSchnappschuss()))}}catch(_){}zeige("vertraege");if(neuInArbeit())meldung("Angefangen, steht oben unter Verträge zum Weitermachen")};return}
   const st=[["vertrag","Vertrag",true],["uebergabe","Übergabe",!!v.ueb],["rueckgabe","Rückgabe",v.status==="zurück"]];
   el.innerHTML='<div class="sKopf"><div><b>'+esc(v.nr)+"  "+esc(v.name)+'</b><i>'+esc(v.auto)+", "+de(v.vonD)+" bis "+de(v.bisD)+(v.status==="zurück"?", zurückgegeben":"")+'</i></div>'+
-    (SICHT!=="vertrag"?'<a href="#" id="sAlle">'+(WAHL_OFFEN?"zu":"anderer Vertrag")+'</a>':"")+'</div>'+
+    (WAHL_OFFEN?'<a href="#" id="sAlle">zu</a>':'<span class="fNav"><a href="#" class="mz" id="sMappe">‹ Mappe</a><a href="#" class="fX" id="sX" title="Schließen">✕</a></span>')+'</div>'+
     '<div class="sTitel">Stand dieses Vertrags</div>'+
     '<div class="schritt" style="margin-top:6px">'+st.map(([x,t,ok])=>'<div class="'+(ok?"ok":"")+(SICHT===x?" an":"")+'" data-s="'+x+'">'+(ok?"✓ ":"")+t+'<small>'+(ok?"erledigt":"offen")+'</small></div>').join("")+'</div>'+
     (SICHT==="vertrag"?'<div id="ungesp" class="versteckt" style="margin-top:8px;color:var(--rot);font-size:13px;font-weight:800">Änderungen noch nicht gespeichert. Unten „Speichern“ tippen.</div>'+
@@ -1036,15 +1053,37 @@ function schritte(){const el=$("schritte");if(!el)return;
   [...el.querySelectorAll("[data-s]")].forEach(c=>c.onclick=()=>{if(c.dataset.s==="vertrag"){if(bearbeitet())return;vertragLaden(v)}zeige(c.dataset.s)});
   const n=$("sNeu");if(n)n.onclick=e=>{e.preventDefault();if(ungespeichert()&&!confirm("Deine Änderungen an Vertrag "+v.nr+" sind noch nicht gespeichert. Trotzdem einen neuen Vertrag anfangen?"))return;leeren();schritte();meldung("Neuer Vertrag, leeres Formular")};
   ungespeichertZeigen();
-  const a=$("sAlle");if(a)a.onclick=e=>{e.preventDefault();WAHL_OFFEN=!WAHL_OFFEN;schritte()}}
+  const a=$("sAlle");if(a)a.onclick=e=>{e.preventDefault();WAHL_OFFEN=!WAHL_OFFEN;schritte()};
+  const weg=ziel=>e=>{e.preventDefault();if(SICHT==="vertrag"&&ungespeichert()&&!confirm("Deine Änderungen an Vertrag "+v.nr+" sind noch nicht gespeichert. Trotzdem schließen?"))return;zeige(ziel)};
+  const sm=$("sMappe");if(sm)sm.onclick=weg("mappe");const sx=$("sX");if(sx)sx.onclick=weg("vertraege")}
+
+/* ---------- Mappe: ein Kunde, alle Schritte in Reihenfolge, Drucken, Schließen (30.10.2026) ---------- */
+let MAPPE_NX=null;
+function mappeSchritte(v){const st=[["vertrag","Mietvertrag",true],["uebergabe","Übergabe",!!v.ueb]];
+  if(v.kautionArt==="fahrzeug")st.push(["ueberlassung","Fahrzeug als Kaution",!!v.sv]);
+  st.push(["rueckgabe","Rückgabe",v.status==="zurück"]);
+  if(v.schaden||(v.rueck&&v.rueck.auff==="ja"))st.push(["schaden","Schadensanerkennung",!!v.schaden]);return st}
+function mappeOeffnen(nr){WAHL=nr;WAHL_OFFEN=false;GELADEN={};zeige("mappe")}
+function zeichneMappe(){const v=aktuell();if(!v){zeige("vertraege");return}
+  const st=mappeSchritte(v),nx=st.find(x=>!x[2]);MAPPE_NX=nx?nx[0]:null;
+  $("mName").textContent=v.nr+"  "+v.name;
+  $("mInfo").textContent=v.auto+(v.kz?" ("+v.kz+")":"")+", "+de(v.vonD)+" "+(v.vonU||"")+" bis "+de(v.bisD)+" "+(v.bisU||"")+(v.status==="zurück"?", zurückgegeben":"");
+  $("mSchritte").innerHTML=st.map(([x,t,ok],i)=>'<div class="mSchritt'+(ok?" ok":"")+(nx&&nx[0]===x?" weiter":"")+'" data-m="'+x+'"><span class="nr">'+(ok?"✓":(i+1))+'</span><b>'+t+'</b><i>'+
+    (ok?"erledigt, ansehen":(nx&&nx[0]===x?"als Nächstes":"noch offen"))+'</i></div>').join("");
+  [...$("mSchritte").children].forEach(c=>c.onclick=()=>{const x=c.dataset.m;if(x==="vertrag")vertragLaden(v);zeige(x)});
+  $("mDruck").innerHTML=druckReihe(v)+'<div class="chips" style="margin-top:10px"><div class="chip" id="mWa" style="background:#25D366;border-color:#25D366;color:#fff">Vertrag per WhatsApp an den Kunden</div></div>';
+  $("mDruck").querySelectorAll("[data-dr]").forEach(d=>d.onclick=()=>druckeDoc(v,d.dataset.dr));
+  $("mWa").onclick=()=>teilen(v);
+  $("haupt").textContent=nx?"Weiter: "+nx[1]:"Neuer Mietvertrag"}
+$("mZu").onclick=e=>{e.preventDefault();zeige("vertraege")};
 
 /* ---------- Nach dem Speichern: was jetzt? (ein Blatt von unten, nichts springt mehr von selbst) ---------- */
 function nachSheet(titel,unter,aktionen){$("nach").innerHTML='<h3>'+esc(titel)+'</h3><div class="unter">'+esc(unter)+'</div>'+
-    aktionen.map((a,i)=>'<div class="knopf'+(a.voll?" voll":"")+(a.wa?" wa":"")+'" data-i="'+i+'">'+esc(a.t)+'</div>').join("")+'<a href="#" class="zu" id="nachZu">Schließen, ich bleibe hier</a>';
+    aktionen.map((a,i)=>'<div class="knopf'+(a.voll?" voll":"")+(a.wa?" wa":"")+'" data-i="'+i+'">'+esc(a.t)+'</div>').join("")+'<a href="#" class="zu" id="nachZu">'+(aktuell()&&!NEU?"Zur Mappe von "+esc(aktuell().name):"Schließen, ich bleibe hier")+'</a>';
   $("nach").classList.remove("versteckt");$("nachBg").classList.remove("versteckt");
   const zu=()=>{$("nach").classList.add("versteckt");$("nachBg").classList.add("versteckt")};
   [...$("nach").querySelectorAll("[data-i]")].forEach(k=>k.onclick=()=>{const a=aktionen[+k.dataset.i];if(!a.bleibt)zu();a.f()});
-  $("nachZu").onclick=e=>{e.preventDefault();zu()};$("nachBg").onclick=zu}
+  $("nachZu").onclick=e=>{e.preventDefault();zu();if(aktuell()&&!NEU)zeige("mappe")};$("nachBg").onclick=zu}
 const DRUCK_BEIDE=v=>{const u=aendere(x=>{if(!x.ueb)x.ueb=uebStandard(x)})||v;lerneAuto(u.auto,{reifen:u.ueb.reifen,felgen:u.ueb.felgen,marke:u.ueb.marke});oeffnen(()=>fuelleVertrag(aktuell()||u))};
 const HEUTE=()=>{AUF=null;location.href="https://barankohler.github.io/mietix-zentrale/"};   // Fertig: zur Startseite mit Heute (30.10.2026)
 let NEU=true;   // true = das Formular ist ein neuer Vertrag; false = ein gespeicherter Vertrag ist geladen (zurück zeigt ihn wieder, nichts geht verloren)
@@ -1107,13 +1146,14 @@ function svKarte(){const k=$("uSvKarte");if(!k)return;const v=aktuell(),an=!!(v&
 let NEU_FREI=false;   // true = bewusst einen gespeicherten Vertrag geöffnet, obwohl ein neuer angefangen ist
 const neuInArbeit=()=>NEU&&!!$("name").value.trim();
 const gesperrt=s=>["uebergabe","rueckgabe","schaden","ueberlassung"].includes(s)&&neuInArbeit()&&!NEU_FREI;
-function zeige(s){SICHT=s;["heute","vertraege","vertrag","uebergabe","rueckgabe","schaden","ueberlassung"].forEach(x=>$("s_"+x).classList.toggle("versteckt",x!==s));
-  const reiterS=s;
+function zeige(s){SICHT=s;["heute","vertraege","mappe","vertrag","uebergabe","rueckgabe","schaden","ueberlassung"].forEach(x=>$("s_"+x).classList.toggle("versteckt",x!==s));
+  const reiterS=s==="heute"?"heute":(s==="vertrag"&&NEU)?"vertrag":"vertraege";   // oben nur Heute, Verträge, Neuer Vertrag
   [...$("reiter").children].forEach(c=>{c.classList.toggle("an",c.dataset.s===reiterS);
     if(c.dataset.s===reiterS)try{c.scrollIntoView({inline:"center",block:"nearest",behavior:"smooth"})}catch(e){}});
   $("haupt").textContent=KNOPF[s];
   if(s==="heute")zeichneHeute();
   else if(s==="vertraege")zeichneAlle();
+  else if(s==="mappe")zeichneMappe();
   else if(s==="vertrag"){if(!NEU&&!$("name").value.trim()&&aktuell())vertragLaden(aktuell());zeichneAnfragen();if(!$("name").value)$("nr").value=neueNr()}
   else{wahlFuellen();formularLaden()}
   svKarte();schritte();
@@ -1123,6 +1163,7 @@ function zeige(s){SICHT=s;["heute","vertraege","vertrag","uebergabe","rueckgabe"
   window.scrollTo(0,0)}
 [...$("reiter").children].forEach(c=>c.onclick=()=>zeige(c.dataset.s));
 $("neuZurueck").onclick=()=>zeige("vertrag");
+[...$("reiter").children].find(c=>c.dataset.s==="vertrag").onclick=()=>{if(!NEU){if(ungespeichert()&&!confirm("Deine Änderungen sind noch nicht gespeichert. Trotzdem einen neuen Vertrag anfangen?"))return;leeren()}zeige("vertrag")};
 $("neuAnderer").onclick=()=>{NEU_FREI=true;WAHL_OFFEN=true;zeige(SICHT)};
 $("uSvOeffnen").onclick=()=>zeige("ueberlassung");$("svZurueck").onclick=()=>zeige("uebergabe");
 
