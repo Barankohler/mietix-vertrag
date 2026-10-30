@@ -706,7 +706,8 @@ function uebernehmeAnfrage(x){ANFRAGE=x.id||null;
   if(x.von)$("vonD").value=x.von;if(x.bis)$("bisD").value=x.bis;
   const ab=x.angebot||{};if(x.vonU||ab.vonU)$("vonU").value=x.vonU||ab.vonU;if(x.bisU||ab.bisU)$("bisU").value=x.bisU||ab.bisU;
   const f=fahrzeugListe().find(f=>f.name===x.auto);if(f)waehleAuto(f);stammFuellen();
-  if(x.ort&&!$("anschrift").value.trim())$("anschrift").value=x.ort;   // Wohnort aus der Anfrage, Straße kommt dazu
+  if((x.anschrift||x.ort)&&!$("anschrift").value.trim())$("anschrift").value=x.anschrift||x.ort;   // Anschrift aus der Buchung, sonst Wohnort
+  if(x.geb&&!$("geb").value)$("geb").value=x.geb;if(x.gebort&&!$("gebort").value.trim())$("gebort").value=x.gebort;
   // Im Kalender abgemachter Preis und Kilometer (30.10.2026): nicht nochmal tippen
   if(ab.preis&&ab.auto===x.auto&&ab.von===x.von&&ab.bis===x.bis){$("preis1").value=eur(ab.preis);preisAuto=false;if(ab.freikm){$("freikm").value=kmText(ab.freikm);kmAuto=false}ABGEMACHT={preis:$("preis1").value,km:$("freikm").value};summe()}
   tipps();
