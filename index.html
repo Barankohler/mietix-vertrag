@@ -709,6 +709,7 @@ async function fuelleVertrag(v){
   T(f,"gesamtpreis",v.gesamt);T(f,"freikilometer",kmText(v.freikm));T(f,"mehrkilometer",v.mehrkm);
   [["anzahlung","anzahlung","anz"],["restbetrag","rest","rest"],["kaution_betrag","kaution","kaut"]].forEach(([feld,p,k])=>{const r=z[k]||{};
     T(f,feld,r.betrag);if(r.art)X(f,p+"_"+(r.art==="ec"||r.art==="kredit"?"karte":r.art),true);T(f,p+"_bezahlt_am",de(r.am))});
+  if(!(z.kaut||{}).betrag)alle(f,"kaution_betrag").forEach(x=>{try{x.setText("")}catch(e){}});   // Vorlage hat 1.950 als Vorgabe: leer heißt leer (30.10.2026)
   if(v.kautionArt==="fahrzeug")X(f,"kaution_fahrzeug",true);else if(v.kautionArt==="geld")X(f,"kaution_geld",true);
   T(f,"kaution_fahrzeugdaten",v.kfz);T(f,"selbstbeteiligung",v.sb);T(f,"v_ort_datum",v.datum);
   T(f,"u_datum",de(u.datum||v.vonD));T(f,"u_uhrzeit",u.uhr||v.vonU);T(f,"u_ort",u.ort||ORT);
@@ -937,7 +938,7 @@ $("haupt").onclick=()=>{
   if(SICHT==="uebergabe"){if(!$("svSlot").classList.contains("versteckt"))svSpeichern();const v=aendere(v=>{v.ueb=Object.assign(protokollLesen("u"),{km:$("uKm").value.trim(),datum:$("uD").value,
       uhr:$("uU").value,ort:$("uOrt").value.trim(),bem:$("uBem").value.trim(),ortDatum:heuteDe(),unterschrift:PAD.padU.wert(),unterschriftVermieter:PAD.padU.wert()?vermieterUnterschrift():""});if(v.ueb.km)v.km=v.ueb.km});
     lerneAuto(v.auto,{km:v.ueb.km,reifen:v.ueb.reifen,felgen:v.ueb.felgen,reserve:v.ueb.reserve,marke:v.ueb.marke,profil:v.ueb.profil});
-    meldung("Übergabe gespeichert");GELADEN={};schritte();
+    protWeg(v.nr,"uebergabe");meldung("Übergabe gespeichert");GELADEN={};schritte();
     const svFehlt=false;   // steckt jetzt in der Übergabe
     nachSheet("Übergabe gespeichert",v.name+", "+v.auto+". "+(v.ueb.unterschrift?"Mit Unterschrift.":"Ohne Unterschrift des Mieters.")+(svFehlt?" Auto des Kunden als Kaution: Überlassungserklärung fehlt noch.":"")+" Was jetzt?",[
       svFehlt?{t:"Weiter: Überlassungserklärung",voll:true,f:()=>zeige("ueberlassung")}:null,
@@ -953,7 +954,7 @@ $("haupt").onclick=()=>{
       if($("rKmAb").value.trim()){v.ueb=v.ueb||{};v.ueb.km=$("rKmAb").value.trim()}v.status="zurück";
       const e=eWerte();v.endabrechnung={mehrkm:e.mehr,satz:e.satz,aufWahl:$("eAuf").value,auf:e.auf,summe:e.summe}});
     lerneAuto(v.auto,{km:v.rueck.km,reifen:v.rueck.reifen,felgen:v.rueck.felgen,marke:v.rueck.marke,profil:v.rueck.profil});
-    meldung("Rückgabe gespeichert");GELADEN={};schritte();const e=v.endabrechnung||{},schaden=v.rueck.auff==="ja";
+    protWeg(v.nr,"rueckgabe");meldung("Rückgabe gespeichert");GELADEN={};schritte();const e=v.endabrechnung||{},schaden=v.rueck.auff==="ja";
     nachSheet("Rückgabe gespeichert",v.name+", "+v.auto+(e.summe?". Endabrechnung: "+eur(e.summe)+" € Zusatzkosten.":". Nichts nachzuberechnen.")+" Was jetzt?",[
       schaden?{t:"Schadensanerkennung drucken",voll:true,f:()=>oeffnen(()=>fuelleSchaden(aktuell())),bleibt:true}:null,
       {t:"Rückgabeprotokoll drucken",voll:!schaden,f:()=>oeffnen(()=>fuelleRueckgabe(aktuell())),bleibt:true},
@@ -1078,14 +1079,34 @@ function einbetten(){const sv=[...$("s_ueberlassung").querySelectorAll(":scope >
 function schadenZeigen(){$("schadenSlot").classList.toggle("versteckt",gw("r_auff")!=="ja")}
 {const _fl=formularLaden;formularLaden=function(erzwingen){_fl(erzwingen);const v=aktuell();if(!v)return;const keep=SICHT;
   if(keep==="uebergabe"){const an=v.kautionArt==="fahrzeug";$("svSlot").classList.toggle("versteckt",!an);if(an){SICHT="ueberlassung";_fl(true);SICHT=keep}}
-  if(keep==="rueckgabe"){SICHT="schaden";_fl(true);SICHT=keep;schadenZeigen()}}}
+  if(keep==="rueckgabe"){SICHT="schaden";_fl(true);SICHT=keep;schadenZeigen()}
+  if(erzwingen!==false)protHolen()}}
+
+/* ---------- Entwurf Übergabe/Rückgabe: Getipptes bleibt beim Neuladen oder Schließen (30.10.2026) ---------- */
+const PROT_EW="mietixEntwurfProtokolle",PROT_PADS={uebergabe:["padU","padSV"],rueckgabe:["padR","padS"]},PROT_AN=["uReserve","rReserve","vSchein","vBrief","sAnerkannt","svBestaetigt"];
+let protTimer=null,protLaedt=false;const PROT_GEMELDET={};
+function protAlle(){try{return JSON.parse(localStorage.getItem(PROT_EW)||"{}")||{}}catch(e){return{}}}
+function protSchnappschuss(sicht){const sec=$("s_"+sicht),f={},c={},a={},p={};
+  sec.querySelectorAll("input[id],textarea[id],select[id]").forEach(e=>f[e.id]=e.value);
+  sec.querySelectorAll("[data-gruppe]").forEach(g=>c[g.dataset.gruppe]=chipWert(g));
+  PROT_AN.forEach(i=>{if(sec.contains($(i)))a[i]=$(i).classList.contains("an")});
+  (PROT_PADS[sicht]||[]).forEach(k=>{if(PAD[k])p[k]=PAD[k].wert()});return{f,c,a,p,zeit:Date.now()}}
+function protMerken(){if(protLaedt||!["uebergabe","rueckgabe"].includes(SICHT)||!aktuell())return;const sicht=SICHT,nr=WAHL;
+  clearTimeout(protTimer);protTimer=setTimeout(()=>{const all=protAlle();all[nr+"|"+sicht]=protSchnappschuss(sicht);try{localStorage.setItem(PROT_EW,JSON.stringify(all))}catch(e){}},400)}
+function protWeg(nr,sicht){clearTimeout(protTimer);const all=protAlle();delete all[nr+"|"+sicht];try{localStorage.setItem(PROT_EW,JSON.stringify(all))}catch(e){}}
+function protHolen(){const v=aktuell();if(!v||!["uebergabe","rueckgabe"].includes(SICHT))return;const d=protAlle()[v.nr+"|"+SICHT];if(!d)return;
+  protLaedt=true;try{Object.entries(d.f||{}).forEach(([i,x])=>{if($(i))$(i).value=x});Object.entries(d.c||{}).forEach(([g,x])=>gs(g,x));
+    Object.entries(d.a||{}).forEach(([i,x])=>setzeAn(i,x));Object.entries(d.p||{}).forEach(([k,x])=>{if(PAD[k]&&x)PAD[k].setzen(x)});
+    if(SICHT==="rueckgabe"){schadenZeigen();try{rRechne(false)}catch(e){}}}finally{protLaedt=false}
+  if(!PROT_GEMELDET[v.nr+"|"+SICHT]){PROT_GEMELDET[v.nr+"|"+SICHT]=1;meldung("Weiter, wo du warst: Getipptes ist wieder da")}}
+["input","change","click","wahl","touchend"].forEach(ev=>document.addEventListener(ev,()=>protMerken(),true));   // auch Unterschrift im Vollbild
 
 /* ---------- Mappe: ein Kunde, alle Schritte in Reihenfolge, Drucken, Schließen (30.10.2026) ---------- */
 let MAPPE_NX=null;
 function mappeSchritte(v){const fz=v.kautionArt==="fahrzeug",sch=!!v.schaden||(v.rueck&&v.rueck.auff==="ja");
   return [["vertrag","Mietvertrag",true],["uebergabe",fz?"Übergabe + Auto als Kaution":"Übergabe",!!v.ueb&&(!fz||!!v.sv)],
     ["rueckgabe",sch?"Rückgabe + Schaden":"Rückgabe",v.status==="zurück"&&(!sch||!!v.schaden)]]}
-function mappeOeffnen(nr){WAHL=nr;WAHL_OFFEN=false;GELADEN={};zeige("mappe")}
+function mappeOeffnen(nr){NEU_FREI=true;WAHL=nr;WAHL_OFFEN=false;GELADEN={};zeige("mappe")}
 function zeichneMappe(){const v=aktuell();if(!v){zeige("vertraege");return}
   const st=mappeSchritte(v),nx=st.find(x=>!x[2]);MAPPE_NX=nx?nx[0]:null;
   $("mName").textContent=v.nr+"  "+v.name;
@@ -1130,7 +1151,7 @@ function zeichneHeute(){const h=iso(new Date()),m=plusTage(h,1),l=vorgaenge().fi
   const tag=d=>d<h?"überfällig "+de(d):d===h?"heute":"morgen";
   $("hAb").innerHTML=ab.length?ab.map(v=>eintrag(v.name,v.auto+", "+tag(v.vonD)+" "+(v.vonU||""),"Übergabe",v.vonD<h)).join(""):'<div class="leer">Heute und morgen holt niemand ab.</div>';
   $("hZu").innerHTML=zu.length?zu.map(v=>eintrag(v.name,v.auto+", "+tag(v.bisD)+" "+(v.bisU||""),"Rückgabe",v.bisD<h)).join(""):'<div class="leer">Heute und morgen kommt nichts zurück.</div>';
-  [...$("hAb").children].forEach((e,i)=>e.onclick=()=>{WAHL=ab[i].nr;zeige("uebergabe")});
+  [...$("hAb").children].forEach((e,i)=>e.onclick=()=>{NEU_FREI=true;WAHL=ab[i].nr;zeige("uebergabe")});
   // Erinnerung am Vortag: bei Abholungen von morgen ein grüner Knopf, öffnet WhatsApp mit dem Text
   if(ab.length)[...$("hAb").children].forEach((e,i)=>{const v=ab[i];if(v.vonD!==m||v.erinnert)return;
     const k=document.createElement("span");k.textContent="Erinnerung";k.style.cssText="background:#25D366;margin-left:6px";
@@ -1140,7 +1161,7 @@ function zeichneHeute(){const h=iso(new Date()),m=plusTage(h,1),l=vorgaenge().fi
   $("hMahnKarte").classList.toggle("versteckt",!mahn.length);
   $("hMahn").innerHTML=mahn.map(v=>eintrag(v.name,v.auto+", Rest "+eur(zahl(v.zahlung.rest.betrag))+" € seit "+de(v.vonD)+(v.gemahnt?", erinnert am "+de(v.gemahnt):""),"Erinnern",!v.gemahnt)).join("");
   [...$("hMahn").children].forEach((e,i)=>e.onclick=()=>{const v=mahn[i];waOeffnen(v,MAHNUNG(v));const l=vorgaenge(),x=l.find(y=>y.nr===v.nr);if(x){x.gemahnt=h;schreib("mietixVorgaenge",l)}setTimeout(zeichneHeute,800)});
-  [...$("hZu").children].forEach((e,i)=>e.onclick=()=>{WAHL=zu[i].nr;zeige("rueckgabe")});
+  [...$("hZu").children].forEach((e,i)=>e.onclick=()=>{NEU_FREI=true;WAHL=zu[i].nr;zeige("rueckgabe")});
   // Kaution zurückgeben: zurückgegeben, Kaution war da, noch nicht zurück. Ein Tipp = komplett zurück, heute.
   const kaut=vorgaenge().filter(v=>v.status==="zurück"&&((v.zahlung||{}).kaut||{}).am&&!v.kautionRueck);
   $("hKautKarte").classList.toggle("versteckt",!kaut.length);
