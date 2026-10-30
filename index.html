@@ -130,9 +130,9 @@ h2.gruppe{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(-
     <div data-s="vertraege">Verträge</div>
     <div data-s="vertrag">Mietvertrag</div>
     <div data-s="uebergabe">Übergabeprotokoll</div>
+    <div data-s="ueberlassung">Fahrzeug als Kaution</div>
     <div data-s="rueckgabe">Rückgabeprotokoll</div>
     <div data-s="schaden">Schadensanerkennung</div>
-    <div data-s="ueberlassung" class="versteckt">Überlassungserklärung</div>
   </div>
 </header>
 <main>
@@ -812,7 +812,7 @@ function formularLaden(erzwingen){const v=aktuell();if(!v)return;
   if(SICHT==="ueberlassung"){const s=v.sv||{};$("vInfo").innerHTML="Mieter: "+v.name+"<br>geb. am: "+de(v.geb)+"<br>Anschrift: "+(v.anschrift||"");
     const kf=String(v.kfz||"").split(",").map(x=>x.trim()).filter(Boolean),einTeil=kf.length===1?kf[0]:"",istKz=/^[A-ZÄÖÜ]{1,3}[ -]+[A-Z]{1,2}[ -]*\d{1,4}[EH]?$/i.test(einTeil);
     $("vModell").value=s.modell||(kf.length>1?kf[0]:(einTeil&&!istKz?einTeil:""));$("vKz").value=s.kz||(kf.length>1?kf.slice(1).join(", "):(istKz?einTeil.toUpperCase():""));$("vFin").value=s.fin||"";$("vWert").value=s.wert||"";
-    setzeAn("vSchein",s.schein);setzeAn("vBrief",s.brief);$("vSchluessel").value=s.schluessel||"";PAD.padSV.setzen(s.unterschrift||"");setzeAn("svBestaetigt",s.bestaetigt)}}
+    const neuSv=!v.sv;setzeAn("vSchein",neuSv?true:s.schein);setzeAn("vBrief",neuSv?true:s.brief);$("vSchluessel").value=s.schluessel||(neuSv?"1":"");PAD.padSV.setzen(s.unterschrift||"");setzeAn("svBestaetigt",s.bestaetigt)}}
 function rRechne(schreiben){const v=aktuell();if(!v)return;
   const km=zahl($("rKm").value),ab=zahl($("rKmAb").value),frei=zahl(v.freikm),satz=zahl($("eSatz").value)||zahl(v.mehrkm)||0;
   if(km===null||ab===null){$("rErgebnis").textContent="Kilometerstand eintragen, gefahrene km und Mehrkilometer rechnen sich.";return}
@@ -882,9 +882,9 @@ $("haupt").onclick=()=>{
     const svFehlt=v.kautionArt==="fahrzeug"&&!(v.sv&&v.sv.unterschrift);
     nachSheet("Übergabe gespeichert",v.name+", "+v.auto+". "+(v.ueb.unterschrift?"Mit Unterschrift.":"Ohne Unterschrift des Mieters.")+(svFehlt?" Auto des Kunden als Kaution: Überlassungserklärung fehlt noch.":"")+" Was jetzt?",[
       svFehlt?{t:"Weiter: Überlassungserklärung",voll:true,f:()=>zeige("ueberlassung")}:null,
-      v.kautionArt==="fahrzeug"&&v.sv?{t:"Überlassungserklärung drucken",f:()=>oeffnen(()=>fuelleUeberlassung(aktuell())),bleibt:true}:null,
+      v.kautionArt==="fahrzeug"&&v.sv?{t:"Fahrzeug als Kaution drucken",f:()=>oeffnen(()=>fuelleUeberlassung(aktuell())),bleibt:true}:null,
       {t:"Übergabeprotokoll drucken",voll:!svFehlt,f:()=>oeffnen(()=>seite(()=>fuelleVertrag(aktuell()),1)),bleibt:true},
-      {t:"Vertrag + Übergabe drucken",f:()=>oeffnen(()=>fuelleVertrag(aktuell())),bleibt:true},
+      {t:allesName(aktuell()),f:()=>oeffnen(()=>alleDocs(aktuell())),bleibt:true},
       {t:"Per WhatsApp an den Kunden",wa:true,f:()=>teilen(aktuell()),bleibt:true},
       {t:"Fertig, zur Startseite",f:HEUTE}].filter(Boolean));return}
   if(SICHT==="rueckgabe"){if(!$("rKm").value.trim()){alert("Bitte den Kilometerstand bei Rückgabe eintragen.");return}
@@ -913,8 +913,8 @@ $("haupt").onclick=()=>{
     meldung("Gespeichert. Im Mietvertrag steht jetzt: Fahrzeug als Sicherheit.");GELADEN={};schritte();
     nachSheet("Überlassungserklärung gespeichert",v.name+", Sicherungsfahrzeug "+(v.sv.modell||"")+". Was jetzt?",[
       {t:v.ueb?"Zurück zur Übergabe":"Weiter: Übergabe",voll:!v.ueb,f:()=>zeige("uebergabe")},
-      {t:"Überlassungserklärung drucken",voll:!!v.ueb,f:()=>oeffnen(()=>fuelleUeberlassung(aktuell())),bleibt:true},
-      {t:"Vertrag + Übergabe drucken",f:()=>DRUCK_BEIDE(v),bleibt:true},
+      {t:"Fahrzeug als Kaution drucken",voll:!!v.ueb,f:()=>oeffnen(()=>fuelleUeberlassung(aktuell())),bleibt:true},
+      {t:allesName(aktuell()||v),f:()=>{const u=aendere(x=>{if(!x.ueb)x.ueb=uebStandard(x)})||v;oeffnen(()=>alleDocs(aktuell()||u))},bleibt:true},
       {t:"Fertig, zur Startseite",f:HEUTE}].filter(Boolean));return}};
 
 /* ---------- Reiter Verträge: Karten mit Stand (29.10.2026) ---------- */
@@ -928,14 +928,19 @@ function vKarte(v){const z=v.zahlung||{},rest=z.rest||{},kaut=z.kaut||{};
     '<div class="haken">'+haken.map(([t,ok])=>'<span class="'+(ok?"ok":"")+'">'+(ok?"✓ ":"○ ")+t+'</span>').join("")+
     (mieteOffen?'<span class="rot">Miete offen '+eur(zahl(rest.betrag))+' €</span>':"")+(kautOffen?'<span class="rot">Kaution zurückgeben</span>':"")+(v.schaden?'<span class="rot">Schaden</span>':"")+
     (v.kautionArt==="fahrzeug"?'<span>Fahrzeug als Sicherheit</span>':"")+'</div>'+
-    (AUF===v.nr?'<div class="chips" style="margin-top:10px">'+[["Mietvertrag","vertrag"],["Übergabe","uebergabe"],["Rückgabe","rueckgabe"],["Schadensanerkennung","schaden"]].concat(v.kautionArt==="fahrzeug"?[["Überlassung","ueberlassung"]]:[])
+    (AUF===v.nr?'<div class="chips" style="margin-top:10px">'+[["Mietvertrag","vertrag"],["Übergabe","uebergabe"],["Rückgabe","rueckgabe"],["Schadensanerkennung","schaden"]].concat(v.kautionArt==="fahrzeug"?[["Fahrzeug als Kaution","ueberlassung"]]:[])
       .map(([t,x])=>'<div class="chip" data-geh="'+x+'">'+t+'</div>').join("")+'<div class="chip" data-wa="1" style="background:#25D366;border-color:#25D366;color:#fff">WhatsApp</div></div>'+druckReihe(v):"")+'</div>'}
 // Drucken ganz einfach: ein Knopf pro Dokument, das es zu diesem Vertrag schon gibt (30.10.2026, Baran)
-function druckDocs(v){return [["Vertrag + Übergabe","beide",true],["Nur Mietvertrag","vertrag",true],["Übergabeprotokoll","uebergabe",!!v.ueb],
-  ["Rückgabeprotokoll","rueckgabe",!!v.rueck||v.status==="zurück"],["Schadensanerkennung","schaden",!!v.schaden],["Überlassungserklärung","ueberlassung",!!v.sv]].filter(d=>d[2])}
+function allesTeile(v){return ["Vertrag","Übergabe"].concat(v.sv?["Fahrzeug als Kaution"]:[],(v.rueck||v.status==="zurück")?["Rückgabe"]:[],v.schaden?["Schaden"]:[])}
+const allesName=v=>"Alles drucken: "+allesTeile(v).join(" + ");
+async function alleDocs(v){const neu=await PDFLib.PDFDocument.create();
+  const teile=[fuelleVertrag(v)].concat(v.sv?[fuelleUeberlassung(v)]:[],(v.rueck||v.status==="zurück")?[fuelleRueckgabe(v)]:[],v.schaden?[fuelleSchaden(v)]:[]);
+  for(const t of teile){const d=await PDFLib.PDFDocument.load(await t);(await neu.copyPages(d,d.getPageIndices())).forEach(p=>neu.addPage(p))}return neu.save()}
+function druckDocs(v){return [[allesName(v),"alles",true],["Nur Mietvertrag","vertrag",true],["Übergabeprotokoll","uebergabe",!!v.ueb],
+  ["Fahrzeug als Kaution","ueberlassung",!!v.sv],["Rückgabeprotokoll","rueckgabe",!!v.rueck||v.status==="zurück"],["Schadensanerkennung","schaden",!!v.schaden]].filter(d=>d[2])}
 function druckReihe(v){return '<div class="druckreihe"><b>Drucken</b><div class="dk">'+druckDocs(v).map(([t,x])=>'<div class="dknopf" data-dr="'+x+'">'+t+'</div>').join("")+
   '</div><div class="klein">'+(DIREKT?"Öffnet gleich das Druckfenster.":"Öffnet das PDF. Dann unten auf Teilen tippen und Drucken wählen.")+'</div></div>'}
-function druckeDoc(v,x){const m={beide:()=>fuelleVertrag(v),vertrag:()=>seite(()=>fuelleVertrag(v),0),uebergabe:()=>seite(()=>fuelleVertrag(v),1),
+function druckeDoc(v,x){const m={alles:()=>alleDocs(v),beide:()=>fuelleVertrag(v),vertrag:()=>seite(()=>fuelleVertrag(v),0),uebergabe:()=>seite(()=>fuelleVertrag(v),1),
   rueckgabe:()=>fuelleRueckgabe(v),schaden:()=>fuelleSchaden(v),ueberlassung:()=>fuelleUeberlassung(v)}[x];if(m)oeffnen(m)}
 // Angefangener Vertrag (noch nicht gespeichert) steht ganz oben im Reiter Verträge (30.10.2026)
 function zeichneEntwurfKarte(e){const el=$("vEntwurf");if(!el)return;if(!e){el.innerHTML="";return}
@@ -1059,7 +1064,7 @@ function svKarte(){const k=$("uSvKarte");if(!k)return;const v=aktuell(),an=!!(v&
   $("uSvStand").textContent=(sv.unterschrift?"Überlassungserklärung unterschrieben":sv.modell||sv.kz?"Überlassungserklärung angefangen, Unterschrift fehlt":"Überlassungserklärung noch offen")+(fz?". Sicherungsfahrzeug: "+fz:"")+".";
   $("uSvOeffnen").textContent=sv.unterschrift?"Überlassungserklärung ansehen":"Überlassungserklärung ausfüllen";$("uSvOeffnen").classList.toggle("an",!sv.unterschrift)}
 function zeige(s){SICHT=s;["heute","vertraege","vertrag","uebergabe","rueckgabe","schaden","ueberlassung"].forEach(x=>$("s_"+x).classList.toggle("versteckt",x!==s));
-  const reiterS=s==="ueberlassung"?"uebergabe":s;
+  const reiterS=s;
   [...$("reiter").children].forEach(c=>{c.classList.toggle("an",c.dataset.s===reiterS);
     if(c.dataset.s===reiterS)try{c.scrollIntoView({inline:"center",block:"nearest",behavior:"smooth"})}catch(e){}});
   $("haupt").textContent=KNOPF[s];
