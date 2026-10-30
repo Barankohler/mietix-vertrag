@@ -141,6 +141,12 @@ h2.gruppe{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(-
 .mVerlKnopf{display:block;text-align:center;margin-top:12px;border:1.5px solid #E4E4E7;border-radius:14px;padding:12px;font-weight:800;color:#2E2E30;text-decoration:none}
 #mVerlInfo .vz{margin-top:10px;background:#FFF6E5;border-radius:12px;padding:10px 12px;font-size:14px}#mVerlInfo .vz b{color:#B26A00}
 #mVerlInfo .vz a{float:right;font-weight:800;color:#1B8A4B;text-decoration:none}
+.kurz{display:flex;justify-content:space-between;align-items:center;gap:10px;background:#F6F6F7;border-radius:12px;padding:11px 13px;margin:8px 0;font-size:14px;line-height:1.35}
+.kurz a{flex:0 0 auto;font-weight:800;color:#C4161C;text-decoration:none}
+.grossKurz{background:#fff;border:1px solid #E4E4E7;border-radius:18px;padding:14px 16px;margin-bottom:12px;font-size:15px}
+.mehrLink{display:inline-block;margin-top:10px;font-weight:800;color:#C4161C;text-decoration:none;font-size:14px}
+.frage{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:12px}.frage b{font-size:15px}.frage .chips{margin:0}
+.versp{margin-top:10px;background:#FFF6E5;border-radius:12px;padding:10px 12px;font-size:14px}
 
 .mxKnopf,.mxKlapp>summary{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;box-sizing:border-box;background:#fff;border:1.5px solid #E4E4E7;border-radius:16px;padding:14px 16px;min-height:60px;text-align:left;font-family:inherit;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.04);color:#1C1C1E;margin:0 0 10px;-webkit-tap-highlight-color:transparent}
 .mxKnopf span,.mxKlapp>summary span{flex:1;min-width:0}
@@ -222,7 +228,8 @@ h2.gruppe{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(-
 <!-- ================= MIETVERTRAG (wie Seite 1 eurer Vorlage) ================= -->
 <section id="s_vertrag" class="versteckt">
   <div class="karte versteckt" id="entwurf" style="border:2px solid var(--rot)"></div>
-  <div class="karte"><h2>Mietvertrag-Nr.</h2><input id="nr" inputmode="numeric">
+<div class="kurz" id="kNr"><span></span><a href="#">ändern</a></div>
+  <div class="karte versteckt" id="wNr"><h2>Mietvertrag-Nr.</h2><input id="nr" inputmode="numeric">
     <div class="hinweis">Zählt von selbst weiter.</div></div>
 
   <div class="karte">
@@ -236,7 +243,8 @@ h2.gruppe{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(-
       <div><label>Geburtsort</label><input id="gebort"></div>
     </div>
     <label>Telefon</label><input id="telefon" inputmode="tel">
-    <label>E-Mail</label><input id="email" type="email" inputmode="email">
+    <a href="#" class="mehrLink" data-auf="emailW">+ E-Mail hinzufügen</a>
+    <div id="emailW" class="versteckt"><label>E-Mail</label><input id="email" type="email" inputmode="email"></div>
   </div>
 
   <div class="karte">
@@ -244,9 +252,10 @@ h2.gruppe{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(-
     <label>Fahrzeug (Hersteller, Modell) *</label>
     <div class="autos" id="autos"></div>
     <input id="modell" placeholder="oder hier eintippen">
-    <label>Kennzeichen</label><input id="kz">
+    <div class="kurz" id="kFz"><span></span><a href="#">ändern</a></div>
+    <div id="wFz"><label>Kennzeichen</label><input id="kz">
     <label>Fahrgestellnummer (FIN)</label><input id="fin">
-    <label>Kilometerstand bei Abholung (km)</label><input id="km" inputmode="numeric" placeholder="wird bei der Übergabe eingetragen">
+    <label>Kilometerstand bei Abholung (km)</label><input id="km" inputmode="numeric" placeholder="wird bei der Übergabe eingetragen"></div>
   </div>
 
   <div class="karte">
@@ -255,37 +264,47 @@ h2.gruppe{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(-
       <label>Mietpreis für den ganzen Zeitraum €</label><input id="preis1" inputmode="decimal">
       <div class="chips" id="preisTipp"></div></div>
     <div class="zeile"><b>2  Zusatzfahrer</b>
-      <label>Name Zusatzfahrer (wird als genehmigt angekreuzt)</label><input id="zf">
-      <label>Preis für den Zusatzfahrer €</label><input id="preis2" inputmode="decimal"></div>
+      <div class="chips" id="zfJn"><div class="chip" data-jn="nein">Nein</div><div class="chip" data-jn="ja">Ja</div></div>
+      <div id="zfW" class="versteckt">
+      <label>Vor- und Nachname Zusatzfahrer (wird als genehmigt angekreuzt)</label><input id="zf">
+      <label>Preis für den Zusatzfahrer €</label><input id="preis2" inputmode="decimal">
+      <div class="hinweis" id="zfInfo"></div></div></div>
     <div class="zeile"><b>Mietzeitraum</b>
-      <div class="chips" id="schnellVon"><div class="chip" data-t="0">Heute</div><div class="chip" data-t="1">Morgen</div>
-        <div class="chip" data-t="fr">Freitag</div></div>
+      <div class="chips versteckt" id="schnellVon"></div>
+      <div class="hinweis" style="margin:4px 0 6px">Ab heute:</div>
       <div class="chips" id="schnellDauer"><div class="chip" data-d="1">1 Tag</div><div class="chip" data-d="2">2 Tage</div>
-        <div class="chip" data-d="3">3 Tage</div><div class="chip" data-d="we">Wochenende (Fr bis Mo)</div><div class="chip" data-d="7">Woche</div></div>
+        <div class="chip" data-d="3">3 Tage</div><div class="chip" data-d="7">1 Woche</div></div>
+      <div class="hinweis" style="margin:10px 0 6px">Wochenende (nächstes):</div>
+      <div class="chips" id="schnellWe"><div class="chip" data-we="5,1">Fr bis Sa</div><div class="chip" data-we="5,2">Fr bis So</div>
+        <div class="chip" data-we="6,2">Sa bis Mo</div><div class="chip" data-we="5,3">Fr bis Mo</div></div>
       <div class="drei"><div><label>von</label><input id="vonD" type="date"></div>
         <div><label>Uhr</label><input id="vonU" type="time" value="10:00"></div></div>
       <div class="drei"><div><label>bis</label><input id="bisD" type="date"></div>
         <div><label>Uhr</label><input id="bisU" type="time" value="10:00"></div></div></div>
     <div class="zeile"><b>Gesamtmietpreis inkl. MwSt.</b><div class="summe" id="gesamtAnzeige">0,00 €</div></div>
-    <div class="zeile">
-      <div class="zwei">
+    <div class="zeile"><div class="kurz" id="kKm"><span></span><a href="#">ändern</a></div>
+      <div id="wKm"><div class="zwei">
         <div><label>Inklusive Freikilometer (km)</label><input id="freikm" inputmode="numeric"></div>
-        <div><label>Preis je Mehrkilometer €</label><input id="mehrkm" value="3" inputmode="decimal"></div>
+        <div><label>Preis je Mehrkilometer €</label><input id="mehrkm" inputmode="decimal"></div>
       </div>
+      <label>Selbstbeteiligung im Schadensfall €</label><input id="sb" inputmode="decimal"></div>
       <div class="chips" id="kmTipp"></div></div>
   </div>
 
   <div class="karte">
     <h2>Zahlungen</h2>
     <div class="zeile erste"><b>Anzahlung</b>
+      <div class="chips" id="anzJn"><div class="chip" data-jn="nein">Nein</div><div class="chip" data-jn="ja">Ja, erhalten</div></div>
+      <div id="anzW" class="versteckt">
       <div class="zwei"><div><label>Betrag €</label><input id="anzB" inputmode="decimal"></div>
         <div><label>Bezahlt am</label><input id="anzAm" type="date"></div></div>
-      <label>Zahlart</label><div class="chips" data-gruppe="z_anz"><div class="chip" data-v="bar">Bar</div><div class="chip" data-v="ec">EC-Karte</div><div class="chip" data-v="kredit">Kreditkarte</div><div class="chip" data-v="ueberweisung">Überweisung</div></div></div>
-    <div class="zeile"><b>Restbetrag</b>
+      <label>Zahlart</label><div class="chips" data-gruppe="z_anz"><div class="chip" data-v="bar">Bar</div><div class="chip" data-v="ec">EC-Karte</div><div class="chip" data-v="kredit">Kreditkarte</div><div class="chip" data-v="ueberweisung">Überweisung</div></div>
+      <div class="hinweis">30 % vom Mietpreis stehen schon drin, überschreiben geht.</div></div></div>
+    <div class="zeile"><b>Bei Abholung zu zahlen</b>
       <div class="zwei"><div><label>Betrag €</label><input id="restB" inputmode="decimal"></div>
         <div><label>Bezahlt am</label><input id="restAm" type="date"></div></div>
       <label>Zahlart</label><div class="chips" data-gruppe="z_rest"><div class="chip" data-v="bar">Bar</div><div class="chip" data-v="ec">EC-Karte</div><div class="chip" data-v="kredit">Kreditkarte</div><div class="chip" data-v="ueberweisung">Überweisung</div></div>
-      <div class="hinweis">Rechnet sich aus Gesamtmietpreis minus Anzahlung.</div></div>
+      <div class="hinweis">Mietpreis minus Anzahlung, rechnet sich selbst. Auf dem Papier heißt das „Restbetrag“.</div></div>
     <div class="zeile"><b>Kaution</b>
       <div class="chips" id="kautWahl" style="margin:6px 0 4px"><div class="chip" data-ka="geld">Geld</div><div class="chip" data-ka="fahrzeug">Fahrzeug (Überlassungserklärung)</div></div>
       <div id="kautGeld">
@@ -299,14 +318,13 @@ h2.gruppe{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(-
       </div></div>
   </div>
 
-  <div class="karte">
+  <div class="karte versteckt">
     <h2>Selbstbeteiligung</h2>
     <div class="versteckt"><!-- Kautionsart und Fahrzeug wählt man oben bei den Zahlungen, hier nur die Ablage für das Papier -->
     <label>Kaution hinterlegt in Form von</label>
     <div class="chips" data-gruppe="k_art"><div class="chip an" data-v="geld">Geldkaution (Betrag siehe Zahlungen)</div><div class="chip" data-v="fahrzeug">Fahrzeug als Sicherheit</div></div>
     <label>Fahrzeugdaten der Sicherheit (Modell, Kennzeichen)</label><input id="kfz" placeholder="leer lassen geht">
     </div>
-    <label>Selbstbeteiligung im Schadensfall €</label><input id="sb" inputmode="decimal">
   </div>
 
   <div class="karte"><h2>Unterschriften</h2>
@@ -344,11 +362,12 @@ h2.gruppe{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(-
   <div class="karte"><h2>Fahrzeug und Übergabe</h2>
     <div class="info" id="uFz"></div>
     <label>Kilometerstand (km)</label><input id="uKm" inputmode="numeric">
-    <div class="drei"><div><label>Datum Übergabe</label><input id="uD" type="date"></div><div><label>Uhrzeit Übergabe</label><input id="uU" type="time"></div></div>
-    <label>Ort der Übergabe</label><input id="uOrt">
+    <div class="kurz" id="kUZeit"><span></span><a href="#">ändern</a></div>
+    <div id="wUZeit"><div class="drei"><div><label>Datum Übergabe</label><input id="uD" type="date"></div><div><label>Uhrzeit Übergabe</label><input id="uU" type="time"></div></div>
+    <label>Ort der Übergabe</label><input id="uOrt"></div>
   </div>
-  <div class="karte"><h2>Mieter und Vermieter</h2><div class="info" id="uMieter"></div></div>
-  <div class="karte"><h2>Fahrzeugzustand</h2><label>Außen</label><div class="chips" data-gruppe="u_aussen"><div class="chip an" data-v="sauber">sauber</div><div class="chip" data-v="leicht">leicht verschmutzt</div><div class="chip" data-v="stark">stark verschmutzt</div></div><label>Innenraum</label><div class="chips" data-gruppe="u_innen"><div class="chip an" data-v="sauber">sauber</div><div class="chip" data-v="leicht">leicht verschmutzt</div><div class="chip" data-v="stark">stark verschmutzt</div></div><label>Tankfüllung</label><div class="chips" data-gruppe="u_tank"><div class="chip" data-v="leer">leer</div><div class="chip" data-v="viertel">¼</div><div class="chip" data-v="halb">½</div><div class="chip" data-v="dreiviertel">¾</div><div class="chip an" data-v="voll">voll</div></div></div><div class="karte"><h2>Folgendes wurde übergeben</h2><div class="hinweis" style="margin-top:0">Fahrzeugschlüssel, Fahrzeugschein (Kopie), Schadensprotokoll, Warnweste, Warndreieck, Verbandskasten, Betriebsanleitung</div><div class="chips" data-gruppe="u_gegen"><div class="chip an" data-v="ja">vollständig übergeben</div><div class="chip" data-v="nein">Abweichungen/Sonstiges</div></div><input id="uAbw" placeholder="Abweichungen/Sonstiges" style="margin-top:8px"></div><div class="karte"><h2>Reifen und Felgen</h2><label>Bereifung</label><div class="chips" data-gruppe="u_reifen"><div class="chip" data-v="sommer">Sommerreifen</div><div class="chip" data-v="winter">Winterreifen</div><div class="chip" data-v="ganzjahr">Ganzjahresreifen</div></div><div class="chips" style="margin-top:7px"><div class="chip" id="uReserve">Reserverad</div></div><label>Felgen</label><div class="chips" data-gruppe="u_felgen"><div class="chip an" data-v="alu">Alu</div><div class="chip" data-v="stahl">Stahl</div></div><label>Reifenmarke/-größe</label><input id="uMarke"><label>Profiltiefe in mm</label><div class="vier"><input id="uVL" placeholder="VL" inputmode="decimal"><input id="uVR" placeholder="VR" inputmode="decimal"><input id="uHL" placeholder="HL" inputmode="decimal"><input id="uHR" placeholder="HR" inputmode="decimal"></div></div>
+  <div class="karte versteckt"><h2>Mieter und Vermieter</h2><div class="info" id="uMieter"></div></div>
+  <div class="kurz grossKurz" id="kuZust"><span></span><a href="#">ändern</a></div><div id="wuZust"><div class="karte"><h2>Fahrzeugzustand</h2><label>Außen</label><div class="chips" data-gruppe="u_aussen"><div class="chip an" data-v="sauber">sauber</div><div class="chip" data-v="leicht">leicht verschmutzt</div><div class="chip" data-v="stark">stark verschmutzt</div></div><label>Innenraum</label><div class="chips" data-gruppe="u_innen"><div class="chip an" data-v="sauber">sauber</div><div class="chip" data-v="leicht">leicht verschmutzt</div><div class="chip" data-v="stark">stark verschmutzt</div></div><label>Tankfüllung</label><div class="chips" data-gruppe="u_tank"><div class="chip" data-v="leer">leer</div><div class="chip" data-v="viertel">¼</div><div class="chip" data-v="halb">½</div><div class="chip" data-v="dreiviertel">¾</div><div class="chip an" data-v="voll">voll</div></div></div><div class="karte"><h2>Folgendes wurde übergeben</h2><div class="hinweis" style="margin-top:0">Fahrzeugschlüssel, Fahrzeugschein (Kopie), Schadensprotokoll, Warnweste, Warndreieck, Verbandskasten, Betriebsanleitung</div><div class="chips" data-gruppe="u_gegen"><div class="chip an" data-v="ja">vollständig übergeben</div><div class="chip" data-v="nein">Abweichungen/Sonstiges</div></div><input id="uAbw" placeholder="Abweichungen/Sonstiges" style="margin-top:8px"></div><div class="karte"><h2>Reifen und Felgen</h2><label>Bereifung</label><div class="chips" data-gruppe="u_reifen"><div class="chip" data-v="sommer">Sommerreifen</div><div class="chip" data-v="winter">Winterreifen</div><div class="chip" data-v="ganzjahr">Ganzjahresreifen</div></div><div class="chips" style="margin-top:7px"><div class="chip" id="uReserve">Reserverad</div></div><label>Felgen</label><div class="chips" data-gruppe="u_felgen"><div class="chip an" data-v="alu">Alu</div><div class="chip" data-v="stahl">Stahl</div></div><label>Reifenmarke/-größe</label><input id="uMarke"><a href="#" class="mehrLink" data-auf="uProfilW">+ Profiltiefe eintragen</a><div id="uProfilW" class="versteckt"><label>Profiltiefe in mm</label><div class="vier"><input id="uVL" placeholder="VL" inputmode="decimal"><input id="uVR" placeholder="VR" inputmode="decimal"><input id="uHL" placeholder="HL" inputmode="decimal"><input id="uHR" placeholder="HR" inputmode="decimal"></div></div></div></div>
   <div class="karte"><h2>Beschädigungen</h2>
     <div class="hinweis" style="margin-top:0">Vorschäden zeichnest du wie gewohnt von Hand in die Skizze auf dem Ausdruck.</div>
     <label>Fotos zur Dokumentation</label><div class="chips" data-gruppe="u_fotos"><div class="chip an" data-v="ja">ja</div><div class="chip" data-v="nein">nein</div></div></div>
@@ -365,16 +384,22 @@ h2.gruppe{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(-
       <div><label>Kilometerstand bei Übergabe (km)</label><input id="rKmAb" inputmode="numeric"></div></div>
     <input id="rGef" type="hidden"><input id="rMehr" type="hidden">
     <div class="ergebnis" id="rErgebnis">Kilometerstand eintragen, gefahrene km und Mehrkilometer rechnen sich.</div>
+    <div class="frage"><b>Tank voll zurück?</b><div class="chips" id="tankJn"><div class="chip" data-jn="ja">Ja</div><div class="chip" data-jn="nein">Nein</div></div></div>
+    <div id="tankW" class="versteckt"><div id="tankChips"></div><label>Fehlende Liter (ungefähr)</label><input id="eLiter" inputmode="decimal">
+      <div class="hinweis">2,50 € je Liter plus 25 € Pauschale fürs Tanken.</div></div>
+    <div class="frage"><b>Sauber zurück?</b><div class="chips" id="sauberJn"><div class="chip" data-jn="ja">Ja</div><div class="chip" data-jn="nein">Nein</div></div></div>
     <div class="zwei"><div><label>Preis je Mehrkilometer €</label><input id="eSatz" inputmode="decimal"></div>
-      <div><label>Aufbereitung</label><select id="eAuf"><option value="">Keine</option><option value="20">Klein, 20 €</option><option value="99">Mittel, 99 €</option><option value="199">Groß, 199 €</option><option value="frei">Eigener Betrag</option></select></div></div>
+      <div id="eAufW" class="versteckt"><label>Aufbereitung</label><select id="eAuf"><option value="">Keine</option><option value="20">Klein, 20 €</option><option value="99">Mittel, 99 €</option><option value="199">Groß, 199 €</option><option value="frei">Eigener Betrag</option></select></div></div>
+    <div id="verspW"></div>
     <div class="zwei versteckt" id="eAufFreiW"><div><label>Aufbereitung, eigener Betrag €</label><input id="eAufFrei" inputmode="decimal"></div><div></div></div>
     <div class="ergebnis" id="eErgebnis">Endabrechnung: noch nichts zu berechnen.</div>
     <a class="knopf" id="eKopieren">Endabrechnung für WhatsApp kopieren</a>
-    <div class="drei"><div><label>Datum Rückgabe</label><input id="rD" type="date"></div><div><label>Uhrzeit Rückgabe</label><input id="rU" type="time"></div></div>
-    <label>Ort der Rückgabe</label><input id="rOrt">
+    <div class="kurz" id="kRZeit"><span></span><a href="#">ändern</a></div>
+    <div id="wRZeit"><div class="drei"><div><label>Datum Rückgabe</label><input id="rD" type="date"></div><div><label>Uhrzeit Rückgabe</label><input id="rU" type="time"></div></div>
+    <label>Ort der Rückgabe</label><input id="rOrt"></div>
   </div>
-  <div class="karte"><h2>Mieter und Vermieter</h2><div class="info" id="rMieter"></div></div>
-  <div class="karte"><h2>Fahrzeugzustand</h2><label>Außen</label><div class="chips" data-gruppe="r_aussen"><div class="chip an" data-v="sauber">sauber</div><div class="chip" data-v="leicht">leicht verschmutzt</div><div class="chip" data-v="stark">stark verschmutzt</div></div><label>Innenraum</label><div class="chips" data-gruppe="r_innen"><div class="chip an" data-v="sauber">sauber</div><div class="chip" data-v="leicht">leicht verschmutzt</div><div class="chip" data-v="stark">stark verschmutzt</div></div><label>Tankfüllung</label><div class="chips" data-gruppe="r_tank"><div class="chip" data-v="leer">leer</div><div class="chip" data-v="viertel">¼</div><div class="chip" data-v="halb">½</div><div class="chip" data-v="dreiviertel">¾</div><div class="chip an" data-v="voll">voll</div></div></div><div class="karte"><h2>Folgendes wurde zurückgegeben</h2><div class="hinweis" style="margin-top:0">Fahrzeugschlüssel, Fahrzeugschein (Kopie), Schadensprotokoll, Warnweste, Warndreieck, Verbandskasten, Betriebsanleitung</div><div class="chips" data-gruppe="r_gegen"><div class="chip an" data-v="ja">vollständig zurückgegeben</div><div class="chip" data-v="nein">Abweichungen/Sonstiges</div></div><input id="rAbw" placeholder="Abweichungen/Sonstiges" style="margin-top:8px"></div><div class="karte"><h2>Reifen und Felgen</h2><label>Bereifung</label><div class="chips" data-gruppe="r_reifen"><div class="chip" data-v="sommer">Sommerreifen</div><div class="chip" data-v="winter">Winterreifen</div><div class="chip" data-v="ganzjahr">Ganzjahresreifen</div></div><div class="chips" style="margin-top:7px"><div class="chip" id="rReserve">Reserverad</div></div><label>Felgen</label><div class="chips" data-gruppe="r_felgen"><div class="chip an" data-v="alu">Alu</div><div class="chip" data-v="stahl">Stahl</div></div><label>Reifenmarke/-größe</label><input id="rMarke"><label>Profiltiefe in mm</label><div class="vier"><input id="rVL" placeholder="VL" inputmode="decimal"><input id="rVR" placeholder="VR" inputmode="decimal"><input id="rHL" placeholder="HL" inputmode="decimal"><input id="rHR" placeholder="HR" inputmode="decimal"></div></div>
+  <div class="karte versteckt"><h2>Mieter und Vermieter</h2><div class="info" id="rMieter"></div></div>
+  <div class="kurz grossKurz" id="krZust"><span></span><a href="#">ändern</a></div><div id="wrZust"><div class="karte"><h2>Fahrzeugzustand</h2><label>Außen</label><div class="chips" data-gruppe="r_aussen"><div class="chip an" data-v="sauber">sauber</div><div class="chip" data-v="leicht">leicht verschmutzt</div><div class="chip" data-v="stark">stark verschmutzt</div></div><label>Innenraum</label><div class="chips" data-gruppe="r_innen"><div class="chip an" data-v="sauber">sauber</div><div class="chip" data-v="leicht">leicht verschmutzt</div><div class="chip" data-v="stark">stark verschmutzt</div></div><label>Tankfüllung</label><div class="chips" data-gruppe="r_tank"><div class="chip" data-v="leer">leer</div><div class="chip" data-v="viertel">¼</div><div class="chip" data-v="halb">½</div><div class="chip" data-v="dreiviertel">¾</div><div class="chip an" data-v="voll">voll</div></div></div><div class="karte"><h2>Folgendes wurde zurückgegeben</h2><div class="hinweis" style="margin-top:0">Fahrzeugschlüssel, Fahrzeugschein (Kopie), Schadensprotokoll, Warnweste, Warndreieck, Verbandskasten, Betriebsanleitung</div><div class="chips" data-gruppe="r_gegen"><div class="chip an" data-v="ja">vollständig zurückgegeben</div><div class="chip" data-v="nein">Abweichungen/Sonstiges</div></div><input id="rAbw" placeholder="Abweichungen/Sonstiges" style="margin-top:8px"></div><div class="karte"><h2>Reifen und Felgen</h2><label>Bereifung</label><div class="chips" data-gruppe="r_reifen"><div class="chip" data-v="sommer">Sommerreifen</div><div class="chip" data-v="winter">Winterreifen</div><div class="chip" data-v="ganzjahr">Ganzjahresreifen</div></div><div class="chips" style="margin-top:7px"><div class="chip" id="rReserve">Reserverad</div></div><label>Felgen</label><div class="chips" data-gruppe="r_felgen"><div class="chip an" data-v="alu">Alu</div><div class="chip" data-v="stahl">Stahl</div></div><label>Reifenmarke/-größe</label><input id="rMarke"><a href="#" class="mehrLink" data-auf="rProfilW">+ Profiltiefe eintragen</a><div id="rProfilW" class="versteckt"><label>Profiltiefe in mm</label><div class="vier"><input id="rVL" placeholder="VL" inputmode="decimal"><input id="rVR" placeholder="VR" inputmode="decimal"><input id="rHL" placeholder="HL" inputmode="decimal"><input id="rHR" placeholder="HR" inputmode="decimal"></div></div></div></div>
   <div class="karte"><h2>Neue Beschädigungen</h2>
     <div class="hinweis" style="margin-top:0">Neue Schäden zeichnest du wie gewohnt von Hand in die Skizze auf dem Ausdruck.</div>
     <label>Fotos zur Dokumentation</label><div class="chips" data-gruppe="r_fotos"><div class="chip an" data-v="ja">ja</div><div class="chip" data-v="nein">nein</div></div>
@@ -626,9 +651,13 @@ const plusTage=(isoS,n)=>{const d=new Date(isoS+"T12:00");d.setDate(d.getDate()+
   if(c.dataset.t==="1")v=plusTage(h,1);
   if(c.dataset.t==="fr"){const w=new Date().getDay();v=plusTage(h,(5-w+7)%7)}
   const dauer=$("vonD").value&&$("bisD").value?tage():1;$("vonD").value=v;$("bisD").value=plusTage(v,dauer);tipps()});
-[...$("schnellDauer").children].forEach(c=>c.onclick=()=>{
-  if(c.dataset.d==="we"){const h=iso(new Date()),w=new Date().getDay();const fr=plusTage(h,(5-w+7)%7);$("vonD").value=fr;$("bisD").value=plusTage(fr,3)}
-  else{if(!$("vonD").value)$("vonD").value=iso(new Date());$("bisD").value=plusTage($("vonD").value,+c.dataset.d)}tipps()});
+// Tage zählen immer ab heute; Wochenend-Fenster nehmen den nächsten passenden Tag (heute zählt mit)
+function zeitraumMarken(){[...document.querySelectorAll("#schnellDauer .chip,#schnellWe .chip")].forEach(c=>c.classList.toggle("an",c.dataset.von===$("vonD").value&&c.dataset.bis===$("bisD").value))}
+[...$("schnellDauer").children].forEach(c=>c.onclick=()=>{const h=iso(new Date());$("vonD").value=h;$("bisD").value=plusTage(h,+c.dataset.d);
+  c.dataset.von=$("vonD").value;c.dataset.bis=$("bisD").value;tipps();zeitraumMarken()});
+[...$("schnellWe").children].forEach(c=>c.onclick=()=>{const [wd,n]=c.dataset.we.split(",").map(Number),h=iso(new Date()),w=new Date().getDay();
+  const v=plusTage(h,(wd-w+7)%7);$("vonD").value=v;$("bisD").value=plusTage(v,n);c.dataset.von=v;c.dataset.bis=$("bisD").value;tipps();zeitraumMarken()});
+["vonD","bisD"].forEach(i=>$(i).addEventListener("change",zeitraumMarken));
 // „Alles heute bezahlt mit“ am 28.10.2026 auf Barans Wunsch entfernt
 function gesamt(){return (zahl($("preis1").value)||0)+(zahl($("preis2").value)||0)}
 $("restB").addEventListener("input",()=>restVonHand=true);
@@ -654,8 +683,10 @@ function zeichneAutos(){const l=fahrzeugListe(),zu=!!AUTO&&!AUTO_AUF&&l.some(a=>
     (zu?'<div class="auto" id="autoAndere" style="display:flex;align-items:center;justify-content:center"><b>Anderes Auto</b></div>':"");
   [...$("autos").querySelectorAll("[data-i]")].forEach(e=>e.onclick=()=>waehleAuto(l[+e.dataset.i]));
   const an=$("autoAndere");if(an)an.onclick=()=>{AUTO_AUF=true;zeichneAutos()}}
+let MEHR_HAND=false;   // Mehr-km-Preis kommt je Auto aus der Preisdatei, bis jemand selbst etwas tippt
 function waehleAuto(a){AUTO=a.name;AUTO_AUF=false;$("modell").value=a.name;$("kz").value=a.kz||"";$("fin").value=a.fin||"";if(a.km)$("km").value=kmText(a.km);
-  const p=autoPreis(a.name);if(p&&p.kaution&&gw("k_art")!=="fahrzeug")$("kautB").value=wie(p.kaution);$("sb").value=a.sb||"7.500";zeichneAutos();tipps()}
+  const p=autoPreis(a.name);if(p&&p.kaution&&gw("k_art")!=="fahrzeug")$("kautB").value=wie(p.kaution);
+  if(p&&p.kmPreis&&!MEHR_HAND)$("mehrkm").value=eur(p.kmPreis);$("sb").value=a.sb||"7.500";zeichneAutos();tipps()}
 
 /* ---------- Kunden: Anfragen-Buch und Stammkunden ---------- */
 function zeichneAnfragen(){
@@ -935,12 +966,17 @@ $("rKm").addEventListener("input",()=>rRechne(true));$("rKmAb").addEventListener
 function eAufBetrag(){const w=$("eAuf").value;$("eAufFreiW").classList.toggle("versteckt",w!=="frei");
   return w==="frei"?(zahl($("eAufFrei").value)||0):(parseFloat(w)||0)}
 function eWerte(){const mehr=zahl($("rMehr").value)||0,satz=zahl($("eSatz").value)||0,auf=eAufBetrag();
-  return{mehr,satz,auf,kmB:mehr*satz,summe:mehr*satz+auf}}
+  const liter=JN.tankJn==="nein"?(zahl($("eLiter").value)||0):0,tank=liter?Math.round((liter*2.5+25)*100)/100:0,versp=VERSP_AN?verspaetung().betrag:0;
+  return{mehr,satz,auf,kmB:mehr*satz,liter,tank,versp,summe:mehr*satz+auf+tank+versp}}
 function eRechne(){const e=eWerte();
   $("eErgebnis").innerHTML="Endabrechnung:<br>"
     +(e.mehr?kmText(e.mehr)+" Mehrkilometer × "+eur(e.satz)+" € = "+eur(e.kmB)+" €<br>":"Keine Mehrkilometer.<br>")
     +(e.auf?"Aufbereitung: "+eur(e.auf)+" €<br>":"")
-    +(e.summe?"<b>Gesamt: "+eur(e.summe)+" €</b>":"Nichts nachzuberechnen.")}
+    +(e.tank?"Nachtanken: "+kmText(e.liter)+" Liter × 2,50 € + 25 € = "+eur(e.tank)+" €<br>":"")
+    +(e.versp?"Verspätung: "+verspaetung().std+" Std. = "+eur(e.versp)+" €<br>":"")
+    +(e.summe?"<b>Gesamt: "+eur(e.summe)+" €</b>":"Nichts nachzuberechnen.")
+    +kautionZurueckText(e.summe);
+  $("eKopieren").classList.toggle("versteckt",!e.summe)}
 $("eSatz").addEventListener("input",()=>rRechne(false));$("eAufFrei").addEventListener("input",eRechne);
 $("eAuf").addEventListener("change",eRechne);$("rMehr").addEventListener("input",eRechne);$("rGef").addEventListener("input",eRechne);
 $("eKopieren").onclick=async()=>{const v=aktuell();if(!v)return;
@@ -949,6 +985,8 @@ $("eKopieren").onclick=async()=>{const v=aktuell();if(!v)return;
   t+="Gefahren: "+kmText(gef)+" km"+(frei!==null?" (inklusive: "+kmText(frei)+" km)":"")+"\n";
   t+=e.mehr?("Mehrkilometer: "+kmText(e.mehr)+" km × "+eur(e.satz)+" € = "+eur(e.kmB)+" €\n"):"Mehrkilometer: keine\n";
   if(e.auf)t+="Aufbereitung: "+eur(e.auf)+" €\n";
+  if(e.tank)t+="Nachtanken: "+kmText(e.liter)+" Liter × 2,50 € + 25 € Pauschale = "+eur(e.tank)+" €\n";
+  if(e.versp)t+="Verspätete Rückgabe: "+verspaetung().std+" angefangene Std. = "+eur(e.versp)+" €\n";
   t+=e.summe?("*Gesamt: "+eur(e.summe)+" €*"):"*Nichts nachzuberechnen.*";
   try{await navigator.clipboard.writeText(t);meldung("Endabrechnung kopiert, einfach in WhatsApp einfügen.")}catch(err){alert(t)}};
 
@@ -1007,7 +1045,7 @@ $("haupt").onclick=()=>{
     const v=aendere(v=>{v.rueck=Object.assign(protokollLesen("r"),{km:$("rKm").value.trim(),gefahren:$("rGef").value.trim(),mehrkm:$("rMehr").value.trim(),
       datum:$("rD").value,uhr:$("rU").value,ort:$("rOrt").value.trim(),auff:gw("r_auff"),bem:$("rBem").value.trim(),ortDatum:heuteDe(),unterschrift:PAD.padR.wert(),unterschriftVermieter:PAD.padR.wert()?vermieterUnterschrift():""});
       if($("rKmAb").value.trim()){v.ueb=v.ueb||{};v.ueb.km=$("rKmAb").value.trim()}v.status="zurück";
-      const e=eWerte();v.endabrechnung={mehrkm:e.mehr,satz:e.satz,aufWahl:$("eAuf").value,auf:e.auf,summe:e.summe}});
+      const e=eWerte();v.endabrechnung={mehrkm:e.mehr,satz:e.satz,aufWahl:$("eAuf").value,auf:e.auf,liter:e.liter,tank:e.tank,versp:e.versp,summe:e.summe}});
     lerneAuto(v.auto,{km:v.rueck.km,reifen:v.rueck.reifen,felgen:v.rueck.felgen,marke:v.rueck.marke,profil:v.rueck.profil});
     protWeg(v.nr,"rueckgabe");meldung("Rückgabe gespeichert");GELADEN={};schritte();const e=v.endabrechnung||{},schaden=v.rueck.auff==="ja";
     const kautZurueck=((v.zahlung||{}).kaut||{}).am&&!v.kautionRueck;
@@ -1137,10 +1175,13 @@ function einbetten(){const sv=[...$("s_ueberlassung").querySelectorAll(":scope >
   $("svSlot").insertAdjacentHTML("afterbegin",'<div class="hinweis" style="margin:4px 4px 8px;font-weight:700;color:#C4161C">Der Kunde gibt sein Auto als Kaution. Bitte hier mit ausfüllen, wird mit der Übergabe gespeichert.</div>');
   $("schadenSlot").insertAdjacentHTML("afterbegin",'<div class="hinweis" style="margin:4px 4px 8px;font-weight:700;color:#C4161C">Auffälligkeiten festgestellt: Schadensanerkennung gleich hier, wird mit der Rückgabe gespeichert.</div>')}
 function schadenZeigen(){$("schadenSlot").classList.toggle("versteckt",gw("r_auff")!=="ja")}
-{const _fl=formularLaden;formularLaden=function(erzwingen){_fl(erzwingen);const v=aktuell();if(!v)return;const keep=SICHT;
-  if(keep==="uebergabe"){const an=v.kautionArt==="fahrzeug";$("svSlot").classList.toggle("versteckt",!an);if(an){SICHT="ueberlassung";_fl(true);SICHT=keep}}
-  if(keep==="rueckgabe"){SICHT="schaden";_fl(true);SICHT=keep;schadenZeigen()}
-  if(erzwingen!==false)protHolen()}}
+// Nur wenn wirklich ein (anderer) Mietvertrag ins Formular kommt, wird geladen; sonst bleibt alles Getippte stehen (30.10.2026)
+{const _fl=formularLaden;formularLaden=function(erzwingen){const v=aktuell();const keep=SICHT,vorher=GELADEN[keep];_fl(erzwingen);if(!v)return;
+  const neu=!!erzwingen||vorher!==GELADEN[keep];
+  if(keep==="uebergabe"){const an=v.kautionArt==="fahrzeug";$("svSlot").classList.toggle("versteckt",!an);if(an&&neu){SICHT="ueberlassung";_fl(true);SICHT=keep}}
+  if(keep==="rueckgabe"){if(neu){SICHT="schaden";_fl(true);SICHT=keep}schadenZeigen()}
+  if(neu){protHolen();kurzZu()}else kurzAlle();
+  if(keep==="rueckgabe"){verspZeigen();eRechne()}}}
 
 /* ---------- Entwurf Übergabe/Rückgabe: Getipptes bleibt beim Neuladen oder Schließen (30.10.2026) ---------- */
 const PROT_EW="mietixEntwurfProtokolle",PROT_PADS={uebergabe:["padU","padSV"],rueckgabe:["padR","padS"]},PROT_AN=["uReserve","rReserve","vSchein","vBrief","sAnerkannt","svBestaetigt"];
@@ -1205,6 +1246,71 @@ $("verlOk").onclick=e=>{e.preventDefault();verlSpeichern()};
 [...document.querySelectorAll("#verlKarte [data-plus]")].forEach(c=>c.onclick=()=>{const v=aktuell();if(!v)return;$("verlBis").value=plusTag(v.bisD,+c.dataset.plus);verlRechnen(false)});
 [...document.querySelectorAll("#verlZahlW [data-vz]")].forEach(c=>c.onclick=()=>{VERL_ZAHL=c.dataset.vz;[...$("verlZahlW").querySelectorAll("[data-vz]")].forEach(x=>x.classList.toggle("an",x===c))});
 
+/* ---------- Weniger tippen: Zeilen mit "ändern", Ja/Nein-Fragen, Automatik (30.10.2026) ---------- */
+const KURZ_OFFEN={};
+const jaNein={};const JN=jaNein;
+function kfmt(x){return x?String(x):"–"}
+function kurzZeile(k,w,text,zu){const kk=$(k),ww=$(w);if(!kk||!ww)return;const auf=KURZ_OFFEN[k]||!zu;
+  kk.classList.toggle("versteckt",auf);ww.classList.toggle("versteckt",!auf);if(!auf)kk.querySelector("span").innerHTML=text}
+function zustText(p){const L={sauber:"sauber",leicht:"leicht verschmutzt",stark:"stark verschmutzt",leer:"leer",viertel:"¼",halb:"½",dreiviertel:"¾",voll:"voll",sommer:"Sommerreifen",winter:"Winterreifen",ganzjahr:"Ganzjahresreifen",alu:"Alu",stahl:"Stahl"};
+  const g=n=>L[gw(p+"_"+n)]||gw(p+"_"+n)||"–";
+  return "<b>✓ Zustand</b><br>Außen "+g("aussen")+", innen "+g("innen")+", Tank "+g("tank")+", "+(gw(p+"_gegen")==="nein"?"Abweichungen":"alles vollständig")+", "+g("reifen")+", "+g("felgen")}
+function kurzAlle(){
+  kurzZeile("kNr","wNr","Mietvertrag-Nr. <b>"+kfmt($("nr").value)+"</b>",!!$("nr").value);
+  kurzZeile("kFz","wFz","Kennzeichen <b>"+kfmt($("kz").value)+"</b>, FIN …"+kfmt(String($("fin").value).slice(-6))+($("km").value?", "+$("km").value+" km":""),!!$("kz").value);
+  kurzZeile("kKm","wKm","Inklusive <b>"+kfmt($("freikm").value)+" km</b>, Mehr-km <b>"+kfmt($("mehrkm").value)+" €</b>, Selbstbeteiligung <b>"+kfmt($("sb").value)+" €</b>",!!$("freikm").value&&!!$("mehrkm").value&&!!$("sb").value);
+  kurzZeile("kUZeit","wUZeit",kfmt(de($("uD").value))+", "+kfmt($("uU").value)+" Uhr, "+kfmt($("uOrt").value),!!$("uD").value);
+  kurzZeile("kRZeit","wRZeit",kfmt(de($("rD").value))+", "+kfmt($("rU").value)+" Uhr, "+kfmt($("rOrt").value),!!$("rD").value);
+  kurzZeile("kuZust","wuZust",zustText("u"),true);kurzZeile("krZust","wrZust",zustText("r"),true);
+  if($("email").value)$("emailW").classList.remove("versteckt");
+  ["u","r"].forEach(p=>{if(["VL","VR","HL","HR"].some(x=>$(p+x).value))$(p+"ProfilW").classList.remove("versteckt")});
+  jnZeigen()}
+function kurzZu(){Object.keys(KURZ_OFFEN).forEach(k=>delete KURZ_OFFEN[k]);["emailW","uProfilW","rProfilW"].forEach(i=>$(i)&&$(i).classList.add("versteckt"));
+  delete JN.tankJn;delete JN.sauberJn;VERSP_AN=false;kurzAlle()}
+document.querySelectorAll(".kurz").forEach(k=>k.querySelector("a").onclick=e=>{e.preventDefault();KURZ_OFFEN[k.id]=true;kurzAlle()});
+document.querySelectorAll(".mehrLink[data-auf]").forEach(a=>a.onclick=e=>{e.preventDefault();$(a.dataset.auf).classList.remove("versteckt");a.classList.add("versteckt")});
+let kurzT=null;["input","change","wahl","click"].forEach(ev=>document.addEventListener(ev,()=>{clearTimeout(kurzT);kurzT=setTimeout(kurzAlle,60)},true));
+// Ja/Nein-Fragen
+function jnSetzen(id,w){JN[id]=w;[...$(id).children].forEach(c=>c.classList.toggle("an",c.dataset.jn===w))}
+function jnZeigen(){
+  const zf=JN.zfJn||(($("zf").value||$("preis2").value)?"ja":"nein");jnSetzen("zfJn",zf);$("zfW").classList.toggle("versteckt",zf!=="ja");
+  const an=JN.anzJn||($("anzB").value?"ja":"nein");jnSetzen("anzJn",an);$("anzW").classList.toggle("versteckt",an!=="ja");
+  const tk=JN.tankJn||(gw("r_tank")&&gw("r_tank")!=="voll"?"nein":"ja");jnSetzen("tankJn",tk);$("tankW").classList.toggle("versteckt",tk!=="nein");
+  const sb=JN.sauberJn||($("eAuf").value?"nein":"ja");jnSetzen("sauberJn",sb);$("eAufW").classList.toggle("versteckt",sb!=="nein")}
+// Zusatzfahrer: Preis pro Tag aus der Preisdatei mal Miettage
+let ZF_HAND=false;
+function zfPreis(){const p=autoPreis($("modell").value.trim()),t=tage();const satz=p&&p.zf?p.zf[1]:0;
+  $("zfInfo").textContent=satz?("Preis: "+eur(satz)+" € pro Tag × "+t+(t===1?" Tag":" Tage")+", rechnet sich selbst. Überschreiben geht."):"Preis bitte eintragen.";
+  if(!ZF_HAND&&satz&&t&&JN.zfJn==="ja"){$("preis2").value=eur(satz*t);summe()}}
+$("preis2").addEventListener("input",()=>ZF_HAND=true);
+[...$("zfJn").children].forEach(c=>c.onclick=()=>{JN.zfJn=c.dataset.jn;if(c.dataset.jn==="nein"){$("zf").value="";$("preis2").value="";ZF_HAND=false;summe()}else zfPreis();kurzAlle();if(c.dataset.jn==="ja")$("zf").focus()});
+["vonD","bisD","modell"].forEach(i=>$(i).addEventListener("change",()=>{if(JN.zfJn==="ja")zfPreis()}));
+{const _tp=tipps;tipps=function(){_tp();if(JN.zfJn==="ja")zfPreis()}}   // Zeitraum-Knöpfe rufen tipps(): Zusatzfahrer-Preis zieht mit
+// Anzahlung: Ja trägt 30 % vom Mietpreis und heute ein
+[...$("anzJn").children].forEach(c=>c.onclick=()=>{JN.anzJn=c.dataset.jn;
+  if(c.dataset.jn==="ja"){if(!$("anzB").value.trim()){const g=gesamt();if(g)$("anzB").value=eur(Math.round(g*0.3))}if(!$("anzAm").value)$("anzAm").value=iso(new Date())}
+  else{$("anzB").value="";$("anzAm").value="";gs("z_anz","")}
+  summe();kurzAlle()});
+$("mehrkm").addEventListener("input",()=>MEHR_HAND=true);
+// Rückgabe: Tank voll? Sauber?
+{const tc=document.querySelector('#wrZust [data-gruppe="r_tank"]');if(tc){const lab=tc.previousElementSibling;if(lab&&lab.tagName==="LABEL")$("tankChips").appendChild(lab);$("tankChips").appendChild(tc)}}
+[...$("tankJn").children].forEach(c=>c.onclick=()=>{JN.tankJn=c.dataset.jn;if(c.dataset.jn==="ja"){gs("r_tank","voll");$("eLiter").value=""}else if(gw("r_tank")==="voll")gs("r_tank","");kurzAlle();eRechne()});
+[...$("sauberJn").children].forEach(c=>c.onclick=()=>{JN.sauberJn=c.dataset.jn;if(c.dataset.jn==="ja")$("eAuf").value="";kurzAlle();eRechne()});
+$("eLiter").addEventListener("input",eRechne);
+// Verspätung: jede angefangene Stunde nach der vereinbarten Zeit (30 Min. Kulanz), Stunde = Tagespreis / 4, höchstens ein Tagespreis je Tag
+let VERSP_AN=false;
+function verspaetung(){const v=aktuell();if(!v||!v.bisD||!$("rD").value)return{std:0,betrag:0};
+  const soll=new Date(v.bisD+"T"+(v.bisU||"10:00")),ist=new Date($("rD").value+"T"+($("rU").value||"00:00")),min=(ist-soll)/60000;
+  if(min<=30)return{std:0,betrag:0};const std=Math.ceil(min/60),p=autoPreis(v.auto),gp=p?p.gp:0;
+  const tage=Math.floor(std/24),rest=std%24;return{std,betrag:Math.round((tage*gp+Math.min(rest,4)*gp/4)*100)/100}}
+function verspZeigen(){const x=verspaetung();
+  $("verspW").innerHTML=x.std?'<div class="versp">Rückgabe '+x.std+' Std. später als vereinbart. <a href="#" id="verspT" style="font-weight:800;color:#C4161C">'+(VERSP_AN?"nicht berechnen":"Verspätung berechnen ("+eur(x.betrag)+" €)")+'</a></div>':"";
+  const t=$("verspT");if(t)t.onclick=e=>{e.preventDefault();VERSP_AN=!VERSP_AN;verspZeigen();eRechne()}}
+["rD","rU"].forEach(i=>$(i).addEventListener("input",()=>{verspZeigen();eRechne()}));
+// Kaution zurück = Kaution minus Zusatzkosten
+function kautionZurueckText(summe){const v=aktuell();if(!v||v.kautionArt==="fahrzeug")return"";const k=zahl(((v.zahlung||{}).kaut||{}).betrag);if(!k)return"";
+  return "<br>Kaution zurück an den Kunden: <b>"+eur(Math.max(0,k-(summe||0)))+" €</b>"+(summe>k?" (Kunde zahlt noch "+eur(summe-k)+" € drauf)":"")}
+
 /* ---------- Mappe: ein Kunde, alle Schritte in Reihenfolge, Drucken, Schließen (30.10.2026) ---------- */
 let MAPPE_NX=null;
 function mappeSchritte(v){const fz=v.kautionArt==="fahrzeug",sch=!!v.schaden||(v.rueck&&v.rueck.auff==="ja");
@@ -1247,7 +1353,7 @@ let NEU=true;   // true = das Formular ist ein neuer Mietvertrag; false = ein ge
 
 /* ---------- Reiter ---------- */
 function leeren(){NEU=true;NEU_FREI=false;GELADEN={};$("s_vertrag").querySelectorAll("input,textarea").forEach(e=>e.value="");
-  $("vonU").value="10:00";$("bisU").value="10:00";$("mehrkm").value="3";$("kautB").value="1.950";$("sb").value="7.500";
+  $("vonU").value="10:00";$("bisU").value="10:00";$("mehrkm").value="";MEHR_HAND=false;$("kautB").value="1.950";$("sb").value="7.500";
   ["z_anz","z_rest","z_kaut"].forEach(g=>gs(g,""));gs("k_art","geld");$("stamm").textContent="";
   PAD.padV.setzen("");setzeAn("avbHaken",true);$("vSenden").classList.add("versteckt");AUTO=null;ANFRAGE=null;ABGEMACHT=null;restVonHand=false;nrVonHand=false;preisAuto=true;kmAuto=true;$("nr").value=neueNr();zeichneAutos();summe();tipps()}
 function eintrag(t,u,knopf,spaet){return'<div class="heute'+(spaet?" spaet":"")+'"><div><b>'+t+'</b><i>'+u+'</i></div><span>'+knopf+'</span></div>'}
@@ -1332,7 +1438,7 @@ gruppe("k_art").addEventListener("wahl",()=>{if(!gw("k_art"))gs("k_art","geld");
 $("kfz2").addEventListener("input",()=>{$("kfz").value=$("kfz2").value;$("kfz").dispatchEvent(new Event("input",{bubbles:true}))});
 $("kfz").addEventListener("input",()=>{if(document.activeElement!==$("kfz2"))$("kfz2").value=$("kfz").value});
 $("kautZurSv").onclick=()=>{if(aktuell()&&bearbeitet()){zeige("uebergabe")}else alert("Erst den Mietvertrag speichern. Die Überlassungserklärung ist dann Teil der Übergabe, alles Getippte steht schon drin.")};
-{const _vl=vertragLaden;vertragLaden=function(v){_vl(v);kautAnzeigen()};const _le=leeren;leeren=function(){_le();kautAnzeigen()};const _el=entwurfLaden;entwurfLaden=function(){_el();kautAnzeigen()}}
+{const _vl=vertragLaden;vertragLaden=function(v){_vl(v);kautAnzeigen();MEHR_HAND=true;ZF_HAND=!!v.preis2;delete JN.zfJn;delete JN.anzJn;kurzZu()};const _le=leeren;leeren=function(){_le();kautAnzeigen();ZF_HAND=false;delete JN.zfJn;delete JN.anzJn;kurzZu()};const _el=entwurfLaden;entwurfLaden=function(){_el();kautAnzeigen()}}
 einbetten();gruppe("r_auff").addEventListener("wahl",schadenZeigen);
 $("uSvKarte").remove();   // alte Hinweiskarte, Kaution-Auto steht jetzt direkt in der Übergabe
 window.svKarte=()=>{};
