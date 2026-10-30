@@ -1277,7 +1277,7 @@ document.querySelectorAll(".kurz").forEach(k=>k.querySelector("a").onclick=e=>{e
 document.querySelectorAll(".mehrLink[data-auf]").forEach(a=>a.onclick=e=>{e.preventDefault();$(a.dataset.auf).classList.remove("versteckt");a.classList.add("versteckt")});
 let kurzT=null;["input","change","wahl","click"].forEach(ev=>document.addEventListener(ev,()=>{clearTimeout(kurzT);kurzT=setTimeout(kurzAlle,60)},true));
 // Ja/Nein-Fragen
-function jnSetzen(id,w){JN[id]=w;[...$(id).children].forEach(c=>c.classList.toggle("an",c.dataset.jn===w))}
+function jnSetzen(id,w){[...$(id).children].forEach(c=>c.classList.toggle("an",c.dataset.jn===w))}
 function jnZeigen(){
   const zf=JN.zfJn||(($("zf").value||$("preis2").value)?"ja":"nein");jnSetzen("zfJn",zf);$("zfW").classList.toggle("versteckt",zf!=="ja");
   const an=JN.anzJn||($("anzB").value?"ja":"nein");jnSetzen("anzJn",an);$("anzW").classList.toggle("versteckt",an!=="ja");
