@@ -95,7 +95,9 @@ details summary{cursor:pointer;font-weight:800;color:var(--grau);font-size:14px}
 /* Ablauf (29.10.2026): Schrittleiste, Reiter Verträge, Angebote nach dem Speichern */
 .schritt{display:flex;gap:6px;margin-top:10px}
 .schritt div{flex:1;text-align:center;padding:9px 6px;border-radius:12px;background:var(--bg);font-weight:800;font-size:13px;color:var(--grau);cursor:pointer;white-space:nowrap}
-.schritt div.ok{background:#E8F6EE;color:var(--gruen)}.schritt div.an{outline:2px solid var(--rot);color:var(--rot)}.schritt div.ok.an{color:var(--gruen)}
+.schritt div.ok{background:#E8F6EE;color:var(--gruen)}
+.schritt div small{display:block;font-size:11px;font-weight:700;margin-top:2px;opacity:.85}
+.sTitel{font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--grau);margin-top:10px}.schritt div.an{outline:2px solid var(--rot);color:var(--rot)}.schritt div.ok.an{color:var(--gruen)}
 .sKopf{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}.sKopf b{font-size:16px;display:block}.sKopf i{font-style:normal;font-size:13px;color:var(--grau)}
 .sKopf a{font-size:13px;color:var(--grau);white-space:nowrap;font-weight:700}
 #wahl.klein{margin-top:8px;font-size:16px;min-height:44px;padding:8px 12px}
@@ -925,12 +927,12 @@ function schritte(){const el=$("schritte");if(!el)return;
   const v=SICHT==="vertrag"?(bearbeitet()?aktuell():null):aktuell();
   $("wahl").classList.toggle("versteckt",SICHT==="vertrag"||!vorgaenge().length);
   $("wahlLeer").classList.toggle("versteckt",SICHT==="vertrag"||vorgaenge().length>0);
-  if(!v){el.innerHTML='<div class="sKopf"><div><b>Neuer Mietvertrag</b><i>Schritt 1 von 3. Danach kommen Übergabe und Rückgabe, jedes mit einem Tipp.</i></div></div>'+
-    '<div class="schritt"><div class="an">1 Vertrag</div><div>2 Übergabe</div><div>3 Rückgabe</div></div>';return}
+  if(!v){el.innerHTML='<div class="sKopf"><div><b>Neuer Mietvertrag</b><i>Übergabe und Rückgabe machst du später bei diesem Vertrag, auch Tage oder Wochen danach. Dazwischen gehen andere Verträge ganz normal.</i></div></div>';return}
   const st=[["vertrag","Vertrag",true],["uebergabe","Übergabe",!!v.ueb],["rueckgabe","Rückgabe",v.status==="zurück"]];
   el.innerHTML='<div class="sKopf"><div><b>'+esc(v.nr)+"  "+esc(v.name)+'</b><i>'+esc(v.auto)+", "+de(v.vonD)+" bis "+de(v.bisD)+(v.status==="zurück"?", zurückgegeben":"")+'</i></div>'+
     (SICHT!=="vertrag"?'<a href="#" id="sAlle">alle Verträge</a>':"")+'</div>'+
-    '<div class="schritt">'+st.map(([x,t,ok],i)=>'<div class="'+(ok?"ok":"")+(SICHT===x?" an":"")+'" data-s="'+x+'">'+(ok?"✓ ":(i+1)+" ")+t+'</div>').join("")+'</div>'+
+    '<div class="sTitel">Stand dieses Vertrags</div>'+
+    '<div class="schritt" style="margin-top:6px">'+st.map(([x,t,ok])=>'<div class="'+(ok?"ok":"")+(SICHT===x?" an":"")+'" data-s="'+x+'">'+(ok?"✓ ":"")+t+'<small>'+(ok?"erledigt":"offen")+'</small></div>').join("")+'</div>'+
     (SICHT==="vertrag"?'<div id="ungesp" class="versteckt" style="margin-top:8px;color:var(--rot);font-size:13px;font-weight:800">Änderungen noch nicht gespeichert. Unten „Speichern“ tippen.</div>'+
       '<a href="#" id="sNeu" class="hinweis" style="display:block;margin-top:8px">Das ist der gespeicherte Vertrag '+esc(v.nr)+'. Einen anderen, neuen Vertrag anfangen?</a>':"");
   [...el.querySelectorAll("[data-s]")].forEach(c=>c.onclick=()=>{if(c.dataset.s==="vertrag"){if(bearbeitet())return;vertragLaden(v)}zeige(c.dataset.s)});
