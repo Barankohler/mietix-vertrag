@@ -118,8 +118,8 @@ h2.gruppe{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(-
   padding:14px;font-weight:800;text-align:center;z-index:9;display:none}
 .druckreihe{margin-top:12px;padding-top:12px;border-top:1px solid #E4E4E7}
 .druckreihe b{display:block;font-size:13px;text-transform:uppercase;letter-spacing:1px;color:#C4161C;margin-bottom:8px}
-.druckreihe .dk{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.druckreihe .dknopf{background:#2E2E30;color:#fff;border-radius:12px;padding:13px 8px;text-align:center;font-weight:800;font-size:14px;cursor:pointer}
+.druckreihe .dk{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.druckreihe .dknopf{min-width:0;background:#2E2E30;color:#fff;border-radius:12px;padding:13px 6px;text-align:center;font-weight:800;font-size:13px;cursor:pointer;overflow-wrap:anywhere;hyphens:auto}
 .druckreihe .dknopf:first-child{grid-column:1/-1;background:#C4161C}
 .druckreihe .klein{margin-top:8px}
 </style></head><body>
