@@ -108,7 +108,9 @@ details summary{cursor:pointer;font-weight:800;color:var(--grau);font-size:14px}
 /* Ablauf (29.10.2026): Schrittleiste, Reiter Mietverträge, Angebote nach dem Speichern */
 .schritt{display:flex;gap:6px;margin-top:10px}
 .schritt div{flex:1;text-align:center;padding:9px 6px;border-radius:12px;background:var(--bg);font-weight:800;font-size:13px;color:var(--grau);cursor:pointer;white-space:nowrap}
-.schritt div.ok{background:#E8F6EE;color:var(--gruen)}
+.schritt div.ok{background:#E8F6EE;color:var(--gruen)}.schritt div.fehlt{background:#FDECEC;color:var(--rot)}
+.kundeU{display:block;margin-top:12px;background:var(--gruen);color:#fff;border-radius:14px;padding:14px 12px;text-align:center;cursor:pointer}
+.kundeU b{font-size:17px;display:block;color:#fff}.kundeU small{display:block;font-size:13px;font-weight:600;opacity:.92;margin-top:3px}
 .schritt div small{display:block;font-size:11px;font-weight:700;margin-top:2px;opacity:.85}
 .sTitel{font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--grau);margin-top:10px}.schritt div.an{outline:2px solid var(--rot);color:var(--rot)}.schritt div.ok.an{color:var(--gruen)}
 .sKopf{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}.sKopf>div{min-width:0;overflow-wrap:anywhere}.sKopf .fNav{flex:0 1 auto;flex-wrap:wrap;justify-content:flex-end}.sKopf b{font-size:16px;display:block}.sKopf i{font-style:normal;font-size:13px;color:var(--grau)}
@@ -556,6 +558,9 @@ let VOLL_GEMELDET=0;
 const schreib=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){
   if(Date.now()-VOLL_GEMELDET>5000){VOLL_GEMELDET=Date.now();alert("ACHTUNG: Nicht gespeichert!\n\nDer Speicher auf diesem Gerät ist voll. Bitte sofort Baran Bescheid geben und das Formular NICHT schließen.\n\nBis dahin den Mietvertrag am Mac oder auf Papier machen.")}return false}};
 const vorgaenge=()=>lies("mietixVorgaenge",[]);
+// Unterschriften liegen im eigenen Gerätespeicher, im Mietvertrag steht nur eine Kennung "bild:…" (31.10.2026, Platz für hunderte Mietverträge)
+const bildEcht=s=>s&&String(s).startsWith("bild:")&&window.mietixBild?window.mietixBild(s):Promise.resolve(s||"");
+const GERAET=(()=>{try{let g=localStorage.getItem("mietixGeraet");if(!g){g=Math.random().toString(36).slice(2,10);localStorage.setItem("mietixGeraet",g)}return g}catch(e){return"x"}})();
 const kunden=()=>lies("mietixKunden",{});
 
 /* ---------- Formate wie auf euren Mietverträgen ---------- */
@@ -598,7 +603,7 @@ function padMachen(id){const el=$(id),c=el.querySelector("canvas"),ctx=c.getCont
   return{wert:()=>hat?bild:"",setzen:d=>{ctx.clearRect(0,0,c.width,c.height);hat=false;bild="";el.classList.remove("hat");if(!d)return;
     bild=d;hat=true;el.classList.add("hat");
     const im=new Image();im.onload=()=>{if(bild!==d)return;const f=Math.min(c.width*.92/im.width,c.height*.86/im.height),w=im.width*f,h=im.height*f;
-      ctx.clearRect(0,0,c.width,c.height);ctx.drawImage(im,(c.width-w)/2,(c.height-h)/2,w,h)};im.src=d}}}
+      ctx.clearRect(0,0,c.width,c.height);ctx.drawImage(im,(c.width-w)/2,(c.height-h)/2,w,h)};bildEcht(d).then(x=>{if(bild===d&&x)im.src=x})}}}
 // Vollbild zum Unterschreiben: der ganze Bildschirm ist die Fläche, "Fertig" übernimmt in das kleine Feld
 const TITEL={padV:"Unterschrift Mieter (Mietvertrag)",padU:"Unterschrift Mieter (Übergabe)",padR:"Unterschrift Mieter (Rückgabe)",padS:"Unterschrift Mieter (Schaden)",padSV:"Unterschrift Mieter (Sicherungsvertrag)",padVM:"Meine Unterschrift (Vermieter)"};
 let UG=null;
@@ -644,14 +649,38 @@ $("ugFertig").onclick=()=>{if(!UG)return;let daten="";
   if(pkte.length>1){const d=UG.dpr,r=12,xs=pkte.map(p=>p[0]),ys=pkte.map(p=>p[1]);   // nur den beschriebenen Teil übernehmen
     const x0=Math.max(0,Math.min(...xs)-r),y0=Math.max(0,Math.min(...ys)-r),x1=Math.min(UG.w,Math.max(...xs)+r),y1=Math.min(UG.h,Math.max(...ys)+r);
     const z=document.createElement("canvas");z.width=Math.max(10,Math.round((x1-x0)*d));z.height=Math.max(10,Math.round((y1-y0)*d));
-    // Druckgröße reicht (31.10.2026): höchstens 700 x 260 Punkte, ein Strichton, 16 Deckkraftstufen, so etwa 10 KB statt 100 KB
-    const f=Math.min(1,700/z.width,260/z.height);z.width=Math.max(10,Math.round(z.width*f));z.height=Math.max(10,Math.round(z.height*f));
+    // Sauber und gut lesbar (31.10.2026, Baran: rechtlich wichtig): bis 1200 x 450 Punkte, ein Strichton, volle Kantenglättung.
+    // Platz ist genug, die Bilder liegen im eigenen Gerätespeicher und nicht mehr im knappen localStorage.
+    const f=Math.min(1,1200/z.width,450/z.height);z.width=Math.max(10,Math.round(z.width*f));z.height=Math.max(10,Math.round(z.height*f));
     const zc=z.getContext("2d");zc.imageSmoothingQuality="high";zc.drawImage(UG.c,x0*d,y0*d,(x1-x0)*d,(y1-y0)*d,0,0,z.width,z.height);
-    try{const id=zc.getImageData(0,0,z.width,z.height),px=id.data;for(let i=0;i<px.length;i+=4){px[i]=px[i+1]=px[i+2]=26;px[i+3]=Math.round(px[i+3]*15/255)*17}zc.putImageData(id,0,0)}catch(x){}
+    try{const id=zc.getImageData(0,0,z.width,z.height),px=id.data;for(let i=0;i<px.length;i+=4){px[i]=px[i+1]=px[i+2]=26}zc.putImageData(id,0,0)}catch(x){}
     daten=z.toDataURL("image/png")}
   const padId=UG.padId;ugZu();
+  if(FOLGE){const f=FOLGE;if(!daten){FOLGE=null;schritte();meldung("Unterschreiben abgebrochen");return}
+    try{if(padId==="vertragDirekt"){if(WAHL!==f.nr){FOLGE=null;return}
+        aendere(v=>{v.unterschrift=daten;v.unterschriftVermieter=vermieterUnterschrift();v.avb=true;v.datum=heuteDe()});   // Datum = Tag der Unterschrift, wie beim Speichern
+        if(!NEU&&$("nr").value.trim()===f.nr){PAD.padV.setzen(daten);setzeAn("avbHaken",true);standMerken()}}
+      else{PAD[padId].setzen(daten);protMerken()}}
+    catch(x){FOLGE=null;nichtGespeichert(x);return}
+    f.fertig.push(f.liste[f.i][1]);f.i++;setTimeout(folgeWeiter,300);return}
+  if(["vertrag","uebergabe","rueckgabe"].includes(SICHT))setTimeout(schritte,50);
   if(daten){PAD[padId].setzen(daten);if(padId==="padVM"){try{localStorage.setItem("mietixUnterschriftVermieter",daten)}catch(e){}vmGemeinsam(daten);VM_AUF=false;setTimeout(()=>{vmStand();vmKarte()},100);meldung("Unterschrift gespeichert")}
     if(padId==="padV"&&typeof entwurfMerken==="function")entwurfMerken()}};   // Unterschrift landet sofort im Entwurf (30.10.2026)
+// Kunde unterschreibt am Stück (31.10.2026, Baran: am Mac vorbereitet, am iPad nur noch unterschreiben):
+// ein Knopf oben, dann öffnet sich ein Unterschriftsfeld nach dem anderen (Mietvertrag, Überlassung, Übergabe oder Rückgabe, Schaden)
+let FOLGE=null;
+function fehlendeUnterschriften(v){const l=[];if(!v)return l;const p=k=>PAD[k]&&PAD[k].wert();
+  if(SICHT==="vertrag"){if(!p("padV"))l.push(["padV","Mietvertrag"]);return l}
+  if(!v.unterschrift&&!v.ueb)l.push(["vertragDirekt","Mietvertrag"]);
+  if(SICHT==="uebergabe"&&!v.ueb){if(v.kautionArt==="fahrzeug"&&!p("padSV"))l.push(["padSV","Überlassungserklärung"]);if(!p("padU"))l.push(["padU","Übergabe"])}
+  if(SICHT==="rueckgabe"&&v.status!=="zurück"){if(!p("padR"))l.push(["padR","Rückgabe"]);if(gw("r_auff")==="ja"&&!p("padS"))l.push(["padS","Schadensanerkennung"])}
+  return l}
+function kundeUnterschreibt(){const v=aktuell(),l=fehlendeUnterschriften(v);if(!l.length)return;FOLGE={nr:v.nr,liste:l,i:0,fertig:[]};folgeWeiter()}
+function folgeWeiter(){const f=FOLGE;if(!f)return;if(f.i>=f.liste.length){FOLGE=null;folgeEnde(f);return}
+  const[ziel,titel]=f.liste[f.i];grossOeffnen(ziel);$("ugTitel").textContent=(f.liste.length>1?(f.i+1)+" von "+f.liste.length+": ":"")+"Unterschrift Mieter, "+titel}
+function folgeEnde(f){schritte();if(!f.fertig.length)return;const nurV=f.fertig.every(x=>x==="Mietvertrag");
+  const weiter=SICHT==="uebergabe"&&!nurV?" Jetzt unten auf „Auto übergeben ✓“ tippen.":SICHT==="rueckgabe"&&!nurV?" Jetzt unten auf „Auto zurück ✓“ tippen.":SICHT==="vertrag"?" Jetzt unten auf „"+$("haupt").textContent+"“ tippen.":"";
+  meldung("✓ Unterschrieben: "+f.fertig.join(", ")+"."+weiter)}
 const PAD={};["padV","padU","padR","padS","padSV","padVM"].forEach(id=>{if($(id))PAD[id]=padMachen(id)});
 // Meine Unterschrift einmal pro Person (Liste Punkt 20): liegt im gemeinsamen Speicher unter der Anmelde-Mail, gilt auf iPhone und iPad
 const ichMail=()=>{try{return((JSON.parse(localStorage.getItem("mietixSitzung")||"null")||{}).email||"").toLowerCase()}catch(e){return""}};
@@ -664,15 +693,15 @@ const vermieterUnterschrift=()=>{try{const g=((JSON.parse(localStorage.getItem("
 if(PAD.padVM)PAD.padVM.setzen(vermieterUnterschrift());
 // Stand der Vermieter-Unterschrift in der Unterschriften-Karte: hinterlegt oder jetzt unterschreiben
 function vmStand(){const el=$("vmStand");if(!el)return;const u=vermieterUnterschrift();
-  el.innerHTML=u?'<span>Unterschrift Vermieter: hinterlegt, wird eingesetzt</span><img src="'+u+'" alt=""><div class="chip" id="vmNeu">ändern</div>'
+  el.innerHTML=u?'<span>Unterschrift Vermieter: hinterlegt, wird eingesetzt</span><img id="vmStandBild" alt=""><div class="chip" id="vmNeu">ändern</div>'
     :'<span>Unterschrift Vermieter: noch nicht hinterlegt</span><div class="chip an" id="vmNeu">jetzt unterschreiben</div>';
-  $("vmNeu").onclick=()=>grossOeffnen("padVM")}
+  $("vmNeu").onclick=()=>grossOeffnen("padVM");if(u)bildEcht(u).then(x=>{const i=$("vmStandBild");if(i&&x)i.src=x})}
 vmStand();
 // Kasten "Meine Unterschrift": gespeichert = eine schmale Zeile, "Ändern" klappt auf (30.10.2026, Baran: "das ist die ganze Zeit offen")
 let VM_AUF=false;
 function vmKarte(){if(!$("vmZu"))return;const u=vermieterUnterschrift(),zu=!!u&&!VM_AUF;
   $("vmZu").classList.toggle("versteckt",!zu);$("vmAuf").classList.toggle("versteckt",zu);$("vmZuklappen").classList.toggle("versteckt",!u);
-  if(u)$("vmBild").src=u;if($("vmKnopfText"))$("vmKnopfText").textContent=u?"✓ Gespeichert, kommt in jeden Mietvertrag":"Noch nicht hinterlegt, einmal für alle Geräte"}
+  if(u)bildEcht(u).then(x=>{if(x)$("vmBild").src=x});if($("vmKnopfText"))$("vmKnopfText").textContent=u?"✓ Gespeichert, kommt in jeden Mietvertrag":"Noch nicht hinterlegt, einmal für alle Geräte"}
 if(window.VM_ZEIGEN)setTimeout(()=>{zeige("vertraege");window.mxAuf&&mxAuf("fVM")},300);
 if($("vmZu")){$("vmAendern").onclick=()=>{VM_AUF=true;vmKarte();grossOeffnen("padVM")};$("vmZuklappen").onclick=()=>{VM_AUF=false;vmKarte()};vmKarte()}
 // Unterschriften ins PDF: über die Linien "Unterschrift Mieter" und "Unterschrift Vermieter" (Lage aus den Vorlagen gemessen)
@@ -691,7 +720,9 @@ function zuschneiden(png){if(ZUGESCHNITTEN[png])return Promise.resolve(ZUGESCHNI
     ok(ZUGESCHNITTEN[png]=z.toDataURL("image/png"))}catch(e){ok(png)}};im.onerror=()=>ok(png);im.src=png})}
 async function stempel(doc,seite,yLinie,mieterPng,vermieterPng){const p=doc.getPages()[seite];
   for(const[png,x]of[[mieterPng,440],[vermieterPng,283]]){if(!png)continue;
-    try{const im=await doc.embedPng(await zuschneiden(png));const g=(PLATZ[yLinie]||[20,20])[x===283?0:1],hMax=Math.min(28,g-1.5+3),f=Math.min(112/im.width,hMax/im.height),w=im.width*f,h=im.height*f,x0=x+(112-w)/2,y0=yLinie-3;for(const[dx,dy]of[[0,0],[0.45,0],[-0.45,0],[0,0.45],[0,-0.45],[0.32,0.32],[-0.32,-0.32],[0.32,-0.32],[-0.32,0.32]])p.drawImage(im,{x:x0+dx,y:y0+dy,width:w,height:h})}catch(e){}}}
+    const echt=await bildEcht(png);if(!echt){alert("Eine Unterschrift fehlt auf diesem Gerät und kommt nicht ins PDF.\n\nBitte mit Internet die Seite neu öffnen und noch einmal drucken.");continue}
+    // bis 40 pt hoch, wo die Vorlage Platz hat (31.10.2026, Baran: Unterschrift gut erkennbar, nicht zu klein)
+    try{const im=await doc.embedPng(await zuschneiden(echt));const g=(PLATZ[yLinie]||[20,20])[x===283?0:1],hMax=Math.min(40,g-1.5+3),f=Math.min(112/im.width,hMax/im.height),w=im.width*f,h=im.height*f,x0=x+(112-w)/2,y0=yLinie-3;for(const[dx,dy]of[[0,0],[0.45,0],[-0.45,0],[0,0.45],[0,-0.45],[0.32,0.32],[-0.32,-0.32],[0.32,-0.32],[-0.32,0.32]])p.drawImage(im,{x:x0+dx,y:y0+dy,width:w,height:h})}catch(e){}}}
 
 /* ---------- Kästchen (antippen = ankreuzen) ---------- */
 function chipWahl(el,wert){[...el.children].forEach(c=>c.classList.toggle("an",c.dataset.v===wert))}
@@ -1342,14 +1373,15 @@ function schritte(){const el=$("schritte");if(!el)return;
   $("wahlLeer").classList.toggle("versteckt",SICHT==="vertrag"||vorgaenge().length>0);
   if(!v){miniStand(null,null);el.innerHTML='<div class="sKopf"><div><b>Neuer Mietvertrag</b><i>Übergabe und Rückgabe machst du später bei diesem Mietvertrag, auch Tage oder Wochen danach. Dazwischen gehen andere Mietverträge ganz normal.</i><div class="gesichert">✓ Was du tippst, ist automatisch gesichert</div></div><a href="#" class="fX" id="sX" title="Schließen">✕</a></div>';
     $("sX").onclick=e=>{e.preventDefault();try{if(neuInArbeit()){clearTimeout(entwurfTimer);localStorage.setItem("mietixEntwurfVertrag",JSON.stringify(entwurfSchnappschuss()))}}catch(_){}zeige("vertraege");if(neuInArbeit())meldung("Angefangen, steht oben unter Mietverträge zum Weitermachen")};return}
-  const st=[["vertrag","Mietvertrag",true],["uebergabe","Übergabe",!!v.ueb],["rueckgabe","Rückgabe",v.status==="zurück"]];
+  const st=[["vertrag","Mietvertrag",!!v.unterschrift||!!v.ueb],["uebergabe","Übergabe",!!v.ueb],["rueckgabe","Rückgabe",v.status==="zurück"]];
   el.innerHTML='<div class="sKopf"><div><b>'+esc(v.nr)+"  "+esc(v.name)+'</b><i>'+esc(v.auto)+", "+de(v.vonD)+" bis "+de(v.bisD)+(v.status==="zurück"?", zurückgegeben":"")+'</i></div>'+
     (WAHL_OFFEN?'<a href="#" id="sAlle">zu</a>':'<span class="fNav"><a href="#" class="teilen" id="sTeilen">Teilen</a><a href="#" class="mz" id="sMappe">‹ Mappe</a><a href="#" class="fX" id="sX" title="Schließen">✕</a></span>')+'</div>'+
     '<div class="sTitel">Stand dieses Mietvertrags</div>'+
-    '<div class="schritt" style="margin-top:6px">'+st.map(([x,t,ok])=>'<div class="'+(ok?"ok":"")+(SICHT===x?" an":"")+'" data-s="'+x+'">'+(ok?"✓ ":"")+t+'<small>'+(ok?"erledigt":"offen")+'</small></div>').join("")+'</div>'+
+    '<div class="schritt" style="margin-top:6px">'+st.map(([x,t,ok])=>'<div class="'+(ok?"ok":x==="vertrag"?"fehlt":"")+(SICHT===x?" an":"")+'" data-s="'+x+'">'+(ok?"✓ ":"")+t+'<small>'+(ok?"erledigt":x==="vertrag"?"Unterschrift fehlt":"offen")+'</small></div>').join("")+'</div>'+
+    (()=>{const f=fehlendeUnterschriften(v);return f.length?'<div class="kundeU" id="sKunde"><b>Kunde unterschreibt jetzt</b><small>'+esc(f.map(x=>x[1]).join(", "))+'</small></div>':""})()+
     (SICHT==="vertrag"?'<div id="ungesp" class="versteckt" style="margin-top:8px;color:var(--rot);font-size:13px;font-weight:800">Geändert. Unten auf „Fertig ✓“ tippen, dann gilt es.</div>'+
       '<a href="#" id="sNeu" class="hinweis" style="display:block;margin-top:8px">Das ist Mietvertrag '+esc(v.nr)+'. Einen anderen, neuen Mietvertrag anfangen?</a>':"");
-  const te=$("sTeilen");if(te)te.onclick=e=>{e.preventDefault();teilenBlatt(v)};
+  const te=$("sTeilen");if(te)te.onclick=e=>{e.preventDefault();teilenBlatt(v)};const ku=$("sKunde");if(ku)ku.onclick=kundeUnterschreibt;
   [...el.querySelectorAll("[data-s]")].forEach(c=>c.onclick=()=>{if(c.dataset.s==="vertrag"){if(bearbeitet())return;vertragLaden(v)}zeige(c.dataset.s)});
   const n=$("sNeu");if(n)n.onclick=e=>{e.preventDefault();if(ungespeichert()&&!confirm("Deine Änderungen an Mietvertrag "+v.nr+" gelten noch nicht. Trotzdem einen neuen Mietvertrag anfangen?"))return;leeren();schritte();meldung("Neuer Mietvertrag, leeres Formular")};
   ungespeichertZeigen();miniStand(v,st)
@@ -1388,20 +1420,30 @@ function schadenZeigen(){$("schadenSlot").classList.toggle("versteckt",gw("r_auf
 /* ---------- Entwurf Übergabe/Rückgabe: Getipptes bleibt beim Neuladen oder Schließen (30.10.2026) ---------- */
 const PROT_EW="mietixEntwurfProtokolle",PROT_PADS={uebergabe:["padU","padSV"],rueckgabe:["padR","padS"]},PROT_AN=["uReserve","rReserve","vSchein","vBrief","sAnerkannt","svBestaetigt"];
 let protTimer=null,protLaedt=false;const PROT_GEMELDET={};
-function protAlle(){try{return JSON.parse(localStorage.getItem(PROT_EW)||"{}")||{}}catch(e){return{}}}
+// Am Mac angefangen, am iPad weiter (31.10.2026): Entwürfe liegen im gemeinsamen Stand unter "entwuerfe", nicht mehr nur auf dem Gerät
+const stand=()=>lies("mietixStand",{});
+function protAlle(){return Object.assign({},stand().entwuerfe||{})}
+function protSetzen(fn){const st=stand(),e=Object.assign({},st.entwuerfe||{});fn(e);st.entwuerfe=e;try{localStorage.setItem("mietixStand",JSON.stringify(st))}catch(x){}}
+(function(){const alt=lies(PROT_EW,null);if(!alt)return;   // alte Entwürfe vom Gerät einmal in den gemeinsamen Stand
+  protSetzen(e=>Object.keys(alt).forEach(k=>{if(!e[k]||(alt[k].zeit||0)>(e[k].zeit||0))e[k]=alt[k]}));try{localStorage.removeItem(PROT_EW)}catch(x){}})();
+let PROT_LOKAL=0;const PROT_GELADEN={};
 function protSchnappschuss(sicht){const sec=$("s_"+sicht),f={},c={},a={},p={};
   sec.querySelectorAll("input[id],textarea[id],select[id]").forEach(e=>f[e.id]=e.value);
   sec.querySelectorAll("[data-gruppe]").forEach(g=>c[g.dataset.gruppe]=chipWert(g));
   PROT_AN.forEach(i=>{if(sec.contains($(i)))a[i]=$(i).classList.contains("an")});
-  (PROT_PADS[sicht]||[]).forEach(k=>{if(PAD[k])p[k]=PAD[k].wert()});return{f,c,a,p,zeit:Date.now()}}
+  (PROT_PADS[sicht]||[]).forEach(k=>{if(PAD[k])p[k]=PAD[k].wert()});return{f,c,a,p,zeit:Date.now(),geraet:GERAET}}
 function protMerken(){if(protLaedt||!["uebergabe","rueckgabe"].includes(SICHT)||!aktuell())return;const sicht=SICHT,nr=WAHL;
-  clearTimeout(protTimer);protTimer=setTimeout(()=>{const all=protAlle();all[nr+"|"+sicht]=protSchnappschuss(sicht);try{localStorage.setItem(PROT_EW,JSON.stringify(all))}catch(e){}},400)}
-function protWeg(nr,sicht){clearTimeout(protTimer);const all=protAlle();delete all[nr+"|"+sicht];try{localStorage.setItem(PROT_EW,JSON.stringify(all))}catch(e){}}
+  PROT_LOKAL=Date.now();clearTimeout(protTimer);protTimer=setTimeout(()=>{const d=protSchnappschuss(sicht);PROT_GELADEN[nr+"|"+sicht]=d.zeit;protSetzen(e=>{e[nr+"|"+sicht]=d})},400)}
+function protWeg(nr,sicht){clearTimeout(protTimer);if(protAlle()[nr+"|"+sicht])protSetzen(e=>{delete e[nr+"|"+sicht]})}
 function protHolen(){const v=aktuell();if(!v||!["uebergabe","rueckgabe"].includes(SICHT))return;const d=protAlle()[v.nr+"|"+SICHT];if(!d)return;
-  protLaedt=true;try{Object.entries(d.f||{}).forEach(([i,x])=>{if($(i))$(i).value=x});Object.entries(d.c||{}).forEach(([g,x])=>gs(g,x));
+  PROT_GELADEN[v.nr+"|"+SICHT]=d.zeit||0;protLaedt=true;try{Object.entries(d.f||{}).forEach(([i,x])=>{if($(i))$(i).value=x});Object.entries(d.c||{}).forEach(([g,x])=>gs(g,x));
     Object.entries(d.a||{}).forEach(([i,x])=>setzeAn(i,x));Object.entries(d.p||{}).forEach(([k,x])=>{if(PAD[k]&&x)PAD[k].setzen(x)});
     if(SICHT==="rueckgabe"){schadenZeigen();try{rRechne(false)}catch(e){}}}finally{protLaedt=false}
   if(!PROT_GEMELDET[v.nr+"|"+SICHT]){PROT_GEMELDET[v.nr+"|"+SICHT]=1;meldung("Weiter, wo du warst: Getipptes ist wieder da")}}
+// Kommt vom anderen Gerät ein neuerer Stand derselben Übergabe oder Rückgabe, und hier wurde seitdem nichts getippt: übernehmen
+window.addEventListener("mietix-abgleich",e=>{if(!(e.detail||[]).includes("mietixStand")||!["uebergabe","rueckgabe"].includes(SICHT)||UG)return;const v=aktuell();if(!v)return;
+  const key=v.nr+"|"+SICHT,d=protAlle()[key];if(!d||d.geraet===GERAET||(d.zeit||0)<=(PROT_GELADEN[key]||0)||(d.zeit||0)<=PROT_LOKAL)return;
+  PROT_GEMELDET[key]=1;protHolen();schritte();meldung("Vom anderen Gerät übernommen")});
 // nur Eingaben im Formular selbst oder im Unterschrift-Vollbild merken; ein Tipp auf Drucken oder Fertig nach dem Speichern legt keinen alten Stand mehr an (30.10.2026)
 ["input","change","click","wahl","touchend"].forEach(ev=>document.addEventListener(ev,e=>{const t=e.target;if(t&&t.closest&&(t.closest("#s_"+SICHT)||t.closest("#ug")))protMerken()},true));   // auch Unterschrift im Vollbild
 
@@ -1523,7 +1565,7 @@ function kautionZurueckText(summe){const v=aktuell();if(!v||v.kautionArt==="fahr
 /* ---------- Mappe: ein Kunde, alle Schritte in Reihenfolge, Drucken, Schließen (30.10.2026) ---------- */
 let MAPPE_NX=null;
 function mappeSchritte(v){const fz=v.kautionArt==="fahrzeug",sch=!!v.schaden||(v.rueck&&v.rueck.auff==="ja");
-  return [["vertrag","Mietvertrag",true],["uebergabe",fz?"Übergabe + Überlassungserklärung":"Übergabe",!!v.ueb&&(!fz||!!v.sv)],
+  return [["vertrag","Mietvertrag",!!v.unterschrift||!!v.ueb],["uebergabe",fz?"Übergabe + Überlassungserklärung":"Übergabe",!!v.ueb&&(!fz||!!v.sv)],
     ["rueckgabe",sch?"Rückgabe + Schaden":"Rückgabe",v.status==="zurück"&&(!sch||!!v.schaden)]]}
 function mappeOeffnen(nr){NEU_FREI=true;WAHL=nr;WAHL_OFFEN=false;GELADEN={};zeige("mappe")}
 function zeichneMappe(){const v=aktuell();if(!v){zeige("vertraege");return}
@@ -1531,7 +1573,7 @@ function zeichneMappe(){const v=aktuell();if(!v){zeige("vertraege");return}
   $("mName").textContent=v.nr+"  "+v.name;
   $("mInfo").textContent=v.auto+(v.kz?" ("+v.kz+")":"")+", "+de(v.vonD)+" "+(v.vonU||"")+" bis "+de(v.bisD)+" "+(v.bisU||"")+(v.status==="zurück"?", zurückgegeben":"");
   $("mSchritte").innerHTML=st.map(([x,t,ok],i)=>'<div class="mSchritt'+(ok?" ok":"")+(nx&&nx[0]===x?" weiter":"")+'" data-m="'+x+'"><span class="nr">'+(ok?"✓":(i+1))+'</span><b>'+t+'</b><i>'+
-    (ok?"erledigt, ansehen":(nx&&nx[0]===x?"als Nächstes":"noch offen"))+'</i></div>').join("");
+    (ok?"erledigt, ansehen":x==="vertrag"?"Unterschrift fehlt":(nx&&nx[0]===x?"als Nächstes":"noch offen"))+'</i></div>').join("");
   [...$("mSchritte").children].forEach(c=>c.onclick=()=>{const x=c.dataset.m;if(x==="vertrag")vertragLaden(v);zeige(x)});
   $("mDruck").innerHTML=druckReihe(v)+'<a href="#" class="mWa" id="mWa">Mietvertrag per WhatsApp an den Kunden senden</a>'+(v.status==="zurück"?'<a href="#" class="mWa" id="mDanke">Danke-Nachricht per WhatsApp</a>':'')+(werText(v)?'<div class="hinweis" style="text-align:center;margin-top:10px">'+esc(werText(v))+'</div>':'');
   const md=$("mDanke");if(md)md.onclick=e=>{e.preventDefault();waOeffnen(v,DANKE(v));aendere(x=>{x.bedankt=iso(new Date())});meldung("WhatsApp mit dem Danke geöffnet")};
@@ -1617,7 +1659,7 @@ function zeichneHeute(){const h=iso(new Date()),m=plusTage(h,1),l=vorgaenge().fi
     if(z.anf)return'<div class="hz" data-anf="'+esc(z.anf.id)+'"><span class="uhr">'+(z.u||"&nbsp;")+'</span><span class="t"><b>'+esc(v.name)+'</b><i>'+esc([v.auto,"gebucht, noch kein Mietvertrag"].filter(Boolean).join(", "))+'</i></span>'+
       '<span class="schild gruen">Übergabe</span></div>';
     return'<div class="hz" data-nr="'+esc(v.nr)+'" data-art="'+z.art+'"><span class="uhr">'+(z.u||"&nbsp;")+'</span><span class="t"><b>'+esc(v.name)+'</b><i>'+esc([v.auto,(ueb?"Übergabe":"Rückgabe")+(z.d===h?" heute":"")].filter(Boolean).join(", "))+'</i>'+
-      (spaet?'<i class="spaet">überfällig seit '+de(z.d).slice(0,6)+'</i>':'')+(erin?'<u data-erin="1">Erinnerung senden</u>':'')+'</span>'+
+      (spaet?'<i class="spaet">überfällig seit '+de(z.d).slice(0,6)+'</i>':'')+(ueb&&!v.unterschrift?'<i class="spaet">Mietvertrag noch nicht unterschrieben</i>':'')+(erin?'<u data-erin="1">Erinnerung senden</u>':'')+'</span>'+
       '<span class="schild '+(ueb?"gruen":"rot")+'">'+(ueb?"Übergabe":"Rückgabe")+'</span></div>'};
   const hz=zeilen.filter(z=>z.d<=h),mz=zeilen.filter(z=>z.d===m);
   $("hHeuteT").textContent=kopf("Heute",h);$("hMorgenT").textContent=kopf("Morgen",m);
@@ -1852,6 +1894,61 @@ const merk=(k,v)=>{try{roh.call(localStorage,k,JSON.stringify(v));return true}ca
 // Jede Anfrage an den Speicher höchstens 20 Sekunden (31.10.2026): sonst hing der Abgleich bei schlechtem Netz für immer
 const holeMit=(u,o)=>{const c=new AbortController(),t=setTimeout(()=>c.abort(),20000);return fetch(u,Object.assign({},o,{signal:c.signal})).finally(()=>clearTimeout(t))};
 const hash=s=>{let h=5381;for(let i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))|0;return String(h)};
+/* ---------- Unterschriften im eigenen Gerätespeicher (31.10.2026, Baran: auch bei 100 Mietverträgen flüssig, iPad, Handy, Laptop) ----------
+   localStorage hat in Safari nur 5 MB. Bilder (data:image…) liegen darum in IndexedDB (viel größer), in localStorage steht nur "bild:<Kennung>".
+   Der gemeinsame Speicher bekommt immer das ganze Bild, nie die Kennung. Fehlt ein Bild auf dem Gerät, wird es dort geholt.
+   Ohne IndexedDB (privates Fenster) bleibt alles wie vorher im localStorage. */
+const istBild=x=>typeof x==="string"&&x.length>200&&x.startsWith("data:image/");
+const istMarke=x=>typeof x==="string"&&x.startsWith("bild:");
+const h2=s=>{let a=0x811c9dc5;for(let i=0;i<s.length;i++){a^=s.charCodeAt(i);a=Math.imul(a,16777619)}return(a>>>0).toString(36)};
+const MARKEN=new Map(),BILD=new Map();
+const marke=s=>{let m=MARKEN.get(s);if(!m){m="bild:"+s.length.toString(36)+"-"+(Number(hash(s))>>>0).toString(36)+"-"+h2(s);MARKEN.set(s,m)}return m};
+const durch=(x,f)=>typeof x==="string"?f(x):Array.isArray(x)?x.map(y=>durch(y,f)):x&&typeof x==="object"?Object.keys(x).reduce((o,n)=>{o[n]=durch(x[n],f);return o},{}):x;
+let DB=null;
+const dbAuf=()=>DB||(DB=new Promise((ok,no)=>{try{const r=indexedDB.open("mietix",1);r.onupgradeneeded=()=>r.result.createObjectStore("bilder");
+  r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error);r.onblocked=()=>no(new Error("blockiert"))}catch(e){no(e)}}).catch(e=>{DB=null;throw e}));
+const dbRein=paare=>dbAuf().then(db=>new Promise((ok,no)=>{const t=db.transaction("bilder","readwrite"),st=t.objectStore("bilder");
+  paare.forEach(([k,v])=>st.put(v,k));t.oncomplete=()=>ok(true);t.onerror=t.onabort=()=>no(t.error||new Error("IndexedDB"))}));
+const dbHol=k=>dbAuf().then(db=>new Promise(ok=>{const r=db.transaction("bilder").objectStore("bilder").get(k);r.onsuccess=()=>ok(r.result||null);r.onerror=()=>ok(null)})).catch(()=>null);
+// Bilder raus: erst wenn sie sicher im Gerätespeicher liegen, kommt die Kennung zurück (sonst Fehler, dann bleibt das Bild stehen)
+async function bilderRaus(w){const neu=[];const s=durch(w,x=>{if(!istBild(x))return x;const m=marke(x);BILD.set(m,x);neu.push([m,x]);return m});
+  if(neu.length)await dbRein(neu);return s}
+// Alles vom gemeinsamen Speicher einmal in den Gerätespeicher holen (nur nötig, wenn das Gerät Bilder verloren hat)
+let ALLE_BILDER=null;
+function alleBilderHolen(){if(ALLE_BILDER)return ALLE_BILDER;
+  ALLE_BILDER=(async()=>{const neu=[];for(const t of["vorgaenge","stand","papierkorb"]){const z=await api(t+"?select=daten",{method:"GET"})||[];
+      durch(z.map(r=>r.daten),x=>{if(istBild(x)){const m=marke(x);if(!BILD.has(m)){BILD.set(m,x);neu.push([m,x])}}return x})}
+    try{if(neu.length)await dbRein(neu)}catch(e){}})().catch(e=>{ALLE_BILDER=null});return ALLE_BILDER}
+async function bildZuMarke(m){if(BILD.has(m))return BILD.get(m);const d=await dbHol(m);if(d){BILD.set(m,d);return d}return null}
+// Bilder rein: für den gemeinsamen Speicher und für das PDF. null = ein Bild fehlt überall, dann nichts hochschicken.
+async function bilderRein(w){const marken=new Set();durch(w,x=>{if(istMarke(x))marken.add(x);return x});if(!marken.size)return w;
+  for(const m of marken)if(!(await bildZuMarke(m))){if(sitzung&&navigator.onLine)await alleBilderHolen();break}
+  for(const m of marken)if(!BILD.has(m))return null;
+  return durch(w,x=>istMarke(x)?BILD.get(x):x)}
+window.mietixBild=async s=>{if(!istMarke(s))return s;const d=await bildZuMarke(s);if(d)return d;
+  if(sitzung&&navigator.onLine){await alleBilderHolen();if(BILD.has(s))return BILD.get(s)}return""};
+window.mietixBilderRein=bilderRein;
+/* Sicher auslagern: nur Einträge, die genau so schon im gemeinsamen Speicher liegen (Fingerabdruck = Grundlage).
+   Grund: Eine alte, noch offene Mietix-Seite kennt die Kennungen nicht. Stimmt die Grundlage, schickt sie nichts;
+   wäre der Eintrag noch nicht oben, könnte sie sonst die Kennung statt der Unterschrift hochschicken.
+   Die Grundlage wird gleich mit auf die ausgelagerte Form gesetzt (der Fingerabdruck ist derselbe). Ohne Anmeldung: immer. */
+async function sicherRaus(k,w,H){const c=SPEICHER[k];if(!c)return bilderRaus(w);
+  const h=H[k]=H[k]||{zeit:"",hash:{},felder:{}};if(!h.felder)h.felder={};const m=alsMap(k,w);let neu=false;
+  for(const p of Object.keys(m)){if(!JSON.stringify(m[p]).includes('"data:image/'))continue;
+    if(sitzung&&!gleichBasis(m[p],h.hash[p]))continue;   // noch nicht oben: bleibt vorerst ganz
+    m[p]=await bilderRaus(m[p]);neu=true;if(sitzung){h.hash[p]=fp(m[p]);if(FELDWEISE[k])h.felder[p]=felderVon(m[p])}}
+  return neu?ausMap(k,m):w}
+// Was die Seiten mit Bild in den localStorage schreiben, wird kurz danach ausgelagert
+let ausT=null,ausLauf=false;
+const auslagernBald=()=>{clearTimeout(ausT);ausT=setTimeout(auslagern,300)};
+async function auslagern(){if(ausLauf){auslagernBald();return}ausLauf=true;
+  try{for(const k of Object.keys(SPEICHER).concat(["mietixEntwurfProtokolle"])){const r=localStorage.getItem(k);if(!r||r.indexOf('"data:image/')<0)continue;
+      let w;try{w=JSON.parse(r)}catch(e){continue}
+      const H=lies("mietixAbgleich",{}),hv=JSON.stringify(H),s=await sicherRaus(k,w,H);if(s===w)continue;
+      if(localStorage.getItem(k)!==r||(laeuft&&k in SPEICHER)){auslagernBald();continue}   // inzwischen geändert oder Abgleich läuft: gleich noch einmal
+      if(JSON.stringify(lies("mietixAbgleich",{}))!==hv){auslagernBald();continue}
+      if(k in SPEICHER)merk("mietixAbgleich",H);roh.call(localStorage,k,JSON.stringify(s))}}
+  catch(e){}finally{ausLauf=false}}
 let NEU_AUFBAU=false,sitzung=lies("mietixSitzung",null),laeuft=false,nochmal=false,zuletzt=null,fehler="";
 
 /* ---------- Anmeldung ---------- */
@@ -1880,12 +1977,13 @@ function ausMap(k,m){const c=SPEICHER[k];if(!c.liste)return m;return Object.keys
    - Geändert schlägt Gelöscht: wird ein Eintrag hier geändert und dort gelöscht, bleibt er da.
    - Beim Holen wird zwei Minuten überlappend gefragt, damit kein Eintrag wegen ungleich gehender Uhren fehlt. */
 const UEBERLAPPUNG=2*60*1000;
-const FELDWEISE={mietixVorgaenge:1,mietixAnfragen:1,mietixKunden:1,mietixFahrzeuge:1,mietixAutos:1};
+const FELDWEISE={mietixVorgaenge:1,mietixAnfragen:1,mietixKunden:1,mietixFahrzeuge:1,mietixAutos:1,mietixStand:1};
 // Inhalt unabhängig von der Reihenfolge der Felder (die Datenbank sortiert Felder um)
-const ordne=x=>Array.isArray(x)?x.map(ordne):x&&typeof x==="object"?Object.keys(x).sort().reduce((o,n)=>{o[n]=ordne(x[n]);return o},{}):x;
+const ordne=x=>istBild(x)?marke(x):Array.isArray(x)?x.map(ordne):x&&typeof x==="object"?Object.keys(x).sort().reduce((o,n)=>{o[n]=ordne(x[n]);return o},{}):x;
 const fp=x=>hash(JSON.stringify(ordne(x))===undefined?"":JSON.stringify(ordne(x)));
 // Fingerabdruck stimmt mit der Grundlage überein (neue Form oder die Form vor dem 30.10.2026)
-const gleichBasis=(x,b)=>b!==undefined&&(fp(x)===b||hash(JSON.stringify(x))===b);
+const ordneRoh=x=>Array.isArray(x)?x.map(ordneRoh):x&&typeof x==="object"?Object.keys(x).sort().reduce((o,n)=>{o[n]=ordneRoh(x[n]);return o},{}):x;
+const gleichBasis=(x,b)=>b!==undefined&&(fp(x)===b||hash(JSON.stringify(x))===b||hash(JSON.stringify(ordneRoh(x)))===b);
 // Fingerabdruck je Feld, bei Unterobjekten (zahlung, ueb, rueck …) zusätzlich je Unterfeld "feld.unter" (31.10.2026: zwei Handys, zwei Zahlungen)
 const istObj=x=>x&&typeof x==="object"&&!Array.isArray(x);
 const felderVon=x=>{const f={};if(istObj(x))Object.keys(x).forEach(n=>{f[n]=fp(x[n]);if(istObj(x[n]))Object.keys(x[n]).forEach(u=>f[n+"."+u]=fp(x[n][u]))});return f};
@@ -1946,23 +2044,30 @@ async function abgleichen(){
         // Grundlage für das nächste Mal ist jetzt der gemeinsame Stand
         if(z.daten&&z.daten._weg){h.hash[p]="weg";delete h.felder[p]}
         else{h.hash[p]=fp(z.daten);if(FELDWEISE[k])h.felder[p]=felderVon(z.daten)}});
-      if(anders){if(!merk(k,ausMap(k,m2)))throw new Error("Speicher auf diesem Gerät voll");geholt.push(k)}
+      if(anders){let w=ausMap(k,m2);try{w=await sicherRaus(k,w,H)}catch(e){}
+        if(!merk(k,w))throw new Error("Speicher auf diesem Gerät voll");geholt.push(k)}
       // 2) hoch: alles, was hier anders ist als der gemeinsame Stand (auch Gelöschtes)
       const m=alsMap(k,lies(k,c.liste?[]:{})),jetzt=new Date().toISOString(),hoch=[];
-      Object.keys(m).forEach(p=>{if(gleichBasis(m[p],h.hash[p])){h.hash[p]=fp(m[p]);return}hoch.push({[c.pk]:p,daten:m[p],geaendert:jetzt})});
+      let ohneBild=0;
+      for(const p of Object.keys(m)){if(gleichBasis(m[p],h.hash[p])){h.hash[p]=fp(m[p]);continue}
+        const daten=await bilderRein(m[p]);if(daten===null){ohneBild++;continue}   // nie eine Kennung statt Unterschrift hochschicken
+        hoch.push({[c.pk]:p,daten,geaendert:jetzt})}
+      if(ohneBild)fehler="Unterschrift fehlt auf diesem Gerät ("+ohneBild+"x), bitte Baran Bescheid geben";
       Object.keys(h.hash).forEach(p=>{if(!(p in m)&&h.hash[p]!=="weg")hoch.push({[c.pk]:p,daten:{_weg:true},geaendert:jetzt})});
       for(let i=0;i<hoch.length;i+=200)await api(c.tab+"?on_conflict="+c.pk,{method:"POST",headers:{Prefer:"resolution=merge-duplicates,return=minimal"},body:JSON.stringify(hoch.slice(i,i+200))});
       hoch.forEach(z=>{const p=z[c.pk];if(z.daten._weg){h.hash[p]="weg";delete h.felder[p]}else{h.hash[p]=fp(z.daten);if(FELDWEISE[k])h.felder[p]=felderVon(z.daten)}});
       if(k==="mietixVorgaenge"){const max=Math.max(0,...Object.keys(m).filter(n=>/^\d{6}$/.test(n)).map(Number));
         if(max)await api("rpc/vertragsnummer_mindestens",{method:"POST",body:JSON.stringify({n:max})})}
       merk("mietixAbgleich",H)}
+    if(fehler)throw new Error(fehler);
     zuletzt=new Date();if(NEU_AUFBAU){merk("mietixNeuAufbau1",true);NEU_AUFBAU=false}
     if(geholt.length)window.dispatchEvent(new CustomEvent("mietix-abgleich",{detail:geholt}));
   }catch(e){fehler=e.message||"Abgleich fehlgeschlagen"}
-  laeuft=false;zeigen();if(nochmal){nochmal=false;setTimeout(abgleichen,500)}}
+  laeuft=false;zeigen();auslagernBald();if(nochmal){nochmal=false;setTimeout(abgleichen,500)}}
 // Jede Änderung an den vier Speichern löst kurz danach einen Abgleich aus
 let warte=null;
 Storage.prototype.setItem=function(k,v){const alt=(this===localStorage&&SPEICHER[k])?localStorage.getItem(k):null;roh.call(this,k,v);
+  if(this===localStorage&&(SPEICHER[k]||k==="mietixEntwurfProtokolle")&&typeof v==="string"&&v.indexOf('"data:image/')>=0)auslagernBald();
   if(this===localStorage&&SPEICHER[k]){clearTimeout(warte);warte=setTimeout(abgleichen,800);if(k!=="mietixStand"&&k!=="mietixPapierkorb")sicherheitsnetz(k,alt,v)}};
 
 /* ---------- Sicherheitsnetz (28.10.2026, Baran: "Verklicken darf nichts verlieren") ----------
@@ -2089,7 +2194,7 @@ document.head.appendChild(css);
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)abgleichen()});
 window.addEventListener("online",abgleichen);window.addEventListener("offline",zeigen);   // Sync-Status sofort auf „Ohne Internet“
 setInterval(abgleichen,60000);
-zeigen();abgleichen();
+zeigen();abgleichen();auslagernBald();
 })();
 </script><script>
 /* Fenster (30.10.2026): Knopf mit data-fenster öffnet, ✕, Tipp daneben oder Esc schließt */
