@@ -1143,11 +1143,13 @@ const esc=t=>String(t==null?"":t).replace(/&/g,"&amp;").replace(/</g,"&lt;").rep
 const normS=t=>String(t||"").toLowerCase();
 function vKarte(v){const z=v.zahlung||{},rest=z.rest||{},kaut=z.kaut||{};
   const mieteOffen=zahl(rest.betrag)&&!rest.am,kautOffen=v.status==="zurück"&&kaut.am&&!v.kautionRueck;
-  const haken=[["Mietvertrag",true],["Übergabe",!!v.ueb],["Rückgabe",v.status==="zurück"]];
+  // Überlassungserklärung mit eigenem Haken, sobald unterschrieben oder bestätigt (31.10.2026, Baran: stand immer grau)
+  const svOk=!!(v.sv&&(v.sv.unterschrift||v.sv.bestaetigt));
+  const haken=[["Mietvertrag",true],["Übergabe",!!v.ueb]].concat(v.kautionArt==="fahrzeug"?[["Überlassungserklärung",svOk]]:[],[["Rückgabe",v.status==="zurück"]]);
   return'<div class="vorgang'+(AUF===v.nr?" auf":"")+'" data-nr="'+esc(v.nr)+'"><b>'+esc(v.nr)+"  "+esc(v.name)+'</b>'+(v.status!=="zurück"?'<span class="offenTag">offen</span>':"")+'<div>'+esc(v.auto)+(v.kz?" ("+esc(v.kz)+")":"")+", "+de(v.vonD)+" bis "+de(v.bisD)+'</div>'+
     '<div class="haken">'+haken.map(([t,ok])=>'<span class="'+(ok?"ok":"")+'">'+(ok?"✓ ":"○ ")+t+'</span>').join("")+
     (mieteOffen?'<span class="rot">Miete offen '+eur(zahl(rest.betrag))+' €</span>':"")+(kautOffen?'<span class="rot">Kaution zurückgeben</span>':"")+(v.schaden?'<span class="rot">Schaden</span>':"")+
-    (v.kautionArt==="fahrzeug"?'<span>Überlassungserklärung</span>':"")+'</div>'+
+    '</div>'+
     (AUF===v.nr?'<div class="chips" style="margin-top:10px">'+[["Mietvertrag","vertrag"],["Übergabe","uebergabe"],["Rückgabe","rueckgabe"],["Schadensanerkennung","schaden"]].concat(v.kautionArt==="fahrzeug"?[["Überlassungserklärung","ueberlassung"]]:[])
       .map(([t,x])=>'<div class="chip" data-geh="'+x+'">'+t+'</div>').join("")+'<div class="chip" data-wa="1" style="background:#25D366;border-color:#25D366;color:#fff">WhatsApp</div></div>'+druckReihe(v):"")+'</div>'}
 // Drucken ganz einfach: ein Knopf pro Dokument, das es zu diesem Mietvertrag schon gibt (30.10.2026, Baran)
