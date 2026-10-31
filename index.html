@@ -1535,9 +1535,15 @@ function zeichneHeute(){const h=iso(new Date()),m=plusTage(h,1),l=vorgaenge().fi
   const tag=d=>d<h?"überfällig "+de(d):d===h?"heute":"morgen, "+de(d);   // „morgen“ immer mit Datum (Baran, 31.10.2026)
   // Heute und Morgen getrennt wie auf der Startseite (31.10.2026, Baran). Überfälliges steht oben bei Heute.
   const WTK=["So","Mo","Di","Mi","Do","Fr","Sa"],kopf=(t,d)=>{const x=new Date(d+"T12:00");return t+", "+WTK[x.getDay()]+" "+x.getDate()+"."+(x.getMonth()+1)+"."};
-  const zeilen=ab.map(v=>({v,art:"ueb",d:v.vonD,u:v.vonU||""})).concat(zu.map(v=>({v,art:"rueck",d:v.bisD,u:v.bisU||""})))
+  // Gebuchte Anfragen ohne Mietvertrag stehen als Übergabe mit in Heute und Morgen (31.10.2026, Prüfbericht Punkt I)
+  const nGh=t=>String(t||"").toLowerCase().replace(/\s+/g,""),alleV=vorgaenge();
+  const anfH=lies("mietixAnfragen",[]).filter(x=>x.status==="gebucht"&&x.von&&x.von>=plusTage(h,-1)&&x.von<=m&&!(x.vertrag&&alleV.some(v=>v.nr===x.vertrag))&&!alleV.some(v=>nGh(v.name)===nGh(x.name)&&v.vonD===x.von));
+  const zeilen=ab.map(v=>({v,art:"ueb",d:v.vonD,u:v.vonU||""})).concat(zu.map(v=>({v,art:"rueck",d:v.bisD,u:v.bisU||""})),
+      anfH.map(a=>({v:{nr:"",name:a.name||"ohne Namen",auto:a.auto||""},anf:a,art:"ueb",d:a.von,u:a.vonU||""})))
     .sort((a,b)=>(a.d+" "+(a.u||"99"))<(b.d+" "+(b.u||"99"))?-1:1);
   const zeile=z=>{const v=z.v,spaet=z.d<h,ueb=z.art==="ueb",erin=ueb&&z.d===m&&!v.erinnert;
+    if(z.anf)return'<div class="hz" data-anf="'+esc(z.anf.id)+'"><span class="uhr">'+(z.u||"&nbsp;")+'</span><span class="t"><b>'+esc(v.name)+'</b><i>'+esc(v.auto)+', noch kein Mietvertrag</i></span>'+
+      '<span class="schild'+(z.d<=h?" gruen":"")+'">Übergabe</span></div>';
     return'<div class="hz" data-nr="'+esc(v.nr)+'" data-art="'+z.art+'"><span class="uhr">'+(z.u||"&nbsp;")+'</span><span class="t"><b>'+esc(v.name)+'</b><i>'+esc(v.auto)+'</i>'+
       (spaet?'<i class="spaet">überfällig seit '+de(z.d).slice(0,6)+'</i>':'')+(erin?'<u data-erin="1">Erinnerung senden</u>':'')+'</span>'+
       '<span class="schild'+(z.d<=h?(ueb?" gruen":" rot"):"")+'">'+(ueb?"Übergabe":"Rückgabe")+'</span></div>'};
@@ -1545,6 +1551,7 @@ function zeichneHeute(){const h=iso(new Date()),m=plusTage(h,1),l=vorgaenge().fi
   $("hHeuteT").textContent=kopf("Heute",h);$("hMorgenT").textContent=kopf("Morgen",m);
   $("hHeute").innerHTML=hz.length?hz.map(zeile).join(""):'<div class="leer">Heute keine Übergabe und keine Rückgabe.</div>';
   $("hMorgen").innerHTML=mz.length?mz.map(zeile).join(""):'<div class="leer">Morgen keine Übergabe und keine Rückgabe.</div>';
+  document.querySelectorAll("#hHeute .hz[data-anf],#hMorgen .hz[data-anf]").forEach(e=>{const a=anfH.find(x=>x.id===e.dataset.anf);if(a)e.onclick=()=>{leeren();uebernehmeAnfrage(a);zeige("vertrag")}});
   document.querySelectorAll("#hHeute .hz,#hMorgen .hz").forEach(e=>{const v=l.find(x=>x.nr===e.dataset.nr);if(!v)return;
     e.onclick=()=>{NEU_FREI=true;WAHL=v.nr;zeige(e.dataset.art==="ueb"?"uebergabe":"rueckgabe")};
     // Erinnerung am Vortag: öffnet WhatsApp mit dem Text
@@ -1574,7 +1581,8 @@ function zeichneHeute(){const h=iso(new Date()),m=plusTage(h,1),l=vorgaenge().fi
     const l=vorgaenge(),x=l.find(y=>y.nr===v.nr);x.kautionRueck={betrag:Math.max(0,k-ein),einbehalt:ein,grund,am:iso(new Date())};schreib("mietixVorgaenge",l);
     meldung(ein?"Einbehalt "+eur(ein)+" €, "+eur(k-ein)+" € zurück":"Kaution "+eur(k)+" € zurück");zeichneHeute()});
   const hat=x=>vorgaenge().some(v=>v.name===x.name&&v.vonD===x.von);
-  const anf=lies("mietixAnfragen",[]).filter(x=>x.status==="gebucht"&&x.von&&x.von>=plusTage(h,-1)&&!hat(x)).sort((a,b)=>a.von.localeCompare(b.von)).slice(0,8);
+  // heute und morgen stehen schon oben als Übergabe, hier nur die späteren
+  const anf=lies("mietixAnfragen",[]).filter(x=>x.status==="gebucht"&&x.von&&x.von>plusTage(h,1)&&!hat(x)&&!(x.vertrag&&vorgaenge().some(v=>v.nr===x.vertrag))).sort((a,b)=>a.von.localeCompare(b.von)).slice(0,8);
   $("hAnfKarte").classList.toggle("versteckt",!anf.length);
   $("hAnf").innerHTML=anf.length?anf.map(x=>eintrag(x.name||"ohne Namen",[x.auto,de(x.von)].filter(Boolean).join(", "),"Mietvertrag")).join(""):'<div class="leer">Alle gebuchten Anfragen haben einen Mietvertrag.</div>';
   [...$("hAnf").children].forEach((e,i)=>e.onclick=()=>{leeren();uebernehmeAnfrage(anf[i]);zeige("vertrag")});
@@ -1800,7 +1808,9 @@ const ordne=x=>Array.isArray(x)?x.map(ordne):x&&typeof x==="object"?Object.keys(
 const fp=x=>hash(JSON.stringify(ordne(x))===undefined?"":JSON.stringify(ordne(x)));
 // Fingerabdruck stimmt mit der Grundlage überein (neue Form oder die Form vor dem 30.10.2026)
 const gleichBasis=(x,b)=>b!==undefined&&(fp(x)===b||hash(JSON.stringify(x))===b);
-const felderVon=x=>{const f={};if(x&&typeof x==="object"&&!Array.isArray(x))Object.keys(x).forEach(n=>f[n]=fp(x[n]));return f};
+// Fingerabdruck je Feld, bei Unterobjekten (zahlung, ueb, rueck …) zusätzlich je Unterfeld "feld.unter" (31.10.2026: zwei Handys, zwei Zahlungen)
+const istObj=x=>x&&typeof x==="object"&&!Array.isArray(x);
+const felderVon=x=>{const f={};if(istObj(x))Object.keys(x).forEach(n=>{f[n]=fp(x[n]);if(istObj(x[n]))Object.keys(x[n]).forEach(u=>f[n+"."+u]=fp(x[n][u]))});return f};
 function andereFassung(k,p,eintrag){if(k==="mietixPapierkorb"||k==="mietixStand")return;
   const pk=lies("mietixPapierkorb",[]),jetzt=new Date().toISOString(),c=SPEICHER[k];
   const s=fp(eintrag);if(pk.some(x=>x.ablage===k&&x.schluessel===p&&fp(x.eintrag)===s))return;
@@ -1826,6 +1836,13 @@ function zusammen(k,p,lokal,server,basisHash,basisFelder){
       if(lf===sf){if(n in lokal)out[n]=lokal[n]}
       else if(lf===bf){if(n in server)out[n]=server[n]}
       else if(sf===bf){if(n in lokal)out[n]=lokal[n]}
+      else if(istObj(lokal[n])&&istObj(server[n])){   // beide Geräte haben im selben Unterobjekt geändert: Unterfeld für Unterfeld
+        const o={},un=new Set([...Object.keys(lokal[n]),...Object.keys(server[n])]);
+        un.forEach(u=>{const lu=u in lokal[n]?fp(lokal[n][u]):undefined,su=u in server[n]?fp(server[n][u]):undefined,bu=basisFelder[n+"."+u];
+          if(lu===su||su===bu){if(u in lokal[n])o[u]=lokal[n][u]}
+          else if(lu===bu){if(u in server[n])o[u]=server[n][u]}
+          else{streit=true;if(u in lokal[n])o[u]=lokal[n][u]}});
+        out[n]=o}
       else{streit=true;if(n in lokal)out[n]=lokal[n];else if(n in server)out[n]=server[n]}});
     if(streit)andereFassung(k,p,server);
     return out}
@@ -2131,7 +2148,7 @@ zeigen();abgleichen();
   const desc=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,"value");
   const st=document.createElement("style");st.textContent=".mxAZ{display:grid;grid-template-columns:minmax(90px,32%) 1fr;gap:10px}.mxAZ>div{min-width:0}.mxAZ input{width:100%;box-sizing:border-box}";document.head.appendChild(st);
   function teile(v,voll){v=String(v||"").trim();let s="",p="",o="";const m=v.match(/^(.*?)[,\s]*(\d{5})\s+(.+)$/);
-    if(m){s=m[1].trim().replace(/,$/,"");p=m[2];o=m[3].trim()}else if(voll)s=v;else o=v;return{s,p,o}}
+    if(m){s=m[1].trim().replace(/,$/,"");p=m[2];o=m[3].trim()}else if(voll&&/\d/.test(v))s=v;else o=v.replace(/^,\s*/,"");return{s,p,o}}   // ohne Hausnummer ist es ein Ort (31.10.2026)
   function setzen(inp){if(inp.dataset.mxA)return;inp.dataset.mxA="1";const voll=inp.dataset.anschrift!=="plzort";
     const lab=inp.previousElementSibling&&inp.previousElementSibling.tagName==="LABEL"?inp.previousElementSibling:null;
     const ic=inp.className,lc=lab?lab.className:"",feld=(t,l,extra)=>lab?'<label class="'+lc+'">'+l+'</label><input class="'+ic+'" data-t="'+t+'" autocomplete="off"'+(extra||"")+'>':'<input class="'+ic+'" data-t="'+t+'" placeholder="'+l+'" autocomplete="off"'+(extra||"")+'>';
