@@ -121,8 +121,8 @@ h2.gruppe{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(-
 .vz{display:flex;align-items:center;gap:12px}.vav{flex:0 0 42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:15px}
 .vt{flex:1;min-width:0}.vt b{display:block;font-size:17px;font-weight:700;color:#1C1C1E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .vt i{display:block;font-style:normal;font-size:14px;color:var(--grau);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.vschritte{display:flex;align-items:center;gap:3px;margin-top:7px}.vschritte em{width:22px;height:4px;border-radius:2px;background:#E5E5EA}.vschritte em.ok{background:#34A853}
-.vschritte small{font-size:12px;font-weight:700;color:var(--grau);margin-left:7px}
+.vschritte{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.vschritte em{font-style:normal;font-size:12px;font-weight:700;border-radius:6px;padding:4px 7px;background:#FDECEC;color:#A31318;white-space:nowrap}.vschritte em.ok{background:#E6F4EA;color:#1B6B3A}
 .vpfeil{color:#C7C7CC;font-size:24px;font-weight:600}
 .vflags{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 0 54px}.vflags span{font-size:12px;font-weight:700;border-radius:6px;padding:5px 8px;background:#FDECEC;color:#A31318}.vflags [data-bez]{cursor:pointer}
 .vListe .bezWahl{margin-left:54px}
@@ -1194,7 +1194,8 @@ function vKarte(v){const z=v.zahlung||{},rest=z.rest||{},kaut=z.kaut||{};
   const ini=String(v.name||"?").trim().split(/\s+/),ik=((ini[0]||"")[0]||"").toUpperCase()+((ini.length>1?ini[ini.length-1]:"")[0]||"").toUpperCase();
   return'<div class="vorgang'+(AUF===v.nr?" auf":"")+'" data-nr="'+esc(v.nr)+'"><div class="vz"><span class="vav" style="background:'+vFarbe(v.name)+'">'+esc(ik)+'</span>'+
     '<span class="vt"><b>'+esc(v.name)+'</b><i>'+esc(v.auto)+(v.kz?", "+esc(v.kz):"")+'</i><i>'+kurz(v.vonD)+' bis '+de(v.bisD)+', Nr. '+esc(v.nr)+'</i>'+
-    '<span class="vschritte" title="'+haken.map(([t,ok])=>(ok?"✓ ":"○ ")+t).join(", ")+'">'+haken.map(([t,ok])=>'<em class="'+(ok?"ok":"")+'"></em>').join("")+'<small>'+(naechst?"Als Nächstes: "+naechst[0]:"Alles erledigt")+'</small></span></span><span class="vpfeil">›</span></div>'+
+    // Schritte als beschriftete Schilder (31.10.2026, Baran: auf einen Blick, erledigt grün, offen rot)
+    '<span class="vschritte">'+haken.map(([t,ok])=>'<em class="'+(ok?"ok":"")+'">'+(ok?"✓ ":"")+t+'</em>').join("")+'</span></span><span class="vpfeil">›</span></div>'+
     ((mieteOffen||kautOffen||v.schaden)?'<div class="vflags">'+(mieteOffen?'<span class="rot" data-bez="1">Miete offen '+eur(offenBetrag(v))+' €, bezahlt?</span>':"")+(kautOffen?'<span class="rot">Kaution zurückgeben</span>':"")+(v.schaden?'<span class="rot">Schaden</span>':"")+'</div>':"")+
     (AUF===v.nr?'<div class="chips" style="margin-top:10px">'+[["Mietvertrag","vertrag"],["Übergabe","uebergabe"],["Rückgabe","rueckgabe"],["Schadensanerkennung","schaden"]].concat(v.kautionArt==="fahrzeug"?[["Überlassungserklärung","ueberlassung"]]:[])
       .map(([t,x])=>'<div class="chip" data-geh="'+x+'">'+t+'</div>').join("")+'<div class="chip" data-wa="1" style="background:#25D366;border-color:#25D366;color:#fff">WhatsApp</div></div>'+druckReihe(v):"")+'</div>'}
@@ -1539,7 +1540,7 @@ function zeichneHeute(){const h=iso(new Date()),m=plusTage(h,1),l=vorgaenge().fi
   const nGh=t=>String(t||"").toLowerCase().replace(/\s+/g,""),alleV=vorgaenge();
   const anfH=lies("mietixAnfragen",[]).filter(x=>x.status==="gebucht"&&x.von&&x.von>=plusTage(h,-1)&&x.von<=m&&!(x.vertrag&&alleV.some(v=>v.nr===x.vertrag))&&!alleV.some(v=>nGh(v.name)===nGh(x.name)&&v.vonD===x.von));
   const zeilen=ab.map(v=>({v,art:"ueb",d:v.vonD,u:v.vonU||""})).concat(zu.map(v=>({v,art:"rueck",d:v.bisD,u:v.bisU||""})),
-      anfH.map(a=>({v:{nr:"",name:a.name||"ohne Namen",auto:a.auto||""},anf:a,art:"ueb",d:a.von,u:a.vonU||""})))
+      anfH.map(a=>({v:{nr:"",name:a.name||a.nummer||"ohne Namen",auto:a.auto||""},anf:a,art:"ueb",d:a.von,u:a.vonU||""})))
     .sort((a,b)=>(a.d+" "+(a.u||"99"))<(b.d+" "+(b.u||"99"))?-1:1);
   const zeile=z=>{const v=z.v,spaet=z.d<h,ueb=z.art==="ueb",erin=ueb&&z.d===m&&!v.erinnert;
     if(z.anf)return'<div class="hz" data-anf="'+esc(z.anf.id)+'"><span class="uhr">'+(z.u||"&nbsp;")+'</span><span class="t"><b>'+esc(v.name)+'</b><i>'+esc(v.auto)+', noch kein Mietvertrag</i></span>'+
