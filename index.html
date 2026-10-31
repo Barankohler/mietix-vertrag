@@ -50,8 +50,18 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--rot);outline-off
 .summe{font-size:24px;font-weight:900;color:var(--rot)}
 .hinweis{font-size:13px;color:var(--grau);margin-top:6px;line-height:1.4}
 .info{background:var(--bg);border-radius:12px;padding:10px 12px;font-weight:700;line-height:1.5}
-.anfrage{border:1px solid var(--rand);border-radius:14px;padding:10px 12px;margin-top:8px;cursor:pointer}
-.anfrage b{font-size:15px}.anfrage div{font-size:13px;color:var(--grau);margin-top:2px}
+/* Übernehmen-Fenster (31.10.2026) */
+.uZahl{display:inline-block;background:var(--rot);color:#fff;font-size:12px;font-weight:800;border-radius:999px;padding:2px 8px;margin-left:6px;vertical-align:2px}
+#uSuche{background:#F2F2F4;border:0;margin:0 0 4px}
+.uGk{font-size:12px;font-weight:800;color:var(--grau);text-transform:uppercase;letter-spacing:.6px;margin:14px 4px 6px}
+.uListe{border:1px solid var(--rand);border-radius:14px;overflow:hidden}
+.anfrage{display:flex;align-items:center;gap:10px;padding:11px 14px;border-top:1px solid #EFEFF2;cursor:pointer}.anfrage:first-child{border-top:0}.anfrage:active{background:#F6F6F7}
+.anfrage .t{flex:1;min-width:0}.anfrage b{display:block;font-size:16px;font-weight:800}
+.anfrage small{display:block;font-size:13px;color:var(--grau);font-weight:600;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.anfrage em{font-style:normal;color:var(--rot);font-size:22px;font-weight:700}
+.uChip{font-size:12px;font-weight:800;border-radius:999px;padding:4px 9px;white-space:nowrap}.uChip.g{background:#E3F4EA;color:#1E8E4E}.uChip.s{background:#FFF1DC;color:#9A6400}
+.uLeer{color:var(--grau);font-size:15px;font-weight:600;padding:14px 4px}
+mark{background:#FFF1A8;color:inherit;border-radius:3px}
 .leiste{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--rand);
   padding:12px 16px calc(12px + env(safe-area-inset-bottom));z-index:6}
 .leiste button{width:100%;max-width:680px;display:block;margin:0 auto;background:var(--rot);color:#fff;border:0;
@@ -280,7 +290,10 @@ h2.hT{margin:18px 4px 8px}#s_heute h2.hT:first-of-type{margin-top:6px}
 
   <div class="karte">
     <h2>Mieter</h2>
-    <div id="anfragen"></div>
+    <button class="mxKnopf versteckt" type="button" id="uKnopf"><span><b>Aus Anfrage oder Kunde übernehmen<span class="uZahl versteckt" id="uZahl"></span></b><i>Suchen nach Name, Auto, Telefon</i></span><em>›</em></button>
+    <div class="mxFenster" id="fUeb" role="dialog" aria-label="Übernehmen"><div class="mxKopf"><h3>Übernehmen</h3><button class="mxZu" type="button" aria-label="Schließen">✕</button></div>
+      <input id="uSuche" type="search" autocomplete="off" placeholder="Name, Auto oder Telefon">
+      <div id="anfragen"></div></div>
     <label>Vor- und Nachname *</label><input id="name" autocomplete="off" placeholder="Name, Telefon oder Geburtstag">
     <div class="hinweis" id="stamm"></div>
     <label>Anschrift</label><input id="anschrift" data-anschrift>
@@ -780,16 +793,41 @@ function waehleAuto(a){AUTO=a.name;AUTO_AUF=false;$("modell").value=a.name;$("kz
   if(p&&p.kmPreis&&!MEHR_HAND)$("mehrkm").value=eur(p.kmPreis);$("sb").value=a.sb||"7.500";zeichneAutos();tipps()}
 
 /* ---------- Kunden: Anfragen-Buch und Stammkunden ---------- */
-function zeichneAnfragen(){
+function zeichneAnfragen(){   // 31.10.2026: Knopf mit Suchfenster statt langer Liste (Baran: "maximal unübersichtlich")
   const grenze=new Date();grenze.setDate(grenze.getDate()-21);
   const vs=vorgaenge(),gleich=(p,q)=>String(p||"").trim().toLowerCase()===String(q||"").trim().toLowerCase();
   const hatVertrag=x=>!!x.vertrag||vs.some(v=>x.name&&gleich(v.name,x.name)&&(!x.von||v.vonD===x.von));   // schon ein Mietvertrag dazu: nicht nochmal anbieten (30.10.2026)
-  const a=lies("mietixAnfragen",[]).filter(x=>x.status!=="abgesagt"&&x.tag>=iso(grenze)&&!hatVertrag(x)).slice(-6).reverse();
-  if(!a.length){$("anfragen").innerHTML="";return}
-  $("anfragen").innerHTML='<div class="hinweis" style="margin:0 0 4px">Aus dem Anfragen-Buch übernehmen:</div>'+
-    a.map((x,i)=>'<div class="anfrage" data-i="'+i+'"><b>'+(x.name||"ohne Namen")+'</b><div>'+
-      [x.auto,x.von?de(x.von)+(x.bis?" bis "+de(x.bis):""):"",x.nummer].filter(Boolean).join("  |  ")+'</div></div>').join("");
-  [...$("anfragen").querySelectorAll(".anfrage")].forEach(e=>e.onclick=()=>uebernehmeAnfrage(a[+e.dataset.i]))}
+  const alle=lies("mietixAnfragen",[]).filter(x=>x.status!=="abgesagt"&&!hatVertrag(x));
+  const neu=alle.filter(x=>x.tag>=iso(grenze));
+  // frühere Mieter aus den Mietverträgen, neueste zuerst
+  const mieter={};vs.filter(v=>v.name&&!v._weg).forEach(v=>{const k=v.name.trim().toLowerCase().replace(/\s+/g," ");
+    const m=mieter[k]||(mieter[k]={name:v.name.trim(),n:0,auto:"",d:"",tel:""});m.n++;if((v.vonD||"")>=m.d){m.d=v.vonD||"";m.auto=v.auto||"";m.name=v.name.trim();m.v=v}});
+  const kb=kunden();Object.values(mieter).forEach(m=>{const k=kb[m.name];m.tel=(k&&k.telefon)||""});
+  const ml=Object.values(mieter).sort((a,b)=>b.d.localeCompare(a.d));
+  const zahl=neu.length;$("uKnopf").classList.toggle("versteckt",!alle.length&&!ml.length);
+  $("uZahl").textContent=zahl;$("uZahl").classList.toggle("versteckt",!zahl);
+  const ohne=t=>String(t||"").toLowerCase().replace(/\s+/g,""),
+    hl=(t,q)=>{t=esc(t);if(!q)return t;const i=t.toLowerCase().indexOf(q.toLowerCase());return i<0?t:t.slice(0,i)+"<mark>"+t.slice(i,i+q.length)+"</mark>"+t.slice(i+q.length)};
+  const zeichne=()=>{const q=$("uSuche").value.trim(),qo=ohne(q),passt=(...f)=>!qo||f.some(x=>ohne(x).includes(qo));
+    const a=(q?alle:neu).filter(x=>passt(x.name,x.auto,x.nummer)).sort((x,y)=>(y.status==="gebucht")-(x.status==="gebucht")||String(y.tag||"").localeCompare(String(x.tag||""))).slice(0,30);
+    const m=q?ml.filter(x=>passt(x.name,x.auto,x.tel)).slice(0,30):[];
+    const zeile=(i,art,name,unter,chip)=>'<div class="anfrage" data-'+art+'="'+i+'"><div class="t"><b>'+hl(name,q)+'</b><small>'+esc(unter)+'</small></div>'+chip+'<em>›</em></div>';
+    let h="";
+    if(a.length)h+='<div class="uGk">Anfragen</div><div class="uListe">'+a.map((x,i)=>zeile(i,"a",x.name||"ohne Namen",
+      [x.auto,x.von?de(x.von)+(x.bis?" bis "+de(x.bis):""):"",x.nummer].filter(Boolean).join(", "),x.status==="gebucht"?'<span class="uChip g">gebucht</span>':"")).join("")+'</div>';
+    if(m.length)h+='<div class="uGk">Frühere Mieter</div><div class="uListe">'+m.map((x,i)=>zeile(i,"m",x.name,
+      [x.n+(x.n===1?" Mietvertrag":" Mietverträge"),(x.n>1?"zuletzt ":"")+[x.auto,x.d?de(x.d):""].filter(Boolean).join(", ")].join(", "),x.n>=2?'<span class="uChip s">Stammkunde</span>':"")).join("")+'</div>';
+    if(!h)h='<div class="uLeer">'+(q?"Nichts gefunden.":"Keine offenen Anfragen der letzten 3 Wochen. Oben suchen, um frühere Mieter zu finden.")+'</div>';
+    else if(!q)h+='<div class="uLeer" style="font-size:13px">Anfragen der letzten 3 Wochen, gebuchte oben. Oben suchen, um auch frühere Mieter zu finden.</div>';
+    $("anfragen").innerHTML=h;
+    $("anfragen").querySelectorAll("[data-a]").forEach(e=>e.onclick=()=>{mxZu();uebernehmeAnfrage(a[+e.dataset.a])});
+    $("anfragen").querySelectorAll("[data-m]").forEach(e=>e.onclick=()=>{mxZu();const x=m[+e.dataset.m];$("name").value=x.name;
+      ["telefon","anschrift","gebort","email"].forEach(f=>{if(x.v&&x.v[f]&&!$(f).value)$(f).value=x.v[f]});if(x.v&&x.v.geb&&!$("geb").value)$("geb").value=x.v.geb;   // aus dem letzten Mietvertrag
+      stammFuellen();if(!$("stamm").textContent)$("stamm").textContent=(x.n>=2?"Stammkunde, ":"")+x.n+(x.n===1?" Mietvertrag":" Mietverträge")+" bisher. Daten übernommen.";
+      meldung("Übernommen: "+x.name);setTimeout(entwurfMerken,0);setTimeout(hauptText,0)})};
+  $("uSuche").oninput=zeichne;
+  $("uKnopf").onclick=()=>{$("uSuche").value="";zeichne();mxAuf("fUeb")};
+  zeichne()}
 let ANFRAGE=null;
 function uebernehmeAnfrage(x){ANFRAGE=x.id||null;
   $("name").value=x.name||"";$("telefon").value=x.nummer||"";
@@ -813,7 +851,7 @@ function stammFuellen(){const kb=kunden(),q=$("name").value.trim(),nm=(window.mi
   ["telefon","anschrift","gebort","email"].forEach(f=>{if(k[f]&&!$(f).value)$(f).value=k[f]});if(k.geb&&!$("geb").value)$("geb").value=k.geb;
   const alte=vorgaenge().filter(v=>nameGleich(v.name,q)),n=alte.length;
   if(n&&!AUTO&&!$("modell").value){const f=fahrzeugListe().find(f=>f.name===alte[n-1].auto);if(f)waehleAuto(f)}
-  $("stamm").textContent="Stammkunde"+(n?", "+n+(n===1?" Mietvertrag":" Mietverträge")+" bisher":"")+". Daten übernommen."}
+  $("stamm").textContent=(n>=2?"Stammkunde, ":"Schon Kunde"+(n?", ":""))+(n?n+(n===1?" Mietvertrag":" Mietverträge")+" bisher":"")+". Daten übernommen."}   // Stammkunde erst ab 2 Mieten (Regel)
 $("name").addEventListener("change",stammFuellen);
 /* Entwurf (Sicherheitsnetz 28.10.2026): jede Eingabe im Mietvertrag wird sofort auf dem Gerät gemerkt. Lädt Safari die Seite neu
    (Anruf, App-Wechsel), bietet die Seite den angefangenen Mietvertrag wieder an. Weg ist er erst nach dem Speichern oder auf "Verwerfen". */
