@@ -101,7 +101,7 @@ details summary{cursor:pointer;font-weight:800;color:var(--grau);font-size:14px}
 .schritt div.ok{background:#E8F6EE;color:var(--gruen)}
 .schritt div small{display:block;font-size:11px;font-weight:700;margin-top:2px;opacity:.85}
 .sTitel{font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--grau);margin-top:10px}.schritt div.an{outline:2px solid var(--rot);color:var(--rot)}.schritt div.ok.an{color:var(--gruen)}
-.sKopf{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}.sKopf b{font-size:16px;display:block}.sKopf i{font-style:normal;font-size:13px;color:var(--grau)}
+.sKopf{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}.sKopf>div{min-width:0;overflow-wrap:anywhere}.sKopf .fNav{flex:0 1 auto;flex-wrap:wrap;justify-content:flex-end}.sKopf b{font-size:16px;display:block}.sKopf i{font-style:normal;font-size:13px;color:var(--grau)}
 .sKopf a{font-size:13px;color:var(--grau);white-space:nowrap;font-weight:700}
 #wahl.klein{margin-top:8px;font-size:16px;min-height:44px;padding:8px 12px}
 .vorgang{cursor:pointer}.vorgang.auf{border-color:var(--rot)}
@@ -1145,7 +1145,7 @@ function unterschriftDa(pad,was){if(PAD[pad].wert())return true;
 $("haupt").onclick=()=>{
   if(gesperrt(SICHT)&&!(aktuell()&&!$("s_"+SICHT).classList.contains("versteckt"))){zeige("vertrag");return}
   if(SICHT==="mappe"){const v=aktuell();if(MAPPE_NX&&v){if(MAPPE_NX==="vertrag")vertragLaden(v);zeige(MAPPE_NX)}else{leeren();zeige("vertrag")}return}   // nie in einen alten Mietvertrag speichern, solange ein neuer offen ist
-  if(SICHT==="heute"||SICHT==="vertraege"){leeren();zeige("vertrag");return}
+  if(SICHT==="heute"||SICHT==="vertraege"){if(!NEU&&ungespeichert()&&!confirm("Deine Änderungen am offenen Mietvertrag gelten noch nicht. Trotzdem weiter?"))return;leeren();zeige("vertrag");return}
   if(SICHT==="vertrag"){const f=fehltNoch();if(f.length){const el=$(f[0][0]);try{el.scrollIntoView({block:"center",behavior:"smooth"});el.focus()}catch(x){}meldung("Noch fehlt: "+f.map(x=>x[1]).join(", "));return}
     vertragSpeichern();return}
   if(!aktuell()){meldung("Erst oben unter „Neuer Mietvertrag“ einen Mietvertrag anlegen.");return}
@@ -1377,7 +1377,9 @@ function verlSpeichern(){const v0=aktuell();if(!v0)return;const neu=$("verlBis")
     {t:"Geänderten Mietvertrag drucken",f:()=>oeffnen(()=>seite(()=>fuelleVertrag(aktuell()),0)),bleibt:true}])}
 function offenBetrag(v){return ((!((v.zahlung||{}).rest||{}).am)?(zahl(((v.zahlung||{}).rest||{}).betrag)||0):0)+verlOffen(v)}
 function verlOffen(v){return (v.verlaengerungen||[]).filter(x=>!x.bezahlt).reduce((s,x)=>s+(x.aufpreis||0),0)}
-function verlBezahlt(){aendere(v=>{const r=((v.zahlung=v.zahlung||{}).rest=v.zahlung.rest||{});let s=0;(v.verlaengerungen||[]).forEach(x=>{if(!x.bezahlt){x.bezahlt=true;x.bezahltAm=iso(new Date());s+=x.aufpreis||0}});r.betrag=eur((zahl(r.betrag)||0)+s)});zeichneMappe();meldung("Aufpreis als bezahlt eingetragen")}
+function verlBezahlt(){const a=aktuell()||{},offen=(a.verlaengerungen||[]).filter(x=>!x.bezahlt).reduce((s,x)=>s+(x.aufpreis||0),0);
+  if(!confirm("Aufpreis "+eur(offen)+" € für die Verlängerung von "+(a.name||"dem Kunden")+" bezahlt?"))return;
+  aendere(v=>{const r=((v.zahlung=v.zahlung||{}).rest=v.zahlung.rest||{});let s=0;(v.verlaengerungen||[]).forEach(x=>{if(!x.bezahlt){x.bezahlt=true;x.bezahltAm=iso(new Date());if(!x.imRest)s+=x.aufpreis||0}});r.betrag=eur((zahl(r.betrag)||0)+s)});zeichneMappe();meldung("Aufpreis als bezahlt eingetragen")}
 $("mVerl").onclick=e=>{e.preventDefault();verlOeffnen()};
 $("verlAb").onclick=e=>{e.preventDefault();$("verlKarte").classList.add("versteckt")};
 $("verlOk").onclick=e=>{e.preventDefault();verlSpeichern()};
@@ -1520,8 +1522,9 @@ function uZahlZeichnen(){const v=aktuell(),z=(v&&v.zahlung)||{},teile=[];if(!v){
   if(v.kautionArt!=="fahrzeug"&&zahl(kaut.betrag))teile.push(["kaut","Kaution "+eur(zahl(kaut.betrag))+" €",kaut]);
   $("uZahlKarte").classList.toggle("versteckt",!teile.length);
   $("uZahl").innerHTML=teile.map(([k,t,x])=>'<div class="zeile" style="margin-top:6px"><b>'+t+(x.am?' ✓ erhalten'+(x.art?', '+art(x.art):'')+' am '+de(x.am)+' <a href="#" data-zweg="'+k+'" style="font-weight:700;color:var(--rot)">ändern</a>':' erhalten?')+'</b><div data-zw="'+k+'"></div></div>').join("");
-  teile.forEach(([k,,x])=>{if(!x.am)zahlChips($("uZahl").querySelector('[data-zw="'+k+'"]'),a=>{alsBezahlt(v.nr,k,a);meldung((k==="rest"?"Restbetrag":"Kaution")+" als erhalten eingetragen");uZahlZeichnen()})});
+  teile.forEach(([k,t,x])=>{if(!x.am)zahlChips($("uZahl").querySelector('[data-zw="'+k+'"]'),a=>{if(!confirm(t+" von "+(v.name||"dem Kunden")+" per "+art(a)+" erhalten?"))return;alsBezahlt(v.nr,k,a);meldung((k==="rest"?"Restbetrag":"Kaution")+" als erhalten eingetragen");uZahlZeichnen()})});
   $("uZahl").querySelectorAll("[data-zweg]").forEach(a=>a.onclick=e=>{e.preventDefault();const k=a.dataset.zweg;
+    if(!confirm((k==="rest"?"Restbetrag":"Kaution")+" von "+(v.name||"dem Kunden")+" wieder auf „nicht erhalten“ setzen?"))return;
     const l=vorgaenge(),x=l.find(y=>y.nr===v.nr);if(x&&x.zahlung&&x.zahlung[k]){x.zahlung[k].am="";x.zahlung[k].art="";schreib("mietixVorgaenge",l);GELADEN.vertrag=null}uZahlZeichnen()})}
 function eintrag(t,u,knopf,spaet){return'<div class="heute'+(spaet?" spaet":"")+'"><div><b>'+t+'</b><i>'+u+'</i></div><span>'+knopf+'</span></div>'}
 // Texte für WhatsApp (E2). Baran kann sie hier anpassen, sie werden nirgends sonst gebraucht.
@@ -1552,7 +1555,7 @@ function zeichneHeute(){const h=iso(new Date()),m=plusTage(h,1),l=vorgaenge().fi
   $("hHeuteT").textContent=kopf("Heute",h);$("hMorgenT").textContent=kopf("Morgen",m);
   $("hHeute").innerHTML=hz.length?hz.map(zeile).join(""):'<div class="leer">Heute keine Übergabe und keine Rückgabe.</div>';
   $("hMorgen").innerHTML=mz.length?mz.map(zeile).join(""):'<div class="leer">Morgen keine Übergabe und keine Rückgabe.</div>';
-  document.querySelectorAll("#hHeute .hz[data-anf],#hMorgen .hz[data-anf]").forEach(e=>{const a=anfH.find(x=>x.id===e.dataset.anf);if(a)e.onclick=()=>{leeren();uebernehmeAnfrage(a);zeige("vertrag")}});
+  document.querySelectorAll("#hHeute .hz[data-anf],#hMorgen .hz[data-anf]").forEach(e=>{const a=anfH.find(x=>x.id===e.dataset.anf);if(a)e.onclick=()=>{if(!NEU&&ungespeichert()&&!confirm("Deine Änderungen am offenen Mietvertrag gelten noch nicht. Trotzdem weiter?"))return;leeren();uebernehmeAnfrage(a);zeige("vertrag")}});
   document.querySelectorAll("#hHeute .hz,#hMorgen .hz").forEach(e=>{const v=l.find(x=>x.nr===e.dataset.nr);if(!v)return;
     e.onclick=()=>{NEU_FREI=true;WAHL=v.nr;zeige(e.dataset.art==="ueb"?"uebergabe":"rueckgabe")};
     // Erinnerung am Vortag: öffnet WhatsApp mit dem Text
@@ -1578,7 +1581,8 @@ function zeichneHeute(){const h=iso(new Date()),m=plusTage(h,1),l=vorgaenge().fi
     let ein=0,grund="";
     if(c.dataset.art==="voll"&&!confirm("Kaution "+eur(k)+" € komplett an "+v.name+" zurückgegeben?"))return;   // zwei Tipps, nicht umkehrbar (Sicherheitsnetz)
     if(c.dataset.art==="rest"){const f=$("hKaut").querySelector('[data-form="'+c.dataset.k+'"]');ein=zahl(f.querySelector(".kEin").value)||0;grund=f.querySelector(".kGrund").value.trim();
-      if(!ein){meldung("Bitte den Einbehalt eintragen");return}}
+      if(!ein){meldung("Bitte den Einbehalt eintragen");return}
+      if(!confirm(eur(Math.max(0,k-ein))+" € an "+v.name+" zurück, "+eur(ein)+" € einbehalten"+(grund?" ("+grund+")":"")+"?"))return}
     const l=vorgaenge(),x=l.find(y=>y.nr===v.nr);x.kautionRueck={betrag:Math.max(0,k-ein),einbehalt:ein,grund,am:iso(new Date())};schreib("mietixVorgaenge",l);
     meldung(ein?"Einbehalt "+eur(ein)+" €, "+eur(k-ein)+" € zurück":"Kaution "+eur(k)+" € zurück");zeichneHeute()});
   const hat=x=>vorgaenge().some(v=>v.name===x.name&&v.vonD===x.von);
@@ -1586,7 +1590,7 @@ function zeichneHeute(){const h=iso(new Date()),m=plusTage(h,1),l=vorgaenge().fi
   const anf=lies("mietixAnfragen",[]).filter(x=>x.status==="gebucht"&&x.von&&x.von>plusTage(h,1)&&!hat(x)&&!(x.vertrag&&vorgaenge().some(v=>v.nr===x.vertrag))).sort((a,b)=>a.von.localeCompare(b.von)).slice(0,8);
   $("hAnfKarte").classList.toggle("versteckt",!anf.length);
   $("hAnf").innerHTML=anf.length?anf.map(x=>eintrag(x.name||"ohne Namen",[x.auto,de(x.von)].filter(Boolean).join(", "),"Mietvertrag")).join(""):'<div class="leer">Alle gebuchten Anfragen haben einen Mietvertrag.</div>';
-  [...$("hAnf").children].forEach((e,i)=>e.onclick=()=>{leeren();uebernehmeAnfrage(anf[i]);zeige("vertrag")});
+  [...$("hAnf").children].forEach((e,i)=>e.onclick=()=>{if(!NEU&&ungespeichert()&&!confirm("Deine Änderungen am offenen Mietvertrag gelten noch nicht. Trotzdem weiter?"))return;leeren();uebernehmeAnfrage(anf[i]);zeige("vertrag")});
 }
 // Überlassungserklärung hängt an der Übergabe (30.10.2026, Baran): nur sichtbar, wenn das Auto des Kunden die Kaution ist
 function svKarte(){const k=$("uSvKarte");if(!k)return;const v=aktuell(),an=!!(v&&v.kautionArt==="fahrzeug");k.classList.toggle("versteckt",!an);if(!an)return;
