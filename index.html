@@ -161,8 +161,10 @@ h2.gruppe{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(-
 .mxKlapp[open]>summary{margin-bottom:10px}.mxKlapp[open]>summary em{transform:rotate(90deg)}
 .mxBg{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:90;display:none}.mxBg.auf{display:block}
 .mxFenster{position:fixed;left:0;right:0;bottom:0;z-index:91;background:#fff;border-radius:22px 22px 0 0;padding:16px 16px calc(18px + env(safe-area-inset-bottom));max-height:88vh;overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;display:none;box-shadow:0 -10px 30px rgba(0,0,0,.18);margin:0 auto;max-width:560px;box-sizing:border-box;text-align:left}
-.mxFenster.auf{display:block}
-@media(min-width:700px){.mxFenster{top:50%;bottom:auto;transform:translateY(-50%);border-radius:22px;width:calc(100% - 48px);padding:20px}}
+.mxFenster.auf{display:block;animation:mxHoch .22s ease-out}.mxBg.auf{animation:mxBlende .2s ease-out}
+@keyframes mxHoch{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}@keyframes mxBlende{from{opacity:0}to{opacity:1}}
+@media(min-width:700px){.mxFenster{top:50%;bottom:auto;transform:translateY(-50%);border-radius:22px;width:calc(100% - 48px);padding:20px}.mxFenster.auf{animation:mxMitte .2s ease-out}}
+@keyframes mxMitte{from{transform:translateY(-46%);opacity:0}to{transform:translateY(-50%);opacity:1}}
 .mxKopf{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px}
 .mxKopf h3{font-size:19px;font-weight:900;margin:0;color:#1C1C1E}
 .mxZu{flex:0 0 auto;width:40px;height:40px;border-radius:50%;border:0;background:#F2F2F4;font-size:17px;font-weight:800;cursor:pointer;color:#1C1C1E;font-family:inherit}
@@ -514,6 +516,10 @@ const betrag=id=>{const n=zahl($(id).value);return n===null?"":wie(n)};
 const geld=id=>{const n=zahl($(id).value);return n===null?"":eur(n)};
 const kmText=v=>{const n=zahl(v);return n===null?String(v||"").trim():Math.round(n).toLocaleString("de-DE")};   // 40.655
 const heuteDe=()=>{const d=new Date();return pad(d.getDate())+"."+pad(d.getMonth()+1)+"."+d.getFullYear()};
+// Kleiner Erfolgsmoment (31.10.2026): großer grüner Haken, verschwindet von selbst
+function erfolg(titel,unter){let e=$("erfolgBox");if(!e){e=document.createElement("div");e.id="erfolgBox";document.body.appendChild(e);
+    const st=document.createElement("style");st.textContent="#erfolgBox{position:fixed;left:50%;top:38%;transform:translate(-50%,-50%) scale(.9);z-index:200;background:#fff;border-radius:24px;padding:26px 28px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.25);opacity:0;pointer-events:none;transition:all .25s ease;width:min(320px,86vw)}#erfolgBox.auf{opacity:1;transform:translate(-50%,-50%) scale(1)}#erfolgBox .h{width:64px;height:64px;border-radius:50%;background:#1B8A4B;color:#fff;font-size:36px;font-weight:900;line-height:64px;margin:0 auto 12px}#erfolgBox b{display:block;font-size:19px;font-weight:900;color:#1C1C1E}#erfolgBox i{display:block;font-style:normal;font-size:15px;color:#6F6F72;margin-top:6px;font-weight:600}";document.head.appendChild(st)}
+  e.innerHTML='<div class="h">✓</div><b>'+esc(titel)+'</b>'+(unter?'<i>'+esc(unter)+'</i>':'');e.classList.add("auf");clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove("auf"),2600)}
 function meldung(t){const m=$("meldung");m.textContent=t;m.style.display="block";setTimeout(()=>m.style.display="none",2600)}
 
 /* ---------- Unterschrift mit dem Finger ---------- */
@@ -916,7 +922,7 @@ function sammle(){
     unterschrift:PAD.padV.wert(),unterschriftVermieter:PAD.padV.wert()?vermieterUnterschrift():"",avb:an("avbHaken")||!!PAD.padV.wert()}}
 function lerneAuto(name,werte){const fz=lies("mietixFahrzeuge",{});const neu=fz[name]||{};
   Object.keys(werte).forEach(k=>{if(werte[k])neu[k]=werte[k]});fz[name]=neu;schreib("mietixFahrzeuge",fz)}
-function merke(v){entwurfWeg();
+function merke(v){entwurfWeg();werMerken(v);
   const l=vorgaenge(),i=l.findIndex(x=>x.nr===v.nr);
   // Alles behalten, was nicht im Formular steht: Übergabe, Rückgabe, Verlängerungen, Kaution zurück, Endabrechnung, Erinnerungen (Liste Punkt 1, 30.10.2026)
   if(i>=0){const alt=l[i];Object.keys(alt).forEach(k=>{if(v[k]===undefined)v[k]=alt[k]});if(alt.erstellt)v.erstellt=alt.erstellt;
@@ -935,7 +941,13 @@ function excelZeile(v){const z=v.zahlung||{},bez=z.rest&&z.rest.art&&z.rest.am?"
   return [v.name,v.telefon,v.auto,de(v.vonD),v.vonU,de(v.bisD),v.bisU,alter(v.geb),wohnort(v.anschrift),"",bez].join("\t")}
 const excelKm=v=>[kmText((v.ueb||{}).km||v.km),kmText((v.rueck||{}).km)].join("\t").replace(/\./g,"");
 function kopiere(t){try{navigator.clipboard.writeText(t).catch(()=>{})}catch(e){}}
-function aendere(fn){const l=vorgaenge(),v=l.find(x=>x.nr===WAHL);if(!v)return null;fn(v);schreib("mietixVorgaenge",l);return v}
+function aendere(fn){const l=vorgaenge(),v=l.find(x=>x.nr===WAHL);if(!v)return null;fn(v);werMerken(v);schreib("mietixVorgaenge",l);return v}
+// Wer hat zuletzt etwas geändert (31.10.2026): Anmelde-Mail und Zeit, klein in der Mappe
+function werMerken(v){const m=ichMail();if(m)v.geaendert={wer:m,am:new Date().toISOString()}}
+function werText(v){const g=v&&v.geaendert;if(!g||!g.wer)return"";const n=g.wer.split("@")[0],d=new Date(g.am),p=x=>String(x).padStart(2,"0");
+  return"Zuletzt geändert von "+n.charAt(0).toUpperCase()+n.slice(1)+", "+p(d.getDate())+"."+p(d.getMonth()+1)+". "+p(d.getHours())+":"+p(d.getMinutes())+" Uhr"}
+// Danke nach der Rückgabe (31.10.2026): fertiger Text, öffnet den Chat mit dem Kunden
+const DANKE=v=>"Hallo "+String(v.name||"").trim().split(/\s+/)[0]+",\n\nvielen Dank, dass Sie bei Mietix gemietet haben! Wir hoffen, Sie hatten eine tolle Zeit mit dem "+v.auto+".\n\nWir freuen uns auf das nächste Mal.\n\nViele Grüße\nIhr Mietix-Team";
 
 /* ---------- Mietvertrag wählen (für die anderen 4 Formulare) ---------- */
 function wahlFuellen(){const l=vorgaenge().slice().reverse();
@@ -1100,7 +1112,8 @@ $("haupt").onclick=()=>{
       uhr:$("uU").value,ort:$("uOrt").value.trim(),bem:$("uBem").value.trim(),ortDatum:heuteDe(),unterschrift:PAD.padU.wert(),unterschriftVermieter:PAD.padU.wert()?vermieterUnterschrift():""});if(v.ueb.km)v.km=v.ueb.km});
     lerneAuto(v.auto,{km:v.ueb.km,reifen:v.ueb.reifen,felgen:v.ueb.felgen,reserve:v.ueb.reserve,marke:v.ueb.marke,profil:v.ueb.profil});
     protWeg(v.nr,"uebergabe");GELADEN={};zeige("mappe");
-    meldung("✓ Übergeben. Zurück am "+de(v.bisD)+(v.bisU?" um "+v.bisU+" Uhr":"")+(v.ueb.unterschrift?"":". Ohne Unterschrift des Mieters!"));return}
+    if(v.ueb.unterschrift)erfolg("Übergeben. Gute Fahrt!","Zurück am "+de(v.bisD)+(v.bisU?" um "+v.bisU+" Uhr":""));
+    else meldung("✓ Übergeben. Zurück am "+de(v.bisD)+(v.bisU?" um "+v.bisU+" Uhr":"")+". Ohne Unterschrift des Mieters!");return}
   if(SICHT==="rueckgabe"){if(!$("rKm").value.trim()){alert("Bitte den Kilometerstand bei Rückgabe eintragen.");return}
     if(!unterschriftDa("padR","Rückgabe"))return;
     if(gw("r_auff")==="ja")schadenSpeichern();
@@ -1114,7 +1127,7 @@ $("haupt").onclick=()=>{
     zeige("mappe");
     if(e.summe)nachSheet("Abrechnung: "+eur(e.summe)+" € offen",v.name+", "+v.auto+(kautZurueck?". Kaution zurückgeben: unter Heute":""),[
       {t:"Endabrechnung per WhatsApp an den Kunden",wa:true,voll:true,f:()=>$("eKopieren").click(),bleibt:true}]);
-    else meldung("✓ Auto zurück. Nichts nachzuberechnen"+(kautZurueck?", Kaution zurückgeben":""));return}
+    else erfolg("Auto zurück, alles erledigt!",kautZurueck?"Jetzt noch die Kaution zurückgeben.":"Nichts nachzuberechnen.");return}
   if(SICHT==="schaden"){const v=aendere(v=>{v.schaden={km:$("sKm").value.trim(),datum:$("sD").value,uhr:$("sU").value,ort:$("sOrt").value.trim(),
       ortFz:$("sOrtFz").value.trim(),art:$("sArt").value.trim(),besch:$("sBesch").value.trim(),fotos:gw("s_fotos"),besichtigt:gw("s_besichtigt"),
       sb:betrag("sSb"),weiter:gw("s_weiter"),kaution:gw("s_kaution"),betrag:betrag("sKaution"),ortDatum:heuteDe(),unterschrift:PAD.padS.wert(),unterschriftVermieter:PAD.padS.wert()?vermieterUnterschrift():"",anerkannt:an("sAnerkannt")}});
@@ -1385,7 +1398,8 @@ function zeichneMappe(){const v=aktuell();if(!v){zeige("vertraege");return}
   $("mSchritte").innerHTML=st.map(([x,t,ok],i)=>'<div class="mSchritt'+(ok?" ok":"")+(nx&&nx[0]===x?" weiter":"")+'" data-m="'+x+'"><span class="nr">'+(ok?"✓":(i+1))+'</span><b>'+t+'</b><i>'+
     (ok?"erledigt, ansehen":(nx&&nx[0]===x?"als Nächstes":"noch offen"))+'</i></div>').join("");
   [...$("mSchritte").children].forEach(c=>c.onclick=()=>{const x=c.dataset.m;if(x==="vertrag")vertragLaden(v);zeige(x)});
-  $("mDruck").innerHTML=druckReihe(v)+'<a href="#" class="mWa" id="mWa">Mietvertrag per WhatsApp an den Kunden senden</a>';
+  $("mDruck").innerHTML=druckReihe(v)+'<a href="#" class="mWa" id="mWa">Mietvertrag per WhatsApp an den Kunden senden</a>'+(v.status==="zurück"?'<a href="#" class="mWa" id="mDanke">Danke-Nachricht per WhatsApp</a>':'')+(werText(v)?'<div class="hinweis" style="text-align:center;margin-top:10px">'+esc(werText(v))+'</div>':'');
+  const md=$("mDanke");if(md)md.onclick=e=>{e.preventDefault();waOeffnen(v,DANKE(v));aendere(x=>{x.bedankt=iso(new Date())});meldung("WhatsApp mit dem Danke geöffnet")};
   $("mDruck").querySelectorAll("[data-dr]").forEach(d=>d.onclick=e=>{e.preventDefault();druckeDoc(v,d.dataset.dr)});
   $("mWa").onclick=e=>{e.preventDefault();teilen(v)};
   $("haupt").textContent=nx?"Weiter: "+nx[1]:"Neuer Mietvertrag";
@@ -1413,11 +1427,11 @@ function nachSheet(titel,unter,aktionen){$("nach").innerHTML='<h3>'+esc(titel)+'
   const zm=zurMappe();$("nachZu").onclick=e=>{e.preventDefault();zu();if(zm)zeige("mappe")};$("nachBg").onclick=zu}
 function teilenBlatt(v){v=aktuell()||v;$("nach").innerHTML='<h3>Teilen</h3><div class="unter">'+esc(v.nr+"  "+v.name+", "+v.auto)+'</div>'+druckReihe(v)+
     '<div class="knopf wa" id="tWa">Mietvertrag per WhatsApp an den Kunden</div>'+
-    ((v.endabrechnung||{}).summe?'<div class="knopf wa" id="tEnd">Endabrechnung ('+eur(v.endabrechnung.summe)+' €) per WhatsApp</div>':'')+'<a href="#" class="zu" id="nachZu">Schließen</a>';
+    ((v.endabrechnung||{}).summe?'<div class="knopf wa" id="tEnd">Endabrechnung ('+eur(v.endabrechnung.summe)+' €) per WhatsApp</div>':'')+(v.status==="zurück"?'<div class="knopf wa" id="tDanke">Danke-Nachricht per WhatsApp</div>':'')+'<a href="#" class="zu" id="nachZu">Schließen</a>';
   $("nach").classList.remove("versteckt");$("nachBg").classList.remove("versteckt");
   const zu=()=>{$("nach").classList.add("versteckt");$("nachBg").classList.add("versteckt")};
   $("nach").querySelectorAll("[data-dr]").forEach(d=>d.onclick=e=>{e.preventDefault();druckeDoc(v,d.dataset.dr)});
-  $("tWa").onclick=()=>teilen(v);const te=$("tEnd");if(te)te.onclick=()=>{if(SICHT!=="rueckgabe")zeige("rueckgabe");zu();setTimeout(()=>$("eKopieren").click(),300)};$("nachZu").onclick=e=>{e.preventDefault();zu()};$("nachBg").onclick=zu}
+  $("tWa").onclick=()=>teilen(v);const td=$("tDanke");if(td)td.onclick=()=>{waOeffnen(v,DANKE(v));zu()};const te=$("tEnd");if(te)te.onclick=()=>{if(SICHT!=="rueckgabe")zeige("rueckgabe");zu();setTimeout(()=>$("eKopieren").click(),300)};$("nachZu").onclick=e=>{e.preventDefault();zu()};$("nachBg").onclick=zu}
 const DRUCK_BEIDE=v=>{const u=aendere(x=>{if(!x.ueb)x.ueb=uebStandard(x)})||v;lerneAuto(u.auto,{reifen:u.ueb.reifen,felgen:u.ueb.felgen,marke:u.ueb.marke});oeffnen(()=>fuelleVertrag(aktuell()||u))};
 const HEUTE=()=>{AUF=null;location.href="https://barankohler.github.io/mietix-zentrale/"};   // Fertig: zur Startseite mit Heute (30.10.2026)
 let NEU=true;   // true = das Formular ist ein neuer Mietvertrag; false = ein gespeicherter Mietvertrag ist geladen (zurück zeigt ihn wieder, nichts geht verloren)
@@ -1889,6 +1903,14 @@ zeigen();abgleichen();
   document.addEventListener("click",function(e){const k=e.target.closest("[data-fenster]");if(k){e.preventDefault();mxAuf(k.dataset.fenster);return}
     if(e.target.closest(".mxZu")||e.target===bg)mxZu()});
   document.addEventListener("keydown",function(e){if(e.key==="Escape")mxZu()})})();
+</script><script>
+/* ‹ Start oben links (31.10.2026) */
+(function(){if(document.querySelector(".mxStart"))return;
+  const ziel=document.querySelector("header h1")||document.querySelector(".topbar");if(!ziel)return;
+  const st=document.createElement("style");st.textContent=".mxStart{display:inline-flex;align-items:center;gap:2px;margin-right:10px;padding:5px 11px 5px 8px;border-radius:999px;border:1.5px solid currentColor;color:inherit;text-decoration:none;font:800 13px/1 -apple-system,Inter,system-ui,sans-serif;letter-spacing:0;text-transform:none;vertical-align:middle;opacity:.8;-webkit-tap-highlight-color:transparent}.mxStart b{font-size:17px;line-height:13px;margin-top:-2px}.mxStart:active{opacity:.5}header h1{white-space:nowrap}header .mxStart,.topbar .mxStart{float:none!important;margin:0 10px 0 0!important;padding:5px 11px 5px 8px!important;font-size:13px!important;color:inherit!important}@media(max-width:360px){header .mxStart,.topbar .mxStart{padding:4px 8px 4px 6px!important;margin-right:6px!important;font-size:12px!important}}@media(max-width:480px){.topbar .brand-sub{display:none}}.topbar{overflow:hidden}";
+  document.head.appendChild(st);
+  const a=document.createElement("a");a.className="mxStart";a.href="https://barankohler.github.io/mietix-zentrale/";a.innerHTML="<b>‹</b>Start";a.setAttribute("aria-label","Zur Startseite");
+  ziel.insertBefore(a,ziel.firstChild)})();
 </script><script>
 /* Einheit fest im Zahlenfeld (31.10.2026) */
 (function(){if(window.mxEinheit)return;
