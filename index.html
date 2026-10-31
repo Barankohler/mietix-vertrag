@@ -139,7 +139,12 @@ h2.hT{margin:18px 4px 8px}#s_heute h2.hT:first-of-type{margin-top:6px}
 .schild{flex:0 0 auto;padding:6px 9px;border-radius:6px;font-size:12px;font-weight:700;background:#F2F2F7;color:#3A3A3C;white-space:nowrap}
 .schild.gruen{background:#E6F4EA;color:#1B6B3A}.schild.rot{background:#FDECEC;color:#A31318}
 .hListe .heute{border:0;border-top:1px solid #ECECEF;border-radius:0;margin:0;padding:13px 0;background:none}.hListe .heute:first-child{border-top:0}
-.hListe .heute span{background:#F2F2F7;color:#1C1C1E;border-radius:999px;font-weight:700}
+.hListe .heute b{font-size:17px;font-weight:700}.hListe .heute i{font-size:14px}
+.hListe .heute span{flex:0 0 auto;padding:6px 9px;border-radius:6px;font-size:12px;font-weight:700;background:#F2F2F7;color:#3A3A3C}
+/* Fortschritt wie früher auf der Startseite (31.10.2026, Baran: Design wie das Dashboard) */
+#hFort{display:flex;align-items:center;gap:10px;padding:12px 0 4px;font-size:14px;font-weight:800;color:var(--grau)}
+#hFort .bal{flex:1;height:8px;border-radius:99px;background:#ECECEF;overflow:hidden}#hFort .bal i{display:block;height:100%;background:#1E9E5A;border-radius:99px}
+.hListe .fertig{padding:20px 0;text-align:center;color:#1E9E5A;font-weight:800;font-size:17px}
 #nachBg{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:30}
 #nach{position:fixed;left:0;right:0;bottom:0;background:#fff;border-radius:22px 22px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom));z-index:31;max-width:680px;margin:0 auto;box-shadow:0 -10px 30px rgba(0,0,0,.15)}
 #nach h3{font-size:17px;font-weight:900;margin-bottom:4px}#nach .unter{font-size:13px;color:var(--grau);margin-bottom:10px}
@@ -1546,14 +1551,18 @@ function zeichneHeute(){const h=iso(new Date()),m=plusTage(h,1),l=vorgaenge().fi
       anfH.map(a=>({v:{nr:"",name:a.name||a.nummer||"ohne Namen",auto:a.auto||""},anf:a,art:"ueb",d:a.von,u:a.vonU||""})))
     .sort((a,b)=>(a.d+" "+(a.u||"99"))<(b.d+" "+(b.u||"99"))?-1:1);
   const zeile=z=>{const v=z.v,spaet=z.d<h,ueb=z.art==="ueb",erin=ueb&&z.d===m&&!v.erinnert;
-    if(z.anf)return'<div class="hz" data-anf="'+esc(z.anf.id)+'"><span class="uhr">'+(z.u||"&nbsp;")+'</span><span class="t"><b>'+esc(v.name)+'</b><i>'+esc(v.auto)+', noch kein Mietvertrag</i></span>'+
-      '<span class="schild'+(z.d<=h?" gruen":"")+'">Übergabe</span></div>';
-    return'<div class="hz" data-nr="'+esc(v.nr)+'" data-art="'+z.art+'"><span class="uhr">'+(z.u||"&nbsp;")+'</span><span class="t"><b>'+esc(v.name)+'</b><i>'+esc(v.auto)+'</i>'+
+    // Übergabe immer grün, Rückgabe immer rot, auch bei Morgen (31.10.2026, Baran: „überall gleichmäßig“)
+    if(z.anf)return'<div class="hz" data-anf="'+esc(z.anf.id)+'"><span class="uhr">'+(z.u||"&nbsp;")+'</span><span class="t"><b>'+esc(v.name)+'</b><i>'+esc([v.auto,"gebucht, noch kein Mietvertrag"].filter(Boolean).join(", "))+'</i></span>'+
+      '<span class="schild gruen">Übergabe</span></div>';
+    return'<div class="hz" data-nr="'+esc(v.nr)+'" data-art="'+z.art+'"><span class="uhr">'+(z.u||"&nbsp;")+'</span><span class="t"><b>'+esc(v.name)+'</b><i>'+esc([v.auto,(ueb?"Übergabe":"Rückgabe")+(z.d===h?" heute":"")].filter(Boolean).join(", "))+'</i>'+
       (spaet?'<i class="spaet">überfällig seit '+de(z.d).slice(0,6)+'</i>':'')+(erin?'<u data-erin="1">Erinnerung senden</u>':'')+'</span>'+
-      '<span class="schild'+(z.d<=h?(ueb?" gruen":" rot"):"")+'">'+(ueb?"Übergabe":"Rückgabe")+'</span></div>'};
+      '<span class="schild '+(ueb?"gruen":"rot")+'">'+(ueb?"Übergabe":"Rückgabe")+'</span></div>'};
   const hz=zeilen.filter(z=>z.d<=h),mz=zeilen.filter(z=>z.d===m);
   $("hHeuteT").textContent=kopf("Heute",h);$("hMorgenT").textContent=kopf("Morgen",m);
-  $("hHeute").innerHTML=hz.length?hz.map(zeile).join(""):'<div class="leer">Heute keine Übergabe und keine Rückgabe.</div>';
+  // Fortschritt: heute erledigte Übergaben und Rückgaben gegen alles, was heute noch ansteht
+  const erl=alleV.filter(v=>v.ueb&&String(v.ueb.datum||"").slice(0,10)===h).length+alleV.filter(v=>v.rueck&&String(v.rueck.datum||"").slice(0,10)===h).length,ges=erl+hz.length;
+  const fort=ges?'<div id="hFort"><div class="bal"><i style="width:'+Math.round(erl/ges*100)+'%"></i></div><span>'+erl+' von '+ges+' erledigt</span></div>':"";
+  $("hHeute").innerHTML=fort+(hz.length?hz.map(zeile).join(""):erl?'<div class="fertig">Alles erledigt ✓</div>':'<div class="leer">Heute keine Übergabe und keine Rückgabe.</div>');
   $("hMorgen").innerHTML=mz.length?mz.map(zeile).join(""):'<div class="leer">Morgen keine Übergabe und keine Rückgabe.</div>';
   document.querySelectorAll("#hHeute .hz[data-anf],#hMorgen .hz[data-anf]").forEach(e=>{const a=anfH.find(x=>x.id===e.dataset.anf);if(a)e.onclick=()=>{if(!NEU&&ungespeichert()&&!confirm("Deine Änderungen am offenen Mietvertrag gelten noch nicht. Trotzdem weiter?"))return;leeren();uebernehmeAnfrage(a);zeige("vertrag")}});
   document.querySelectorAll("#hHeute .hz,#hMorgen .hz").forEach(e=>{const v=l.find(x=>x.nr===e.dataset.nr);if(!v)return;
