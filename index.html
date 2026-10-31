@@ -538,7 +538,10 @@ let D=null,AUTO=null,SICHT="heute",WAHL=null,restVonHand=false;
 
 /* ---------- Speicher (gleicher Speicher wie das Anfragen-Buch auf barankohler.github.io) ---------- */
 const lies=(k,d)=>{try{return JSON.parse(localStorage.getItem(k)||"")||d}catch(e){return d}};
-const schreib=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+// Speichern darf nie still scheitern (31.10.2026, iPad: Speicher voll, Mietvertrag viermal verloren): laut melden
+let VOLL_GEMELDET=0;
+const schreib=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){
+  if(Date.now()-VOLL_GEMELDET>5000){VOLL_GEMELDET=Date.now();alert("ACHTUNG: Nicht gespeichert!\n\nDer Speicher auf diesem Gerät ist voll. Bitte sofort Baran Bescheid geben und das Formular NICHT schließen.\n\nBis dahin den Mietvertrag am Mac oder auf Papier machen.")}return false}};
 const vorgaenge=()=>lies("mietixVorgaenge",[]);
 const kunden=()=>lies("mietixKunden",{});
 
@@ -628,7 +631,11 @@ $("ugFertig").onclick=()=>{if(!UG)return;let daten="";
   if(pkte.length>1){const d=UG.dpr,r=12,xs=pkte.map(p=>p[0]),ys=pkte.map(p=>p[1]);   // nur den beschriebenen Teil übernehmen
     const x0=Math.max(0,Math.min(...xs)-r),y0=Math.max(0,Math.min(...ys)-r),x1=Math.min(UG.w,Math.max(...xs)+r),y1=Math.min(UG.h,Math.max(...ys)+r);
     const z=document.createElement("canvas");z.width=Math.max(10,Math.round((x1-x0)*d));z.height=Math.max(10,Math.round((y1-y0)*d));
-    z.getContext("2d").drawImage(UG.c,x0*d,y0*d,(x1-x0)*d,(y1-y0)*d,0,0,z.width,z.height);daten=z.toDataURL("image/png")}
+    // Druckgröße reicht (31.10.2026): höchstens 700 x 260 Punkte, ein Strichton, 16 Deckkraftstufen, so etwa 10 KB statt 100 KB
+    const f=Math.min(1,700/z.width,260/z.height);z.width=Math.max(10,Math.round(z.width*f));z.height=Math.max(10,Math.round(z.height*f));
+    const zc=z.getContext("2d");zc.imageSmoothingQuality="high";zc.drawImage(UG.c,x0*d,y0*d,(x1-x0)*d,(y1-y0)*d,0,0,z.width,z.height);
+    try{const id=zc.getImageData(0,0,z.width,z.height),px=id.data;for(let i=0;i<px.length;i+=4){px[i]=px[i+1]=px[i+2]=26;px[i+3]=Math.round(px[i+3]*15/255)*17}zc.putImageData(id,0,0)}catch(x){}
+    daten=z.toDataURL("image/png")}
   const padId=UG.padId;ugZu();
   if(daten){PAD[padId].setzen(daten);if(padId==="padVM"){try{localStorage.setItem("mietixUnterschriftVermieter",daten)}catch(e){}vmGemeinsam(daten);VM_AUF=false;setTimeout(()=>{vmStand();vmKarte()},100);meldung("Unterschrift gespeichert")}
     if(padId==="padV"&&typeof entwurfMerken==="function")entwurfMerken()}};   // Unterschrift landet sofort im Entwurf (30.10.2026)
@@ -990,7 +997,8 @@ function excelZeile(v){const z=v.zahlung||{},bez=z.rest&&z.rest.art&&z.rest.am?"
   return [v.name,v.telefon,v.auto,de(v.vonD),v.vonU,de(v.bisD),v.bisU,alter(v.geb),wohnort(v.anschrift),"",bez].join("\t")}
 const excelKm=v=>[kmText((v.ueb||{}).km||v.km),kmText((v.rueck||{}).km)].join("\t").replace(/\./g,"");
 function kopiere(t){try{navigator.clipboard.writeText(t).catch(()=>{})}catch(e){}}
-function aendere(fn){const l=vorgaenge(),v=l.find(x=>x.nr===WAHL);if(!v)return null;fn(v);werMerken(v);schreib("mietixVorgaenge",l);return v}
+// Klappt das Speichern nicht, bricht der Schritt ab (keine Erfolgsmeldung, Formular bleibt offen), die Meldung kommt aus schreib (31.10.2026)
+function aendere(fn){const l=vorgaenge(),v=l.find(x=>x.nr===WAHL);if(!v)return null;fn(v);werMerken(v);if(!schreib("mietixVorgaenge",l))throw new Error("Speicher voll, nicht gespeichert");return v}
 // Wer hat zuletzt etwas geändert (31.10.2026): Anmelde-Mail und Zeit, klein in der Mappe
 function werMerken(v){const m=ichMail();if(m)v.geaendert={wer:m,am:new Date().toISOString()}}
 function werText(v){const g=v&&v.geaendert;if(!g||!g.wer)return"";const n=g.wer.split("@")[0],d=new Date(g.am),p=x=>String(x).padStart(2,"0");
@@ -1126,7 +1134,7 @@ function belegtDurch(v){const ueber=(a1,b1,a2,b2)=>a1<b2&&b1>a2,t=[];
   lies("mietixSperren",[]).forEach(x=>{if(x.auto===v.auto&&x.von&&x.bis&&ueber(v.vonD,v.bisD,x.von,x.bis))t.push("Sperre: "+(x.grund||"gesperrt")+" bis "+de(x.bis))});
   return t}
 // Speichern ist vom Drucken getrennt (29.10.2026): erst sichern, dann im Blatt wählen: drucken, WhatsApp, weiter zur Übergabe.
-function vertragSpeichern(){const v=sammle();if(!v)return;
+function vertragSpeichern(){if($("haupt").textContent==="Wird gespeichert …")return;const v=sammle();if(!v)return;
   const ueber=(a1,b1,a2,b2)=>a1<b2&&b1>a2;
   const selbe=vorgaenge().find(x=>x.nr!==v.nr&&nameGleich(x.name,v.name)&&x.auto===v.auto&&x.status!=="zurück"&&x.vonD&&x.bisD&&ueber(v.vonD,v.bisD,x.vonD,x.bisD));
   // Nie den vorhandenen mit einem fast leeren neuen Formular überschreiben (Kaution, Zahlungen gingen sonst verloren): den vorhandenen öffnen,
@@ -1139,13 +1147,19 @@ function vertragSpeichern(){const v=sammle();if(!v)return;
   const b=belegtDurch(v);if(b.length&&!confirm("ACHTUNG, "+v.auto+" ist in dem Zeitraum schon vergeben:\n\n"+b.join("\n")+"\n\nTrotzdem weiter?"))return;
   const neu=!nrVonHand&&!vorgaenge().some(x=>x.nr===v.nr&&x.name===v.name);
   if(neu&&!navigator.onLine&&!confirm("Kein Internet: Die Nummer "+v.nr+" ist nur vorläufig.\n\nBitte am anderen Handy nicht gleichzeitig einen neuen Mietvertrag anlegen, sonst gibt es die Nummer doppelt.\n\nOK = trotzdem weiter"))return;
-  const fertig=()=>{merke(v);try{if(+v.nr>(+(localStorage.getItem("mietixHoechsteNr")||0)||0))localStorage.setItem("mietixHoechsteNr",String(+v.nr))}catch(x){}ANFRAGE=null;nrVonHand=true;$("nr").value=v.nr;NEU=false;GELADEN={};standMerken();
+  let schonFertig=false;
+  const fertig=()=>{if(schonFertig)return;schonFertig=true;merke(v);
+    if(!vorgaenge().some(x=>x.nr===v.nr)){meldung("Nicht gespeichert, bitte Baran Bescheid geben");return}try{if(+v.nr>(+(localStorage.getItem("mietixHoechsteNr")||0)||0))localStorage.setItem("mietixHoechsteNr",String(+v.nr))}catch(x){}ANFRAGE=null;nrVonHand=true;$("nr").value=v.nr;NEU=false;GELADEN={};standMerken();
     const voll=aktuell();schritte();
     $("vSenden").classList.remove("versteckt");$("vSenden").onclick=e=>{e.preventDefault();teilen(aktuell())};
     // Übergabe heute oder schon fällig: gleich weiter; liegt sie in der Zukunft oder ist sie schon gemacht: zur Mappe
     if(!voll.ueb&&voll.vonD<=iso(new Date())){zeige("uebergabe");meldung("✓ Mietvertrag "+voll.nr+" steht. Jetzt die Übergabe.")}
     else{zeige("mappe");meldung(voll.ueb?"✓ Mietvertrag "+voll.nr+" geändert":"✓ Mietvertrag "+voll.nr+" steht. Übergabe am "+de(voll.vonD)+(voll.vonU?" um "+voll.vonU+" Uhr":""))}};
-  if(neu&&window.mietixNeueNummer&&navigator.onLine)window.mietixNeueNummer().then(n=>{if(n)v.nr=n;fertig()}).catch(fertig);else fertig()}
+  // Höchstens 6 Sekunden auf die Nummer warten (31.10.2026): bei schlechtem Netz bleibt die Nummer vom Gerät, nichts hängt
+  if(neu&&window.mietixNeueNummer&&navigator.onLine){$("haupt").classList.add("aus");$("haupt").textContent="Wird gespeichert …";
+    const zeit=setTimeout(()=>{hauptText();fertig()},6000);
+    window.mietixNeueNummer().then(n=>{clearTimeout(zeit);if(n&&!schonFertig)v.nr=n;hauptText();fertig()}).catch(()=>{clearTimeout(zeit);hauptText();fertig()})}
+  else fertig()}
 // Unterschrift nie still verlieren (30.10.2026, Fehler bei Hassan): fehlt sie im Feld, aus dem Zwischenspeicher holen, sonst nachfragen
 function unterschriftDa(pad,was){if(PAD[pad].wert())return true;
   const d=protAlle()[WAHL+"|"+SICHT];if(d&&d.p&&d.p[pad]){PAD[pad].setzen(d.p[pad]);return true}
@@ -1185,6 +1199,12 @@ $("haupt").onclick=()=>{
       wert:betrag("vWert"),schein:an("vSchein"),brief:an("vBrief"),schluessel:$("vSchluessel").value.trim(),ortDatum:heuteDe(),unterschrift:PAD.padSV.wert(),unterschriftVermieter:PAD.padSV.wert()?vermieterUnterschrift():"",bestaetigt:an("svBestaetigt")||!!PAD.padSV.wert()};
       v.kautionArt="fahrzeug";const kf=[v.sv.modell,v.sv.kz].filter(Boolean).join(", ");if(kf)v.kfz=kf});
     GELADEN={};zeige(v.ueb?"mappe":"uebergabe");meldung("✓ Überlassungserklärung steht. Im Mietvertrag: Fahrzeug als Sicherheit");return}};
+// Sicherheitsnetz (31.10.2026): Bricht ein Schritt mit einem Fehler ab, kommt immer eine laute Meldung, nie still nichts
+const nichtGespeichert=x=>{console.error(x);if(Date.now()-VOLL_GEMELDET<5000)return;VOLL_GEMELDET=Date.now();
+  alert("ACHTUNG: Nicht gespeichert!\n\n"+(x&&(x.name==="QuotaExceededError"||/voll/i.test(x.message||""))?"Der Speicher auf diesem Gerät ist voll.":"Fehler: "+((x&&x.message)||x))+"\n\nFormular nicht schließen und Baran Bescheid geben.")};
+{const eigen=$("haupt").onclick;$("haupt").onclick=e=>{try{return eigen(e)}catch(x){nichtGespeichert(x)}}}
+window.addEventListener("error",e=>{const x=e.error;if(x&&(x.name==="QuotaExceededError"||/Speicher voll/.test(x.message||"")))nichtGespeichert(x)});
+window.addEventListener("unhandledrejection",e=>{const x=e.reason;if(x&&(x.name==="QuotaExceededError"||/Speicher voll/.test(x.message||"")))nichtGespeichert(x)});
 
 /* ---------- Reiter Mietverträge: Karten mit Stand (29.10.2026) ---------- */
 let AUF=null;
@@ -1790,12 +1810,14 @@ const SPEICHER={mietixVorgaenge:{tab:"vorgaenge",pk:"nr",liste:true},mietixAnfra
   mietixAufgaben:{tab:"aufgaben",pk:"id",liste:true},mietixZustand:{tab:"zustand",pk:"id",liste:true},mietixAutos:{tab:"autos",pk:"name",liste:false},mietixStand:{tab:"stand",pk:"id",liste:false},mietixPapierkorb:{tab:"papierkorb",pk:"id",liste:true}};
 const roh=Storage.prototype.setItem;
 const lies=(k,d)=>{try{return JSON.parse(localStorage.getItem(k)||"")||d}catch(e){return d}};
-const merk=(k,v)=>{try{roh.call(localStorage,k,JSON.stringify(v))}catch(e){}};
+const merk=(k,v)=>{try{roh.call(localStorage,k,JSON.stringify(v));return true}catch(e){return false}};
+// Jede Anfrage an den Speicher höchstens 20 Sekunden (31.10.2026): sonst hing der Abgleich bei schlechtem Netz für immer
+const holeMit=(u,o)=>{const c=new AbortController(),t=setTimeout(()=>c.abort(),20000);return fetch(u,Object.assign({},o,{signal:c.signal})).finally(()=>clearTimeout(t))};
 const hash=s=>{let h=5381;for(let i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))|0;return String(h)};
-let sitzung=lies("mietixSitzung",null),laeuft=false,nochmal=false,zuletzt=null,fehler="";
+let NEU_AUFBAU=false,sitzung=lies("mietixSitzung",null),laeuft=false,nochmal=false,zuletzt=null,fehler="";
 
 /* ---------- Anmeldung ---------- */
-async function auth(pfad,body){const r=await fetch(URL_+"/auth/v1/"+pfad,{method:"POST",headers:{apikey:KEY,"Content-Type":"application/json"},body:JSON.stringify(body)});
+async function auth(pfad,body){const r=await holeMit(URL_+"/auth/v1/"+pfad,{method:"POST",headers:{apikey:KEY,"Content-Type":"application/json"},body:JSON.stringify(body)});
   const j=await r.json().catch(()=>({}));if(!r.ok){const e=new Error(j.error_description||j.msg||j.message||"Anmeldung fehlgeschlagen");e.status=r.status;throw e}return j}
 function sichern(j){sitzung={token:j.access_token,neu:j.refresh_token,bis:Date.now()+(j.expires_in||3600)*1000-60000,
   email:(j.user&&j.user.email)||(sitzung&&sitzung.email)||""};merk("mietixSitzung",sitzung)}
@@ -1805,7 +1827,7 @@ async function token(){if(!sitzung)return null;
     catch(e){if(e.status>=400&&e.status<500){sitzung=null;localStorage.removeItem("mietixSitzung");zeigen()}return null}}
   return sitzung.token}
 async function api(pfad,opt){const t=await token();if(!t)throw new Error("nicht angemeldet");
-  const r=await fetch(URL_+"/rest/v1/"+pfad,Object.assign({},opt,{headers:Object.assign({apikey:KEY,Authorization:"Bearer "+t,"Content-Type":"application/json"},(opt||{}).headers||{})}));
+  const r=await holeMit(URL_+"/rest/v1/"+pfad,Object.assign({},opt,{headers:Object.assign({apikey:KEY,Authorization:"Bearer "+t,"Content-Type":"application/json"},(opt||{}).headers||{})}));
   if(!r.ok)throw new Error("Speicher antwortet "+r.status);const s=await r.text();return s?JSON.parse(s):null}
 
 /* ---------- Abgleich ---------- */
@@ -1844,7 +1866,7 @@ function zusammen(k,p,lokal,server,basisHash,basisFelder){
   if(lokal===undefined){if(basisHash!==undefined&&basisHash!=="weg"&&gleichBasis(server,basisHash))return undefined; // hier gelöscht, dort unverändert
     return server}
   if(fp(lokal)===fp(server))return lokal;
-  if(basisHash===undefined){andereFassung(k,p,lokal);return server}  // erstes Mal auf diesem Gerät: gemeinsamer Stand gilt, eigener liegt im Papierkorb
+  if(basisHash===undefined){if(!NEU_AUFBAU)andereFassung(k,p,lokal);return server}  // erstes Mal auf diesem Gerät: gemeinsamer Stand gilt, eigener liegt im Papierkorb
   if(!lokalGeaendert)return server;                                   // hier nichts geändert: neuer Stand gilt
   if(gleichBasis(server,basisHash))return lokal;                               // dort nichts geändert: eigener Stand bleibt
   // beide geändert
@@ -1868,6 +1890,9 @@ function zusammen(k,p,lokal,server,basisHash,basisFelder){
 async function abgleichen(){
   if(!sitzung||!navigator.onLine)return;if(laeuft){nochmal=true;return}laeuft=true;fehler="";zeigen();
   const H=lies("mietixAbgleich",{}),geholt=[];
+  // Einmal je Gerät (31.10.2026, iPad mit vollem Speicher): Mietverträge, Papierkorb und Unterschriften frisch vom gemeinsamen Stand übernehmen.
+  // Nur hier Liegendes, das noch nie hochging, bleibt und geht hoch. Kein Doppel in den Papierkorb.
+  if(!lies("mietixNeuAufbau1",false)){NEU_AUFBAU=true;["mietixVorgaenge","mietixPapierkorb","mietixStand"].forEach(k=>H[k]={zeit:"",hash:{},felder:{}})}
   try{
     for(const k of Object.keys(SPEICHER)){const c=SPEICHER[k],h=H[k]=H[k]||{zeit:"",hash:{}};if(!h.felder)h.felder={};
       // 1) runter: was die anderen Geräte geschickt haben, Eintrag für Eintrag zusammengeführt
@@ -1883,7 +1908,7 @@ async function abgleichen(){
         // Grundlage für das nächste Mal ist jetzt der gemeinsame Stand
         if(z.daten&&z.daten._weg){h.hash[p]="weg";delete h.felder[p]}
         else{h.hash[p]=fp(z.daten);if(FELDWEISE[k])h.felder[p]=felderVon(z.daten)}});
-      if(anders){merk(k,ausMap(k,m2));geholt.push(k)}
+      if(anders){if(!merk(k,ausMap(k,m2)))throw new Error("Speicher auf diesem Gerät voll");geholt.push(k)}
       // 2) hoch: alles, was hier anders ist als der gemeinsame Stand (auch Gelöschtes)
       const m=alsMap(k,lies(k,c.liste?[]:{})),jetzt=new Date().toISOString(),hoch=[];
       Object.keys(m).forEach(p=>{if(gleichBasis(m[p],h.hash[p])){h.hash[p]=fp(m[p]);return}hoch.push({[c.pk]:p,daten:m[p],geaendert:jetzt})});
@@ -1893,7 +1918,7 @@ async function abgleichen(){
       if(k==="mietixVorgaenge"){const max=Math.max(0,...Object.keys(m).filter(n=>/^\d{6}$/.test(n)).map(Number));
         if(max)await api("rpc/vertragsnummer_mindestens",{method:"POST",body:JSON.stringify({n:max})})}
       merk("mietixAbgleich",H)}
-    zuletzt=new Date();
+    zuletzt=new Date();if(NEU_AUFBAU){merk("mietixNeuAufbau1",true);NEU_AUFBAU=false}
     if(geholt.length)window.dispatchEvent(new CustomEvent("mietix-abgleich",{detail:geholt}));
   }catch(e){fehler=e.message||"Abgleich fehlgeschlagen"}
   laeuft=false;zeigen();if(nochmal){nochmal=false;setTimeout(abgleichen,500)}}
