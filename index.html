@@ -726,7 +726,7 @@ function uebernehmeAnfrage(x){ANFRAGE=x.id||null;
   if(ab.preis&&ab.auto===x.auto&&ab.von===x.von&&ab.bis===x.bis){$("preis1").value=eur(ab.preis);preisAuto=false;if(ab.freikm){$("freikm").value=kmText(ab.freikm);kmAuto=false}ABGEMACHT={preis:$("preis1").value,km:$("freikm").value};summe()}
   tipps();
   if(x.anzahlung&&x.anzahlung.betrag){$("anzB").value=eur(x.anzahlung.betrag);if(x.anzahlung.art)gs("z_anz",x.anzahlung.art);if(x.anzahlung.am)$("anzAm").value=x.anzahlung.am;summe()}   // Anzahlung aus dem Anfragen-Buch
-  meldung("Übernommen: "+(x.name||"Anfrage"));setTimeout(entwurfMerken,0)}   // auch ohne Tippen als Entwurf gesichert (30.10.2026)
+  meldung("Übernommen: "+(x.name||"Anfrage"));setTimeout(entwurfMerken,0);setTimeout(hauptText,0)}   // auch ohne Tippen als Entwurf gesichert (30.10.2026)
 function kundenListe(){}   // seit 28.10.2026: Kundensuche (kundensuche.js) statt Vorschlagsliste
 function stammFuellen(){const kb=kunden(),q=$("name").value.trim(),nm=(window.mietixKunden&&window.mietixKunden.norm)||(x=>x.toLowerCase().replace(/\s+/g," ").trim());
   const k=kb[q]||kb[Object.keys(kb).find(n=>q&&nm(n)===nm(q))];   // auch bei anderer Schreibweise (Liste Punkt 7)
@@ -1500,6 +1500,8 @@ function zeige(s){SICHT=s;["heute","vertraege","mappe","vertrag","uebergabe","ru
 [...$("reiter").children].forEach(c=>c.onclick=()=>zeige(c.dataset.s));
 $("neuZurueck").onclick=()=>zeige("vertrag");
 ["input","change"].forEach(t=>$("s_vertrag").addEventListener(t,()=>{if(SICHT==="vertrag")hauptText()}));
+// auch nach Antippen (Anfrage übernehmen, Kundensuche, Zeitraum-Knöpfe, Auto wählen): die Felder werden dort ohne Tippen gefüllt (31.10.2026)
+["click","wahl"].forEach(t=>$("s_vertrag").addEventListener(t,()=>{if(SICHT==="vertrag")setTimeout(hauptText,0)}));
 [...$("reiter").children].find(c=>c.dataset.s==="vertrag").onclick=()=>{if(!NEU){if(ungespeichert()&&!confirm("Deine Änderungen gelten noch nicht. Trotzdem einen neuen Mietvertrag anfangen?"))return;leeren()}zeige("vertrag")};
 $("neuAnderer").onclick=()=>{NEU_FREI=true;WAHL_OFFEN=true;zeige(SICHT)};
 $("uSvOeffnen").onclick=()=>zeige("ueberlassung");$("svZurueck").onclick=()=>zeige("uebergabe");
