@@ -1395,11 +1395,12 @@ function nachSheet(titel,unter,aktionen){$("nach").innerHTML='<h3>'+esc(titel)+'
   [...$("nach").querySelectorAll("[data-i]")].forEach(k=>k.onclick=()=>{const a=aktionen[+k.dataset.i];if(!a.bleibt)zu();a.f()});
   const zm=zurMappe();$("nachZu").onclick=e=>{e.preventDefault();zu();if(zm)zeige("mappe")};$("nachBg").onclick=zu}
 function teilenBlatt(v){v=aktuell()||v;$("nach").innerHTML='<h3>Teilen</h3><div class="unter">'+esc(v.nr+"  "+v.name+", "+v.auto)+'</div>'+druckReihe(v)+
-    '<div class="knopf wa" id="tWa">Mietvertrag per WhatsApp an den Kunden</div><a href="#" class="zu" id="nachZu">Schließen</a>';
+    '<div class="knopf wa" id="tWa">Mietvertrag per WhatsApp an den Kunden</div>'+
+    ((v.endabrechnung||{}).summe?'<div class="knopf wa" id="tEnd">Endabrechnung ('+eur(v.endabrechnung.summe)+' €) per WhatsApp</div>':'')+'<a href="#" class="zu" id="nachZu">Schließen</a>';
   $("nach").classList.remove("versteckt");$("nachBg").classList.remove("versteckt");
   const zu=()=>{$("nach").classList.add("versteckt");$("nachBg").classList.add("versteckt")};
   $("nach").querySelectorAll("[data-dr]").forEach(d=>d.onclick=e=>{e.preventDefault();druckeDoc(v,d.dataset.dr)});
-  $("tWa").onclick=()=>teilen(v);$("nachZu").onclick=e=>{e.preventDefault();zu()};$("nachBg").onclick=zu}
+  $("tWa").onclick=()=>teilen(v);const te=$("tEnd");if(te)te.onclick=()=>{if(SICHT!=="rueckgabe")zeige("rueckgabe");zu();setTimeout(()=>$("eKopieren").click(),300)};$("nachZu").onclick=e=>{e.preventDefault();zu()};$("nachBg").onclick=zu}
 const DRUCK_BEIDE=v=>{const u=aendere(x=>{if(!x.ueb)x.ueb=uebStandard(x)})||v;lerneAuto(u.auto,{reifen:u.ueb.reifen,felgen:u.ueb.felgen,marke:u.ueb.marke});oeffnen(()=>fuelleVertrag(aktuell()||u))};
 const HEUTE=()=>{AUF=null;location.href="https://barankohler.github.io/mietix-zentrale/"};   // Fertig: zur Startseite mit Heute (30.10.2026)
 let NEU=true;   // true = das Formular ist ein neuer Mietvertrag; false = ein gespeicherter Mietvertrag ist geladen (zurück zeigt ihn wieder, nichts geht verloren)
