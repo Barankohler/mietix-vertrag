@@ -112,6 +112,34 @@ details summary{cursor:pointer;font-weight:800;color:var(--grau);font-size:14px}
 .vmText{flex:1 1 220px;font-weight:700;font-size:14px;line-height:1.3}#vmBild{flex:none;height:34px;max-width:110px;object-fit:contain;margin-left:36px}#vmAendern{flex:none;margin-left:auto}
 .haken span.ok{background:#E8F6EE;color:var(--gruen)}.haken span.rot{background:var(--hell);color:var(--rot)}
 h2.gruppe{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--grau);margin:16px 4px 6px}
+/* Mietverträge als App-Liste (31.10.2026) */
+.vSuchBox{position:relative;margin:2px 0 6px}.vSuchBox input{width:100%;border:0!important;background:#E3E3E8!important;border-radius:12px;padding:12px 14px 12px 40px!important;font-size:17px;font-family:inherit}
+.vSuchBox svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:18px;height:18px;stroke:#8A8A8E;fill:none;stroke-width:2.2;stroke-linecap:round;pointer-events:none}
+.vListe{background:#fff;border-radius:20px;padding:2px 16px;margin-bottom:6px}
+.vListe .vorgang{background:none;border:0;border-top:1px solid #ECECEF;border-radius:0;margin:0;padding:12px 0}.vListe .vorgang:first-child{border-top:0}
+.vListe .vorgang.auf{border-color:#ECECEF}
+.vz{display:flex;align-items:center;gap:12px}.vav{flex:0 0 42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:15px}
+.vt{flex:1;min-width:0}.vt b{display:block;font-size:17px;font-weight:700;color:#1C1C1E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vt i{display:block;font-style:normal;font-size:14px;color:var(--grau);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vschritte{display:flex;align-items:center;gap:3px;margin-top:7px}.vschritte em{width:22px;height:4px;border-radius:2px;background:#E5E5EA}.vschritte em.ok{background:#34A853}
+.vschritte small{font-size:12px;font-weight:700;color:var(--grau);margin-left:7px}
+.vpfeil{color:#C7C7CC;font-size:24px;font-weight:600}
+.vflags{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 0 54px}.vflags span{font-size:12px;font-weight:700;border-radius:6px;padding:5px 8px;background:#FDECEC;color:#A31318}.vflags [data-bez]{cursor:pointer}
+.vListe .bezWahl{margin-left:54px}
+h2.gruppe{display:flex;justify-content:space-between;align-items:baseline}h2.gruppe span{font-size:15px;font-weight:600;color:var(--grau)}
+/* Heute wie die Startseite (31.10.2026, Baran): Abschnitt, darunter eine weiße Liste, Zeilen mit Uhrzeit, Name, Auto, Schild */
+h2.hT{margin:18px 4px 8px}#s_heute h2.hT:first-of-type{margin-top:6px}
+.hListe{background:#fff;border-radius:20px;padding:2px 16px;margin-bottom:6px}
+.hListe .leer{padding:16px 0;margin:0}
+.hz{display:flex;align-items:center;gap:12px;padding:13px 0;border-top:1px solid #ECECEF;cursor:pointer}.hz:first-child{border-top:0}
+.hz .uhr{min-width:48px;font-size:15px;font-weight:800;font-variant-numeric:tabular-nums;color:#1C1C1E}#hHeute .hz .uhr{color:var(--rot)}
+.hz .t{flex:1;min-width:0}.hz .t b{display:block;font-size:17px;font-weight:700}.hz .t i{display:block;font-style:normal;font-size:14px;color:var(--grau)}
+.hz .t i.spaet{color:var(--rot);font-weight:700}
+.hz .t u{display:inline-block;white-space:nowrap;margin-top:6px;text-decoration:none;font-size:13px;font-weight:700;color:#128C4A;background:#E7F9EE;border-radius:999px;padding:5px 10px}
+.schild{flex:0 0 auto;padding:6px 9px;border-radius:6px;font-size:12px;font-weight:700;background:#F2F2F7;color:#3A3A3C;white-space:nowrap}
+.schild.gruen{background:#E6F4EA;color:#1B6B3A}.schild.rot{background:#FDECEC;color:#A31318}
+.hListe .heute{border:0;border-top:1px solid #ECECEF;border-radius:0;margin:0;padding:13px 0;background:none}.hListe .heute:first-child{border-top:0}
+.hListe .heute span{background:#F2F2F7;color:#1C1C1E;border-radius:999px;font-weight:700}
 #nachBg{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:30}
 #nach{position:fixed;left:0;right:0;bottom:0;background:#fff;border-radius:22px 22px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom));z-index:31;max-width:680px;margin:0 auto;box-shadow:0 -10px 30px rgba(0,0,0,.15)}
 #nach h3{font-size:17px;font-weight:900;margin-bottom:4px}#nach .unter{font-size:13px;color:var(--grau);margin-bottom:10px}
@@ -210,11 +238,12 @@ h2.gruppe{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(-
 <section id="s_heute">
   <div id="abgleich"></div>
   <!-- Heute und morgen: abholen und zurück, ein Tipp öffnet Übergabe bzw. Rückgabe dieses Mietvertrags (30.10.2026, Baran wieder hier gewünscht) -->
-  <div class="karte"><h2>Abholen, heute und morgen</h2><div id="hAb"></div></div>
-  <div class="karte"><h2>Zurückbringen, heute und morgen</h2><div id="hZu"></div></div>
-  <div class="karte versteckt" id="hKautKarte"><h2>Kaution zurückgeben</h2><div id="hKaut"></div></div>
-  <div class="karte versteckt" id="hMahnKarte"><h2>Miete noch offen</h2><div id="hMahn"></div></div>
-  <div class="karte"><h2>Gebucht, noch kein Mietvertrag</h2><div id="hAnf"></div></div>
+  <!-- 31.10.2026, Baran: wie die Startseite, Heute und Morgen getrennt, Uhrzeit links, Übergabe grün, Rückgabe rot, morgen grau -->
+  <h2 class="hT" id="hHeuteT">Heute</h2><div class="hListe" id="hHeute"></div>
+  <div id="hMorgenBox"><h2 class="hT" id="hMorgenT">Morgen</h2><div class="hListe" id="hMorgen"></div></div>
+  <div class="versteckt" id="hKautKarte"><h2 class="hT">Kaution zurückgeben</h2><div class="hListe" id="hKaut"></div></div>
+  <div class="versteckt" id="hMahnKarte"><h2 class="hT">Miete noch offen</h2><div class="hListe" id="hMahn"></div></div>
+  <div id="hAnfKarte"><h2 class="hT">Gebucht, noch kein Mietvertrag</h2><div class="hListe" id="hAnf"></div></div>
 </section>
 
 <!-- ================= MAPPE: ein Kunde, alle Schritte (30.10.2026, Baran) ================= -->
@@ -355,9 +384,7 @@ h2.gruppe{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(-
 
 <!-- ================= VERTRÄGE: alle auf einen Blick, mit Stand ================= -->
 <section id="s_vertraege" class="versteckt">
-  <div class="karte"><h2>Mietverträge</h2>
-    <input id="vSuche" type="search" autocomplete="off" placeholder="Name, Nummer oder Auto">
-    <div class="hinweis">Antippen öffnet die Mappe des Kunden mit allen Schritten, Drucken und WhatsApp. Jeder gespeicherte Mietvertrag steht hier, auf allen Geräten.</div></div>
+  <div class="vSuchBox"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="vSuche" type="search" autocomplete="off" placeholder="Name, Nummer oder Auto"></div>
   <div id="vEntwurf"></div>
   <div id="alleListe"></div>
   <!-- Selten gebraucht: Knopf, dann Fenster (30.10.2026, Baran) -->
@@ -1155,15 +1182,20 @@ $("haupt").onclick=()=>{
 let AUF=null;
 const esc=t=>String(t==null?"":t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");
 const normS=t=>String(t||"").toLowerCase();
+const V_FARBEN=["#C4161C","#0E7490","#7C3AED","#B45309","#15803D","#475569","#9333EA","#BE185D","#1D4ED8"];
+function vFarbe(n){let h=0;for(const c of String(n||""))h=(h*31+c.charCodeAt(0))>>>0;return V_FARBEN[h%V_FARBEN.length]}
 function vKarte(v){const z=v.zahlung||{},rest=z.rest||{},kaut=z.kaut||{};
   const mieteOffen=offenBetrag(v)>0,kautOffen=v.status==="zurück"&&kaut.am&&!v.kautionRueck;
   // Überlassungserklärung mit eigenem Haken, sobald unterschrieben oder bestätigt (31.10.2026, Baran: stand immer grau)
   const svOk=!!(v.sv&&(v.sv.unterschrift||v.sv.bestaetigt));
   const haken=[["Mietvertrag",true],["Übergabe",!!v.ueb]].concat(v.kautionArt==="fahrzeug"?[["Überlassungserklärung",svOk]]:[],[["Rückgabe",v.status==="zurück"]]);
-  return'<div class="vorgang'+(AUF===v.nr?" auf":"")+'" data-nr="'+esc(v.nr)+'"><b>'+esc(v.nr)+"  "+esc(v.name)+'</b>'+(v.status!=="zurück"?'<span class="offenTag">offen</span>':"")+'<div>'+esc(v.auto)+(v.kz?" ("+esc(v.kz)+")":"")+", "+de(v.vonD)+" bis "+de(v.bisD)+'</div>'+
-    '<div class="haken">'+haken.map(([t,ok])=>'<span class="'+(ok?"ok":"")+'">'+(ok?"✓ ":"○ ")+t+'</span>').join("")+
-    (mieteOffen?'<span class="rot" data-bez="1" style="cursor:pointer">Miete offen '+eur(offenBetrag(v))+' € <u>bezahlt?</u></span>':"")+(kautOffen?'<span class="rot">Kaution zurückgeben</span>':"")+(v.schaden?'<span class="rot">Schaden</span>':"")+
-    '</div>'+
+  // Als App-Liste (31.10.2026, Baran: „nicht hingeklatscht“): Kreis mit Anfangsbuchstaben, Name, Auto, Zeitraum, Schritte als Balken, was offen ist als Schild
+  const naechst=haken.find(x=>!x[1]),fertig=haken.filter(x=>x[1]).length,kurz=d=>d?d.slice(8,10)+"."+d.slice(5,7)+".":"";
+  const ini=String(v.name||"?").trim().split(/\s+/),ik=((ini[0]||"")[0]||"").toUpperCase()+((ini.length>1?ini[ini.length-1]:"")[0]||"").toUpperCase();
+  return'<div class="vorgang'+(AUF===v.nr?" auf":"")+'" data-nr="'+esc(v.nr)+'"><div class="vz"><span class="vav" style="background:'+vFarbe(v.name)+'">'+esc(ik)+'</span>'+
+    '<span class="vt"><b>'+esc(v.name)+'</b><i>'+esc(v.auto)+(v.kz?", "+esc(v.kz):"")+'</i><i>'+kurz(v.vonD)+' bis '+de(v.bisD)+', Nr. '+esc(v.nr)+'</i>'+
+    '<span class="vschritte" title="'+haken.map(([t,ok])=>(ok?"✓ ":"○ ")+t).join(", ")+'">'+haken.map(([t,ok])=>'<em class="'+(ok?"ok":"")+'"></em>').join("")+'<small>'+(naechst?"Als Nächstes: "+naechst[0]:"Alles erledigt")+'</small></span></span><span class="vpfeil">›</span></div>'+
+    ((mieteOffen||kautOffen||v.schaden)?'<div class="vflags">'+(mieteOffen?'<span class="rot" data-bez="1">Miete offen '+eur(offenBetrag(v))+' €, bezahlt?</span>':"")+(kautOffen?'<span class="rot">Kaution zurückgeben</span>':"")+(v.schaden?'<span class="rot">Schaden</span>':"")+'</div>':"")+
     (AUF===v.nr?'<div class="chips" style="margin-top:10px">'+[["Mietvertrag","vertrag"],["Übergabe","uebergabe"],["Rückgabe","rueckgabe"],["Schadensanerkennung","schaden"]].concat(v.kautionArt==="fahrzeug"?[["Überlassungserklärung","ueberlassung"]]:[])
       .map(([t,x])=>'<div class="chip" data-geh="'+x+'">'+t+'</div>').join("")+'<div class="chip" data-wa="1" style="background:#25D366;border-color:#25D366;color:#fff">WhatsApp</div></div>'+druckReihe(v):"")+'</div>'}
 // Drucken ganz einfach: ein Knopf pro Dokument, das es zu diesem Mietvertrag schon gibt (30.10.2026, Baran)
@@ -1197,7 +1229,7 @@ function zeichneAlle(){if(!$("alleListe"))return;const q=normS($("vSuche").value
   const l=vorgaenge().slice().reverse().filter(v=>!q||normS(v.nr+" "+v.name+" "+v.auto+" "+(v.kz||"")).includes(q));
   const gr=[["Unterwegs",v=>v.ueb&&v.status!=="zurück"],["Gebucht, Übergabe offen",v=>!v.ueb&&v.status!=="zurück"],["Zurück",v=>v.status==="zurück"]];
   const ew=!q&&entwurfHolen();zeichneEntwurfKarte(ew);
-  $("alleListe").innerHTML=l.length?gr.map(([t,f])=>{const g=l.filter(f);return g.length?'<h2 class="gruppe">'+t+' ('+g.length+')</h2>'+g.map(vKarte).join(""):""}).join(""):(ew?"":'<div class="leer">'+(q?"Nichts gefunden.":"Noch kein Mietvertrag. Unten auf „Neuer Mietvertrag“ geht es los.")+'</div>');
+  $("alleListe").innerHTML=l.length?gr.map(([t,f])=>{const g=l.filter(f);return g.length?'<h2 class="gruppe">'+t+'<span>'+g.length+'</span></h2><div class="vListe">'+g.map(vKarte).join("")+'</div>':""}).join(""):(ew?"":'<div class="leer">'+(q?"Nichts gefunden.":"Noch kein Mietvertrag. Unten auf „Neuer Mietvertrag“ geht es los.")+'</div>');
   [...$("alleListe").querySelectorAll(".vorgang")].forEach(el=>{el.onclick=()=>mappeOeffnen(el.dataset.nr);
     const v=vorgaenge().find(x=>x.nr===el.dataset.nr);if(!v)return;
     [...el.querySelectorAll("[data-geh]")].forEach(c=>c.onclick=ev=>{ev.stopPropagation();WAHL=v.nr;if(c.dataset.geh==="vertrag")vertragLaden(v);zeige(c.dataset.geh)});
@@ -1498,22 +1530,30 @@ function zeichneHeute(){const h=iso(new Date()),m=plusTage(h,1),l=vorgaenge().fi
   const ab=l.filter(v=>!v.ueb&&v.vonD<=m).sort((a,b)=>(a.vonD+a.vonU).localeCompare(b.vonD+b.vonU));
   const zu=l.filter(v=>v.ueb&&v.bisD<=m).sort((a,b)=>(a.bisD+a.bisU).localeCompare(b.bisD+b.bisU));
   const tag=d=>d<h?"überfällig "+de(d):d===h?"heute":"morgen, "+de(d);   // „morgen“ immer mit Datum (Baran, 31.10.2026)
-  $("hAb").innerHTML=ab.length?ab.map(v=>eintrag(v.name,v.auto+", "+tag(v.vonD)+" "+(v.vonU||""),"Übergabe",v.vonD<h)).join(""):'<div class="leer">Heute und morgen holt niemand ab.</div>';
-  $("hZu").innerHTML=zu.length?zu.map(v=>eintrag(v.name,v.auto+", "+tag(v.bisD)+" "+(v.bisU||""),"Rückgabe",v.bisD<h)).join(""):'<div class="leer">Heute und morgen kommt nichts zurück.</div>';
-  [...$("hAb").children].forEach((e,i)=>e.onclick=()=>{NEU_FREI=true;WAHL=ab[i].nr;zeige("uebergabe")});
-  // Erinnerung am Vortag: bei Abholungen von morgen ein grüner Knopf, öffnet WhatsApp mit dem Text
-  if(ab.length)[...$("hAb").children].forEach((e,i)=>{const v=ab[i];if(v.vonD!==m||v.erinnert)return;
-    const k=document.createElement("span");k.textContent="Erinnerung";k.style.cssText="background:#25D366;margin-left:6px";
-    k.onclick=ev=>{ev.stopPropagation();waOeffnen(v,ERINNERUNG(v));const l=vorgaenge(),x=l.find(y=>y.nr===v.nr);if(x){x.erinnert=h;schreib("mietixVorgaenge",l)}meldung("Erinnerung geöffnet");setTimeout(zeichneHeute,800)};e.appendChild(k)});
+  // Heute und Morgen getrennt wie auf der Startseite (31.10.2026, Baran). Überfälliges steht oben bei Heute.
+  const WTK=["So","Mo","Di","Mi","Do","Fr","Sa"],kopf=(t,d)=>{const x=new Date(d+"T12:00");return t+", "+WTK[x.getDay()]+" "+x.getDate()+"."+(x.getMonth()+1)+"."};
+  const zeilen=ab.map(v=>({v,art:"ueb",d:v.vonD,u:v.vonU||""})).concat(zu.map(v=>({v,art:"rueck",d:v.bisD,u:v.bisU||""})))
+    .sort((a,b)=>(a.d+" "+(a.u||"99"))<(b.d+" "+(b.u||"99"))?-1:1);
+  const zeile=z=>{const v=z.v,spaet=z.d<h,ueb=z.art==="ueb",erin=ueb&&z.d===m&&!v.erinnert;
+    return'<div class="hz" data-nr="'+esc(v.nr)+'" data-art="'+z.art+'"><span class="uhr">'+(z.u||"&nbsp;")+'</span><span class="t"><b>'+esc(v.name)+'</b><i>'+esc(v.auto)+'</i>'+
+      (spaet?'<i class="spaet">überfällig seit '+de(z.d).slice(0,6)+'</i>':'')+(erin?'<u data-erin="1">Erinnerung senden</u>':'')+'</span>'+
+      '<span class="schild'+(z.d<=h?(ueb?" gruen":" rot"):"")+'">'+(ueb?"Übergabe":"Rückgabe")+'</span></div>'};
+  const hz=zeilen.filter(z=>z.d<=h),mz=zeilen.filter(z=>z.d===m);
+  $("hHeuteT").textContent=kopf("Heute",h);$("hMorgenT").textContent=kopf("Morgen",m);
+  $("hHeute").innerHTML=hz.length?hz.map(zeile).join(""):'<div class="leer">Heute keine Übergabe und keine Rückgabe.</div>';
+  $("hMorgen").innerHTML=mz.length?mz.map(zeile).join(""):'<div class="leer">Morgen keine Übergabe und keine Rückgabe.</div>';
+  document.querySelectorAll("#hHeute .hz,#hMorgen .hz").forEach(e=>{const v=l.find(x=>x.nr===e.dataset.nr);if(!v)return;
+    e.onclick=()=>{NEU_FREI=true;WAHL=v.nr;zeige(e.dataset.art==="ueb"?"uebergabe":"rueckgabe")};
+    // Erinnerung am Vortag: öffnet WhatsApp mit dem Text
+    const k=e.querySelector("[data-erin]");if(k)k.onclick=ev=>{ev.stopPropagation();waOeffnen(v,ERINNERUNG(v));const ll=vorgaenge(),x=ll.find(y=>y.nr===v.nr);if(x){x.erinnert=h;schreib("mietixVorgaenge",ll)}meldung("Erinnerung geöffnet");setTimeout(zeichneHeute,800)}});
   // Miete noch offen: Abholung war schon, Rest nicht als bezahlt eingetragen
     const mahn=vorgaenge().filter(v=>v.vonD&&v.vonD<h&&offenBetrag(v)>0);
   $("hMahnKarte").classList.toggle("versteckt",!mahn.length);
   $("hMahn").innerHTML=mahn.map(v=>eintrag(v.name,v.auto+", offen "+eur(offenBetrag(v))+" € seit "+de(v.vonD)+(v.gemahnt?", erinnert am "+de(v.gemahnt):""),"Erinnern",!v.gemahnt)).join("");
   [...$("hMahn").children].forEach((e,i)=>e.onclick=()=>{const v=mahn[i];waOeffnen(v,MAHNUNG(v));const l=vorgaenge(),x=l.find(y=>y.nr===v.nr);if(x){x.gemahnt=h;schreib("mietixVorgaenge",l)}setTimeout(zeichneHeute,800)});
-  [...$("hMahn").children].forEach((e,i)=>{const v=mahn[i],k=document.createElement("span");k.textContent="Bezahlt";k.style.cssText="background:#1C1C1E;margin-left:6px";
+  [...$("hMahn").children].forEach((e,i)=>{const v=mahn[i],k=document.createElement("span");k.textContent="Bezahlt";k.style.cssText="background:#E6F4EA;color:#1B6B3A;margin-left:6px";
     k.onclick=ev=>{ev.stopPropagation();const w=document.createElement("div");w.style.cssText="margin:-2px 0 8px";e.after(w);
       zahlChips(w,a=>{alsBezahlt(v.nr,"rest",a);meldung(v.name+": als bezahlt eingetragen");zeichneHeute()});k.remove()};e.appendChild(k)});
-  [...$("hZu").children].forEach((e,i)=>e.onclick=()=>{NEU_FREI=true;WAHL=zu[i].nr;zeige("rueckgabe")});
   // Kaution zurückgeben: zurückgegeben, Kaution war da, noch nicht zurück. Ein Tipp = komplett zurück, heute.
   const kaut=vorgaenge().filter(v=>v.status==="zurück"&&((v.zahlung||{}).kaut||{}).am&&!v.kautionRueck);
   $("hKautKarte").classList.toggle("versteckt",!kaut.length);
@@ -1532,6 +1572,7 @@ function zeichneHeute(){const h=iso(new Date()),m=plusTage(h,1),l=vorgaenge().fi
     meldung(ein?"Einbehalt "+eur(ein)+" €, "+eur(k-ein)+" € zurück":"Kaution "+eur(k)+" € zurück");zeichneHeute()});
   const hat=x=>vorgaenge().some(v=>v.name===x.name&&v.vonD===x.von);
   const anf=lies("mietixAnfragen",[]).filter(x=>x.status==="gebucht"&&x.von&&x.von>=plusTage(h,-1)&&!hat(x)).sort((a,b)=>a.von.localeCompare(b.von)).slice(0,8);
+  $("hAnfKarte").classList.toggle("versteckt",!anf.length);
   $("hAnf").innerHTML=anf.length?anf.map(x=>eintrag(x.name||"ohne Namen",[x.auto,de(x.von)].filter(Boolean).join(", "),"Mietvertrag")).join(""):'<div class="leer">Alle gebuchten Anfragen haben einen Mietvertrag.</div>';
   [...$("hAnf").children].forEach((e,i)=>e.onclick=()=>{leeren();uebernehmeAnfrage(anf[i]);zeige("vertrag")});
 }
