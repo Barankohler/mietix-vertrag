@@ -261,7 +261,7 @@ h2.hT{margin:18px 4px 8px}#s_heute h2.hT:first-of-type{margin-top:6px}
     <div class="hinweis" id="verlBisher" style="margin-top:0"></div>
     <div class="chips" style="margin-top:10px"><div class="chip" data-plus="1">+1 Tag</div><div class="chip" data-plus="2">+2 Tage</div><div class="chip" data-plus="3">+3 Tage</div><div class="chip" data-plus="7">+1 Woche</div></div>
     <div class="zwei"><div><label>Neue Rückgabe am</label><input id="verlBis" type="date"></div><div><label>Uhrzeit</label><input id="verlBisU" type="time"></div></div>
-    <div class="zwei"><div><label>Aufpreis €</label><input id="verlAuf" inputmode="decimal"></div><div><label>Inklusive km neu (gesamt)</label><input id="verlKm" inputmode="numeric"></div></div>
+    <div class="zwei"><div><label>Aufpreis €</label><input id="verlAuf" inputmode="decimal"></div><div><label>Extra km für die Verlängerung</label><input id="verlKm" inputmode="numeric"></div></div>
     <div class="ergebnis" id="verlInfo">Neues Datum wählen.</div>
     <div id="verlZahlW" class="versteckt"><label>Der Aufpreis wird</label><div class="chips"><div class="chip an" data-vz="rueckgabe">bei Rückgabe bezahlt</div><div class="chip" data-vz="jetzt">schon bezahlt</div></div></div>
     <a class="knopf voll" id="verlOk" style="margin-top:12px">Verlängern ✓</a>
@@ -1355,10 +1355,11 @@ function zfAufpreis(v,neu){const p2=zahl(v.preis2)||0;if(!v.zf||!p2||!neu||neu<=
 function verlRechnen(handPreis){const v=aktuell();if(!v)return;const neu=$("verlBis").value;
   if(!neu||neu<=v.bisD){$("verlInfo").textContent="Das neue Datum muss nach dem "+de(v.bisD)+" liegen.";return}
   const tAlt=tageZw(v.vonD,v.bisD),tNeu=tageZw(v.vonD,neu),plus=tNeu-tAlt,la=listenpreis(v,v.bisD),ln=listenpreis(v,neu);
-  if(!handPreis){$("verlAuf").value=(la!=null&&ln!=null)?eur(Math.round(ln-la)):"";$("verlKm").value=kmText((zahl(v.freikm)||0)+((D&&D.freiKm)||150)*plus)}
+  if(!handPreis){$("verlAuf").value=(la!=null&&ln!=null)?eur(Math.round(ln-la)):"";$("verlKm").value=kmText(((D&&D.freiKm)||150)*plus)}
   const kollision=belegtDurch(Object.assign({},v,{vonD:v.bisD,bisD:neu}));
-  const zfa=zfAufpreis(v,neu);
-  $("verlInfo").innerHTML="+"+plus+(plus===1?" Tag":" Tage")+", zusammen "+tNeu+" Tage bis "+de(neu)+" "+($("verlBisU").value||"")+" Uhr."+(zfa?"<br>Zusatzfahrer: +"+eur(zfa)+" € (kommt zum Aufpreis dazu).":"")+
+  const zfa=zfAufpreis(v,neu),kmPlus=zahl($("verlKm").value)||0;
+  $("verlInfo").innerHTML="+"+plus+(plus===1?" Tag":" Tage")+", zusammen "+tNeu+" Tage bis "+de(neu)+" "+($("verlBisU").value||"")+" Uhr."+
+    "<br>Kilometer: "+kmText(zahl(v.freikm)||0)+" + "+kmText(kmPlus)+" = "+kmText((zahl(v.freikm)||0)+kmPlus)+" km inklusive."+(zfa?"<br>Zusatzfahrer: +"+eur(zfa)+" € (kommt zum Aufpreis dazu).":"")+
     (kollision.length?'<br><b style="color:#C4161C">Achtung, in der Zeit schon belegt: '+esc(kollision.join(", "))+'</b>':'<br>Auto ist in der Zeit frei.')}
 function verlOeffnen(){const v=aktuell();if(!v)return;$("verlKarte").classList.remove("versteckt");
   $("verlBisher").textContent="Bisher: "+de(v.vonD)+" bis "+de(v.bisD)+" "+(v.bisU||"")+" Uhr, Mietpreis "+(v.preis1||"")+" €, inklusive "+(v.freikm||"")+" km.";
@@ -1368,15 +1369,15 @@ function verlOeffnen(){const v=aktuell();if(!v)return;$("verlKarte").classList.r
   verlRechnen(false);$("verlKarte").scrollIntoView({behavior:"smooth",block:"start"})}
 function verlSpeichern(){const v0=aktuell();if(!v0)return;const neu=$("verlBis").value;if(!neu||neu<=v0.bisD){alert("Bitte ein neues Rückgabedatum nach dem "+de(v0.bisD)+" wählen.");return}
   const kol=belegtDurch(Object.assign({},v0,{vonD:v0.bisD,bisD:neu}));if(kol.length&&!confirm("ACHTUNG, in der Zeit schon belegt:\n\n"+kol.join("\n")+"\n\nTrotzdem verlängern?"))return;
-  const auf=zahl($("verlAuf").value)||0,km=$("verlKm").value.trim(),zfa=zfAufpreis(v0,neu);
+  const auf=zahl($("verlAuf").value)||0,kmPlus=zahl($("verlKm").value)||0,km=kmPlus?kmText((zahl(v0.freikm)||0)+kmPlus):"",zfa=zfAufpreis(v0,neu);
   const v=aendere(v=>{const z=v.zahlung=v.zahlung||{},r=z.rest=z.rest||{},restBezahlt=!!r.am;
-    v.verlaengerungen=(v.verlaengerungen||[]).concat([{am:iso(new Date()),bisAlt:v.bisD,uAlt:v.bisU||"",bisNeu:neu,uNeu:$("verlBisU").value,aufpreis:auf+zfa,zfAufpreis:zfa,kmVorher:v.freikm||"",kmNeu:km,
+    v.verlaengerungen=(v.verlaengerungen||[]).concat([{am:iso(new Date()),bisAlt:v.bisD,uAlt:v.bisU||"",bisNeu:neu,uNeu:$("verlBisU").value,aufpreis:auf+zfa,zfAufpreis:zfa,kmVorher:v.freikm||"",kmPlus:kmPlus,kmNeu:km,
       bezahlt:!restBezahlt||VERL_ZAHL==="jetzt",imRest:!restBezahlt}]);
     v.bisD=neu;v.bisU=$("verlBisU").value||v.bisU;if(km)v.freikm=km;
     v.preis1=eur((zahl(v.preis1)||0)+auf);if(zfa)v.preis2=eur((zahl(v.preis2)||0)+zfa);v.gesamt=eur((zahl(v.preis1)||0)+(zahl(v.preis2)||0)+(zahl(v.paketPreis)||0));
     if(!restBezahlt||VERL_ZAHL==="jetzt")r.betrag=eur((zahl(r.betrag)||0)+auf+zfa)});   // offen: kommt zum Rest; schon bezahlt: Rest wächst mit
   $("verlKarte").classList.add("versteckt");zeichneMappe();
-  const text="*Ihre Verlängerung ist bestätigt*\n\nFahrzeug: "+v.auto+"\nNeue Rückgabe: "+de(v.bisD)+", "+(v.bisU||"")+" Uhr\nAufpreis: "+eur(auf+zfa)+" €"+(zfa?" (davon Zusatzfahrer "+eur(zfa)+" €)":"")+"\nInklusive Kilometer jetzt: "+(v.freikm||"")+" km\n\nVielen Dank und weiterhin gute Fahrt!";
+  const text="*Ihre Verlängerung ist bestätigt*\n\nFahrzeug: "+v.auto+"\nNeue Rückgabe: "+de(v.bisD)+", "+(v.bisU||"")+" Uhr\nAufpreis: "+eur(auf+zfa)+" €"+(zfa?" (davon Zusatzfahrer "+eur(zfa)+" €)":"")+"\nInklusive Kilometer jetzt: "+(v.freikm||"")+" km"+(kmPlus?" (+"+kmText(kmPlus)+" km für die Verlängerung)":"")+"\n\nVielen Dank und weiterhin gute Fahrt!";
   nachSheet("✓ Verlängert bis "+de(v.bisD),v.name+", "+v.auto+". Aufpreis "+eur(auf+zfa)+" €, inklusive jetzt "+(v.freikm||"")+" km.",[
     {t:"Bestätigung per WhatsApp an den Kunden",voll:true,wa:true,f:()=>waOeffnen(v,text),bleibt:true},
     {t:"Geänderten Mietvertrag drucken",f:()=>oeffnen(()=>seite(()=>fuelleVertrag(aktuell()),0)),bleibt:true}])}
