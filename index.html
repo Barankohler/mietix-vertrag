@@ -285,6 +285,10 @@ h2.gruppe{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(-
         <div><label>Uhr</label><input id="vonU" type="time" value="10:00"></div></div>
       <div class="drei"><div><label>bis</label><input id="bisD" type="date"></div>
         <div><label>Uhr</label><input id="bisU" type="time" value="10:00"></div></div></div>
+    <div class="zeile versteckt" id="paketZeile"><b>Kilometerpaket</b>
+      <div class="hinweis" style="margin:2px 0 6px">Günstiger als Mehrkilometer danach. Kommt automatisch zum Preis und zu den Inklusive-Kilometern dazu.</div>
+      <div class="chips" id="paketChips"></div><div class="hinweis" id="paketInfo"></div>
+      <input type="hidden" id="paketKm"><input type="hidden" id="paketPreis"></div>
     <div class="zeile"><b>Gesamtmietpreis inkl. MwSt.</b><div class="summe" id="gesamtAnzeige">0,00 €</div></div>
     <div class="zeile"><div class="kurz" id="kKm"><span></span><a href="#">ändern</a></div>
       <div id="wKm"><div class="zwei">
@@ -654,12 +658,24 @@ function tipps(){
     else if(ABGEMACHT&&ABGEMACHT.preis===$("preis1").value)$("preisTipp").innerHTML='<div class="klein">abgemachter Preis aus dem Angebot</div>';
     else if(eur(m)!==$("preis1").value){$("preisTipp").innerHTML='<div class="chip tipp">Preisrechner: '+eur(m)+' € übernehmen</div>';
       $("preisTipp").firstChild.onclick=()=>{preisAuto=true;tipps()}}}
-  if(D&&t){const km=D.freiKm*t;
+  if(D&&t){const km=D.freiKm*t+(+($("paketKm").value||0));
     if(kmAuto){$("freikm").value=kmText(km);$("kmTipp").innerHTML='<div class="klein">'+D.freiKm+' km pro Tag × '+t+(t===1?' Tag':' Tage')+'</div>'}
     else if(ABGEMACHT&&ABGEMACHT.km===$("freikm").value)$("kmTipp").innerHTML='<div class="klein">abgemacht im Angebot</div>';
     else if(kmText(km)!==$("freikm").value){$("kmTipp").innerHTML='<div class="chip tipp">'+D.freiKm+' km pro Tag × '+t+' Tage = '+kmText(km)+' km übernehmen</div>';
       $("kmTipp").firstChild.onclick=()=>{kmAuto=true;tipps()}}}
-}
+  paketZeichnen()}
+// Kilometerpaket je Auto aus der Preisliste (kmStufen und km-Preise), daneben was es als Mehrkilometer kosten würde
+function paketZeichnen(){const p=autoPreis($("modell").value.trim()),st=(D&&D.kmStufen)||[50,100,150,200,300];
+  if(!p||!p.km||p.km.length<2){$("paketZeile").classList.add("versteckt");return}
+  $("paketZeile").classList.remove("versteckt");const akt=+($("paketKm").value||0),i=st.indexOf(akt);
+  if(akt&&i>=0)$("paketPreis").value=eur(p.km[i+1]);   // anderes Auto gewählt: Paketpreis dieses Autos
+  $("paketChips").innerHTML='<div class="chip'+(akt?"":" an")+'" data-pk="0">Kein Paket</div>'+st.map((k,j)=>'<div class="chip'+(akt===k?" an":"")+'" data-pk="'+k+'" data-pp="'+p.km[j+1]+'">+'+kmText(k)+' km für '+eur(p.km[j+1])+' €'+
+    '<small style="display:block;font-weight:600;opacity:.75">statt '+eur(k*p.kmPreis)+' € danach</small></div>').join("");
+  $("paketInfo").textContent=akt?"Im Mietvertrag steht beim Mietpreis "+eur((zahl($("preis1").value)||0)+(zahl($("paketPreis").value)||0))+" € (Miete plus Paket). Der Kunde spart "+eur(akt*p.kmPreis-(zahl($("paketPreis").value)||0))+" € gegenüber Mehrkilometern.":"";
+  [...$("paketChips").children].forEach(c=>c.onclick=()=>{const alt=+($("paketKm").value||0),neu=+c.dataset.pk;
+    $("paketKm").value=neu||"";$("paketPreis").value=neu?eur(+c.dataset.pp):"";
+    if(!kmAuto)$("freikm").value=kmText(Math.max(0,(zahl($("freikm").value)||0)-alt+neu));
+    tipps();summe();$("s_vertrag").dispatchEvent(new Event("input"))})}
 // Schnellwahl Mietzeitraum: spart den Datumswähler
 const plusTage=(isoS,n)=>{const d=new Date(isoS+"T12:00");d.setDate(d.getDate()+n);return iso(d)};
 [...$("schnellVon").children].forEach(c=>c.onclick=()=>{const h=iso(new Date());let v=h;
@@ -674,11 +690,12 @@ function zeitraumMarken(){[...document.querySelectorAll("#schnellDauer .chip,#sc
   const v=plusTage(h,(wd-w+7)%7);$("vonD").value=v;$("bisD").value=plusTage(v,n);c.dataset.von=v;c.dataset.bis=$("bisD").value;tipps();zeitraumMarken()});
 ["vonD","bisD"].forEach(i=>$(i).addEventListener("change",zeitraumMarken));
 // „Alles heute bezahlt mit“ am 28.10.2026 auf Barans Wunsch entfernt
-function gesamt(){return (zahl($("preis1").value)||0)+(zahl($("preis2").value)||0)}
+function gesamt(){return (zahl($("preis1").value)||0)+(zahl($("preis2").value)||0)+(zahl($("paketPreis").value)||0)}
 $("restB").addEventListener("input",()=>restVonHand=true);
 function summe(){const g=gesamt();$("gesamtAnzeige").textContent=eur(g)+" €";
   if(!restVonHand){const a=zahl($("anzB").value);$("restB").value=g?eur(g-(a||0)):""}}
 ["preis1","preis2","anzB"].forEach(i=>$(i).addEventListener("input",summe));
+$("preis1").addEventListener("input",()=>{if($("paketKm").value)paketZeichnen()});
 ["vonD","bisD","modell"].forEach(i=>$(i).addEventListener("input",tipps));
 $("vonD").addEventListener("change",()=>{if(!$("bisD").value&&$("vonD").value){const d=new Date($("vonD").value);d.setDate(d.getDate()+1);$("bisD").value=iso(d)}tipps()});
 // Zahlart antippen: "Bezahlt am" bekommt heute, wenn noch leer
@@ -805,7 +822,7 @@ async function fuelleVertrag(v){
   const doc=await lade(V_VERTRAG),f=doc.getForm(),u=v.ueb||{},z=v.zahlung||{};
   T(f,"vertrag_nr",v.nr);T(f,"m_name",v.name);T(f,"m_anschrift",v.anschrift);T(f,"m_geb_datum",de(v.geb));T(f,"m_geb_ort",v.gebort);
   T(f,"m_telefon",v.telefon);T(f,"m_email",v.email);T(f,"f_modell",v.auto);T(f,"f_kennzeichen",v.kz);T(f,"f_fin",v.fin);T(f,"f_km",kmText(u.km||v.km));
-  T(f,"p1_preis",v.preis1);if(v.zf){T(f,"p2_zusatzfahrer",v.zf);T(f,"p2_preis",v.preis2);X(f,"p2_genehmigt",true)}
+  T(f,"p1_preis",v.paketPreis?eur((zahl(v.preis1)||0)+(zahl(v.paketPreis)||0)):v.preis1);if(v.zf){T(f,"p2_zusatzfahrer",v.zf);T(f,"p2_preis",v.preis2);X(f,"p2_genehmigt",true)}
   T(f,"mietzeitraum_von",de(v.vonD)+(v.vonU?" "+v.vonU:""));T(f,"mietzeitraum_bis",de(v.bisD)+(v.bisU?" "+v.bisU:""));
   T(f,"gesamtpreis",v.gesamt);T(f,"freikilometer",kmText(v.freikm));T(f,"mehrkilometer",v.mehrkm);
   [["anzahlung","anzahlung","anz"],["restbetrag","rest","rest"],["kaution_betrag","kaution","kaut"]].forEach(([feld,p,k])=>{const r=z[k]||{};
@@ -893,7 +910,7 @@ function sammle(){
     auto,kz:$("kz").value.trim(),fin:$("fin").value.trim(),km:$("km").value.trim(),
     preis1:geld("preis1"),zf:$("zf").value.trim(),preis2:geld("preis2"),gesamt:g?eur(g):"",
     vonD:$("vonD").value,vonU:$("vonU").value,bisD:$("bisD").value,bisU:$("bisU").value,
-    freikm:$("freikm").value.trim(),mehrkm:$("mehrkm").value.trim(),
+    freikm:$("freikm").value.trim(),mehrkm:$("mehrkm").value.trim(),paketKm:$("paketKm").value,paketPreis:$("paketPreis").value,
     zahlung:{anz:zl("anzB","z_anz","anzAm"),rest:zl("restB","z_rest","restAm"),kaut:{betrag:betrag("kautB"),art:gw("z_kaut"),am:$("kautAm").value}},
     kautionArt:gw("k_art"),kfz:$("kfz").value.trim(),sb:betrag("sb"),status:"unterwegs",
     unterschrift:PAD.padV.wert(),unterschriftVermieter:PAD.padV.wert()?vermieterUnterschrift():"",avb:an("avbHaken")||!!PAD.padV.wert()}}
@@ -1160,7 +1177,7 @@ function zeichneAlle(){if(!$("alleListe"))return;const q=normS($("vSuche").value
 $("vSuche").addEventListener("input",zeichneAlle);
 // Gespeicherten Mietvertrag ins Formular holen (ansehen, ändern, noch einmal drucken). Speichern ersetzt ihn unter derselben Nummer.
 function vertragLaden(v){entwurfAus=true;leeren();NEU=false;$("nr").value=v.nr;nrVonHand=true;WAHL=v.nr;
-  ["name","anschrift","geb","gebort","telefon","email","kz","fin","km","preis1","zf","preis2","vonD","vonU","bisD","bisU","freikm","mehrkm","kfz","sb"].forEach(k=>{if(v[k]!==undefined&&v[k]!==null)$(k).value=v[k]});
+  ["name","anschrift","geb","gebort","telefon","email","kz","fin","km","preis1","zf","preis2","vonD","vonU","bisD","bisU","freikm","mehrkm","paketKm","paketPreis","kfz","sb"].forEach(k=>{if(v[k]!==undefined&&v[k]!==null)$(k).value=v[k]});
   AUTO=v.auto;$("modell").value=v.auto;zeichneAutos();
   const z=v.zahlung||{};[["anz","anzB","z_anz","anzAm"],["rest","restB","z_rest","restAm"],["kaut","kautB","z_kaut","kautAm"]].forEach(([k,b,g,d])=>{const x=z[k]||{};$(b).value=x.betrag||"";gs(g,x.art||"");$(d).value=x.am||""});
   gs("k_art",v.kautionArt||"geld");PAD.padV.setzen(v.unterschrift||"");setzeAn("avbHaken",!!v.avb||!!v.unterschrift);
@@ -1272,7 +1289,7 @@ function verlSpeichern(){const v0=aktuell();if(!v0)return;const neu=$("verlBis")
     v.verlaengerungen=(v.verlaengerungen||[]).concat([{am:iso(new Date()),bisAlt:v.bisD,uAlt:v.bisU||"",bisNeu:neu,uNeu:$("verlBisU").value,aufpreis:auf,kmVorher:v.freikm||"",kmNeu:km,
       bezahlt:!restBezahlt||VERL_ZAHL==="jetzt",imRest:!restBezahlt}]);
     v.bisD=neu;v.bisU=$("verlBisU").value||v.bisU;if(km)v.freikm=km;
-    v.preis1=eur((zahl(v.preis1)||0)+auf);v.gesamt=eur((zahl(v.preis1)||0)+(zahl(v.preis2)||0));
+    v.preis1=eur((zahl(v.preis1)||0)+auf);v.gesamt=eur((zahl(v.preis1)||0)+(zahl(v.preis2)||0)+(zahl(v.paketPreis)||0));
     if(!restBezahlt||VERL_ZAHL==="jetzt")r.betrag=eur((zahl(r.betrag)||0)+auf)});   // offen: kommt zum Rest; schon bezahlt: Rest wächst mit
   $("verlKarte").classList.add("versteckt");zeichneMappe();
   const text="*Ihre Verlängerung ist bestätigt*\n\nFahrzeug: "+v.auto+"\nNeue Rückgabe: "+de(v.bisD)+", "+(v.bisU||"")+" Uhr\nAufpreis: "+eur(auf)+" €\nInklusive Kilometer jetzt: "+(v.freikm||"")+" km\n\nVielen Dank und weiterhin gute Fahrt!";
