@@ -1497,7 +1497,7 @@ function waOeffnen(v,text){const n=waNr(v.telefon);window.open("https://wa.me/"+
 function zeichneHeute(){const h=iso(new Date()),m=plusTage(h,1),l=vorgaenge().filter(v=>v.status!=="zurück");
   const ab=l.filter(v=>!v.ueb&&v.vonD<=m).sort((a,b)=>(a.vonD+a.vonU).localeCompare(b.vonD+b.vonU));
   const zu=l.filter(v=>v.ueb&&v.bisD<=m).sort((a,b)=>(a.bisD+a.bisU).localeCompare(b.bisD+b.bisU));
-  const tag=d=>d<h?"überfällig "+de(d):d===h?"heute":"morgen";
+  const tag=d=>d<h?"überfällig "+de(d):d===h?"heute":"morgen, "+de(d);   // „morgen“ immer mit Datum (Baran, 31.10.2026)
   $("hAb").innerHTML=ab.length?ab.map(v=>eintrag(v.name,v.auto+", "+tag(v.vonD)+" "+(v.vonU||""),"Übergabe",v.vonD<h)).join(""):'<div class="leer">Heute und morgen holt niemand ab.</div>';
   $("hZu").innerHTML=zu.length?zu.map(v=>eintrag(v.name,v.auto+", "+tag(v.bisD)+" "+(v.bisU||""),"Rückgabe",v.bisD<h)).join(""):'<div class="leer">Heute und morgen kommt nichts zurück.</div>';
   [...$("hAb").children].forEach((e,i)=>e.onclick=()=>{NEU_FREI=true;WAHL=ab[i].nr;zeige("uebergabe")});
