@@ -1645,6 +1645,21 @@ function alle(){
   A.forEach(a=>{if(!a||!a.name)return;const e=hol(a.name,"anfrage");if(!e)return;
     if(!e.gesperrt){if(!e.telefon&&a.nummer)e.telefon=String(a.nummer);if(!e.ort&&a.ort)e.ort=String(a.ort)}
     e.anfragen.push({tag:a.tag||"",auto:a.auto||"",von:a.von||"",bis:a.bis||"",status:a.status||""})});
+  // Ältere Mieten aus der Excel (Reiter Geld, 31.10.2026): kommen über die Brücke als mietixStand.statistik.verlauf.
+  // Gleicher Kunde über Telefon oder Namen (auch Nachname zuerst), gleiche Miete wie ein Mietvertrag (Auto, ±3 Tage) zählt nur einmal.
+  const S=(lies("mietixStand",{})||{}).statistik,VL=S&&Array.isArray(S.verlauf)?S.verlauf:[];
+  if(VL.length){const dreh=n=>norm(n).split(" ").sort().join(" "),nachTel={},nachName={};
+    Object.values(m).forEach(e=>{const z=ziffern(e.telefon);if(z.length>=6)nachTel[z]=e;nachName[dreh(e.name)]=e});
+    VL.forEach(x=>{if(!x||!x.name)return;const z=ziffern(x.tel);
+      let e=(z.length>=6&&nachTel[z])||nachName[dreh(x.name)];
+      if(!e){e=hol(x.name,"excel");if(!e)return;nachName[dreh(x.name)]=e;if(z.length>=6)nachTel[z]=e}
+      if(e.gesperrt)return;if(!e.telefon&&x.tel)e.telefon=String(x.tel);
+      const tage=(a,b)=>Math.abs((new Date(a)-new Date(b))/864e5);
+      (Array.isArray(x.liste)?x.liste:[]).forEach(r=>{if(!r||!r.d)return;
+        if(e.vertraege.some(v=>!v.alt&&v.von&&tage(v.von,r.d)<=3&&(!r.auto||!v.auto||v.auto===r.auto)))return;
+        // Anzahlung und Rest stehen in der Excel als zwei Zeilen: selbes Auto, höchstens 1 Tag auseinander = eine Miete
+        const gl=e.vertraege.find(v=>v.alt&&tage(v.von,r.d)<=1&&v.auto===(r.auto||""));if(gl){gl.preis+=+r.b||0;return}
+        e.vertraege.push({nr:"",auto:r.auto||"",von:r.d,bis:"",preis:+r.b||0,status:"",alt:true})})})}
   return Object.values(m).map(e=>{
     e.vertraege.sort((a,b)=>(a.von||"")<(b.von||"")?-1:1);e.anfragen.sort((a,b)=>(a.tag||"")<(b.tag||"")?-1:1);
     e.mieten=e.vertraege.length;e.zuletzt=e.mieten?e.vertraege[e.mieten-1].von:"";e.letztesAuto=e.mieten?e.vertraege[e.mieten-1].auto:"";
