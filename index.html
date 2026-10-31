@@ -793,7 +793,10 @@ function uebernehmeAnfrage(x){ANFRAGE=x.id||null;
   if(x.geb&&!$("geb").value)$("geb").value=x.geb;if(x.gebort&&!$("gebort").value.trim())$("gebort").value=x.gebort;
   // Im Kalender abgemachter Preis und Kilometer (30.10.2026): nicht nochmal tippen
   if(ab.preis&&ab.auto===x.auto&&ab.von===x.von&&ab.bis===x.bis){$("preis1").value=eur(ab.preis);preisAuto=false;if(ab.freikm){$("freikm").value=kmText(ab.freikm);kmAuto=false}ABGEMACHT={preis:$("preis1").value,km:$("freikm").value};summe()}
+  else if(ab.freikm&&ab.auto===x.auto&&ab.von===x.von&&ab.bis===x.bis){$("freikm").value=kmText(ab.freikm);kmAuto=false}
   tipps();
+  // Zusatzfahrer aus der Buchung im Kalender (31.10.2026): Ja wählen, Name eintragen, Preis rechnet sich wie sonst
+  if(x.zusatzfahrer){const j=[...$("zfJn").children].find(c=>c.dataset.jn==="ja");if(j)j.click();$("zf").value=x.zusatzfahrer}
   if(x.anzahlung&&x.anzahlung.betrag){$("anzB").value=eur(x.anzahlung.betrag);if(x.anzahlung.art)gs("z_anz",x.anzahlung.art);if(x.anzahlung.am)$("anzAm").value=x.anzahlung.am;summe()}   // Anzahlung aus dem Anfragen-Buch
   meldung("Übernommen: "+(x.name||"Anfrage"));setTimeout(entwurfMerken,0);setTimeout(hauptText,0)}   // auch ohne Tippen als Entwurf gesichert (30.10.2026)
 function kundenListe(){}   // seit 28.10.2026: Kundensuche (kundensuche.js) statt Vorschlagsliste
