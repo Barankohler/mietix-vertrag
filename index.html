@@ -1151,13 +1151,13 @@ let AUF=null;
 const esc=t=>String(t==null?"":t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");
 const normS=t=>String(t||"").toLowerCase();
 function vKarte(v){const z=v.zahlung||{},rest=z.rest||{},kaut=z.kaut||{};
-  const mieteOffen=zahl(rest.betrag)&&!rest.am,kautOffen=v.status==="zurück"&&kaut.am&&!v.kautionRueck;
+  const mieteOffen=offenBetrag(v)>0,kautOffen=v.status==="zurück"&&kaut.am&&!v.kautionRueck;
   // Überlassungserklärung mit eigenem Haken, sobald unterschrieben oder bestätigt (31.10.2026, Baran: stand immer grau)
   const svOk=!!(v.sv&&(v.sv.unterschrift||v.sv.bestaetigt));
   const haken=[["Mietvertrag",true],["Übergabe",!!v.ueb]].concat(v.kautionArt==="fahrzeug"?[["Überlassungserklärung",svOk]]:[],[["Rückgabe",v.status==="zurück"]]);
   return'<div class="vorgang'+(AUF===v.nr?" auf":"")+'" data-nr="'+esc(v.nr)+'"><b>'+esc(v.nr)+"  "+esc(v.name)+'</b>'+(v.status!=="zurück"?'<span class="offenTag">offen</span>':"")+'<div>'+esc(v.auto)+(v.kz?" ("+esc(v.kz)+")":"")+", "+de(v.vonD)+" bis "+de(v.bisD)+'</div>'+
     '<div class="haken">'+haken.map(([t,ok])=>'<span class="'+(ok?"ok":"")+'">'+(ok?"✓ ":"○ ")+t+'</span>').join("")+
-    (mieteOffen?'<span class="rot">Miete offen '+eur(zahl(rest.betrag))+' €</span>':"")+(kautOffen?'<span class="rot">Kaution zurückgeben</span>':"")+(v.schaden?'<span class="rot">Schaden</span>':"")+
+    (mieteOffen?'<span class="rot" data-bez="1" style="cursor:pointer">Miete offen '+eur(offenBetrag(v))+' € <u>bezahlt?</u></span>':"")+(kautOffen?'<span class="rot">Kaution zurückgeben</span>':"")+(v.schaden?'<span class="rot">Schaden</span>':"")+
     '</div>'+
     (AUF===v.nr?'<div class="chips" style="margin-top:10px">'+[["Mietvertrag","vertrag"],["Übergabe","uebergabe"],["Rückgabe","rueckgabe"],["Schadensanerkennung","schaden"]].concat(v.kautionArt==="fahrzeug"?[["Überlassungserklärung","ueberlassung"]]:[])
       .map(([t,x])=>'<div class="chip" data-geh="'+x+'">'+t+'</div>').join("")+'<div class="chip" data-wa="1" style="background:#25D366;border-color:#25D366;color:#fff">WhatsApp</div></div>'+druckReihe(v):"")+'</div>'}
@@ -1197,7 +1197,11 @@ function zeichneAlle(){if(!$("alleListe"))return;const q=normS($("vSuche").value
     const v=vorgaenge().find(x=>x.nr===el.dataset.nr);if(!v)return;
     [...el.querySelectorAll("[data-geh]")].forEach(c=>c.onclick=ev=>{ev.stopPropagation();WAHL=v.nr;if(c.dataset.geh==="vertrag")vertragLaden(v);zeige(c.dataset.geh)});
     el.querySelectorAll("[data-dr]").forEach(d=>d.onclick=ev=>{ev.stopPropagation();druckeDoc(v,d.dataset.dr)});
-    const w=el.querySelector("[data-wa]");if(w)w.onclick=ev=>{ev.stopPropagation();teilen(v)}})}
+    const w=el.querySelector("[data-wa]");if(w)w.onclick=ev=>{ev.stopPropagation();teilen(v)};
+    // Miete offen direkt in der Liste als bezahlt eintragen (31.10.2026, Baran: „nebendran eintragen“)
+    const bz=el.querySelector("[data-bez]");if(bz)bz.onclick=ev=>{ev.stopPropagation();if(el.querySelector(".bezWahl"))return;
+      const wv=document.createElement("div");wv.className="bezWahl";wv.onclick=e=>e.stopPropagation();el.appendChild(wv);
+      zahlChips(wv,a=>{alsBezahlt(v.nr,"rest",a);meldung("✓ "+v.name+": als bezahlt eingetragen");zeichneAlle()})}})}
 $("vSuche").addEventListener("input",zeichneAlle);
 // Gespeicherten Mietvertrag ins Formular holen (ansehen, ändern, noch einmal drucken). Speichern ersetzt ihn unter derselben Nummer.
 function vertragLaden(v){entwurfAus=true;leeren();NEU=false;$("nr").value=v.nr;nrVonHand=true;WAHL=v.nr;
