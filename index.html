@@ -195,6 +195,7 @@ h2.hT{margin:18px 4px 8px}#s_heute h2.hT:first-of-type{margin-top:6px}
 .fX{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:50%;background:#F2F2F4;color:#2E2E30;font-size:18px;font-weight:800;text-decoration:none}
 .mSchritt{display:flex;align-items:center;gap:12px;padding:14px 12px;border-radius:14px;background:#F6F6F7;margin-top:8px;cursor:pointer;border:2px solid transparent}
 .mSchritt .nr{flex:0 0 32px;height:32px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;border:1.5px solid #E4E4E7}
+.mSchritt.luecke{background:#FDECEC}.mSchritt.luecke .nr{background:var(--rot);border-color:var(--rot);color:#fff}.mSchritt.luecke i{color:var(--rot);font-weight:800}
 .mSchritt b{flex:1;font-size:16px}.mSchritt i{font-style:normal;font-size:12px;color:#6F6F72;text-align:right}
 .mSchritt.ok{background:#E8F6EE}.mSchritt.ok .nr{background:#1B8A4B;border-color:#1B8A4B;color:#fff}
 .mSchritt.weiter{border-color:#C4161C;background:#FDECEC}.mSchritt.weiter .nr{background:#C4161C;border-color:#C4161C;color:#fff}.mSchritt.weiter i{color:#C4161C;font-weight:800}
@@ -386,7 +387,7 @@ h2.hT{margin:18px 4px 8px}#s_heute h2.hT:first-of-type{margin-top:6px}
       <label>Zahlart</label><div class="chips" data-gruppe="z_rest"><div class="chip" data-v="bar">Bar</div><div class="chip" data-v="ec">EC-Karte</div><div class="chip" data-v="kredit">Kreditkarte</div><div class="chip" data-v="ueberweisung">Überweisung</div></div>
       <div class="hinweis">Mietpreis minus Anzahlung, rechnet sich selbst. Auf dem Papier heißt das „Restbetrag“.</div></div>
     <div class="zeile"><b>Kaution</b>
-      <div class="chips" id="kautWahl" style="margin:6px 0 4px"><div class="chip" data-ka="geld">Geld</div><div class="chip" data-ka="fahrzeug">Fahrzeug (Überlassungserklärung)</div></div>
+      <div class="chips" id="kautWahl" style="margin:6px 0 4px"><div class="chip" data-ka="geld">Geld</div><div class="chip" data-ka="fahrzeug">Fahrzeug</div><div class="chip" data-ka="beides">Fahrzeug + Geld</div></div>
       <div id="kautGeld">
       <div class="zwei"><div><label>Betrag €</label><input id="kautB" inputmode="decimal"></div>
         <div><label>Bezahlt am</label><input id="kautAm" type="date"></div></div>
@@ -402,7 +403,7 @@ h2.hT{margin:18px 4px 8px}#s_heute h2.hT:first-of-type{margin-top:6px}
     <h2>Selbstbeteiligung</h2>
     <div class="versteckt"><!-- Kautionsart und Fahrzeug wählt man oben bei den Zahlungen, hier nur die Ablage für das Papier -->
     <label>Kaution hinterlegt in Form von</label>
-    <div class="chips" data-gruppe="k_art"><div class="chip an" data-v="geld">Geldkaution (Betrag siehe Zahlungen)</div><div class="chip" data-v="fahrzeug">Fahrzeug als Sicherheit</div></div>
+    <div class="chips" data-gruppe="k_art"><div class="chip an" data-v="geld">Geldkaution (Betrag siehe Zahlungen)</div><div class="chip" data-v="fahrzeug">Fahrzeug als Sicherheit</div><div class="chip" data-v="beides">Fahrzeug und Geld</div></div>
     <label>Fahrzeugdaten der Sicherheit (Modell, Kennzeichen)</label><input id="kfz" placeholder="leer lassen geht">
     </div>
   </div>
@@ -511,7 +512,7 @@ h2.hT{margin:18px 4px 8px}#s_heute h2.hT:first-of-type{margin-top:6px}
   <div class="karte"><h2>Schadenshöhe und Kaution</h2>
     <label>Vereinbarte Selbstbeteiligung €</label><input id="sSb" inputmode="decimal">
     <label>Weiteres Vorgehen</label><div class="chips" data-gruppe="s_weiter"><div class="chip" data-v="gutachter">Sachverständigengutachten wird beauftragt</div><div class="chip" data-v="kv">Kostenvoranschlag folgt</div></div>
-    <label>Einbehaltene Kaution</label><div class="chips" data-gruppe="s_kaution"><div class="chip an" data-v="geld">Geldkaution</div><div class="chip" data-v="fahrzeug">Fahrzeug des Mieters (gemäß Sicherungsvertrag)</div></div>
+    <label>Einbehaltene Kaution</label><div class="chips" data-gruppe="s_kaution"><div class="chip an" data-v="geld">Geldkaution</div><div class="chip" data-v="fahrzeug">Fahrzeug des Mieters (gemäß Sicherungsvertrag)</div><div class="chip" data-v="beides">Fahrzeug und Geldkaution</div></div>
     <label>Geldkaution in Höhe von €</label><input id="sKaution" inputmode="decimal">
     <div class="hinweis">Das Kästchen „Mit der Unterschrift erkennt der Mieter …“ wird nur angekreuzt, wenn unten „Mieter erkennt den Schaden an“ angetippt ist. Das entscheidet der Mieter selbst.</div>
   </div>
@@ -689,7 +690,7 @@ let FOLGE=null;
 function fehlendeUnterschriften(v){const l=[];if(!v)return l;const p=k=>PAD[k]&&PAD[k].wert();
   if(SICHT==="vertrag"){if(!p("padV"))l.push(["padV","Mietvertrag"]);return l}
   if(!v.unterschrift&&!v.ueb)l.push(["vertragDirekt","Mietvertrag"]);
-  if(SICHT==="uebergabe"&&!v.ueb){if(v.kautionArt==="fahrzeug"&&!p("padSV"))l.push(["padSV","Überlassungserklärung"]);if(!p("padU"))l.push(["padU","Übergabe"])}
+  if(SICHT==="uebergabe"&&!v.ueb){if(mitFz(v.kautionArt)&&!p("padSV"))l.push(["padSV","Überlassungserklärung"]);if(!p("padU"))l.push(["padU","Übergabe"])}
   if(SICHT==="rueckgabe"&&v.status!=="zurück"){if(!p("padR"))l.push(["padR","Rückgabe"]);if(gw("r_auff")==="ja"&&!p("padS"))l.push(["padS","Schadensanerkennung"])}
   return l}
 function kundeUnterschreibt(){const v=aktuell(),l=fehlendeUnterschriften(v);if(!l.length)return;FOLGE={nr:v.nr,liste:l,i:0,fertig:[]};folgeWeiter()}
@@ -752,13 +753,17 @@ const gruppe=n=>document.querySelector('[data-gruppe="'+n+'"]');
 const gw=n=>chipWert(gruppe(n)), gs=(n,w)=>{if(w!==undefined)chipWahl(gruppe(n),w)};
 /* Kaution: Geld oder Fahrzeug, oben bei den Zahlungen gewählt, unten im Papier angekreuzt (30.10.2026, Baran) */
 let KAUT_MERK="",KAUT_IST="geld";
-function kautAnzeigen(){const k=$("kautWahl");if(!k)return;const f=gw("k_art")==="fahrzeug";
-  [...k.children].forEach(c=>c.classList.toggle("an",c.dataset.ka===(f?"fahrzeug":"geld")));
-  $("kautGeld").classList.toggle("versteckt",f);$("kautFz").classList.toggle("versteckt",!f);
-  if(document.activeElement!==$("kfz2"))$("kfz2").value=$("kfz").value;KAUT_IST=f?"fahrzeug":"geld"}
-function kautSetzen(x){const vorher=KAUT_IST==="fahrzeug";gs("k_art",x);
-  if(x==="fahrzeug"&&!vorher){KAUT_MERK=$("kautB").value;$("kautB").value="";gs("z_kaut","");$("kautAm").value=""}
-  if(x==="geld"&&vorher&&!$("kautB").value.trim()){const p=AUTO&&autoPreis(AUTO);$("kautB").value=KAUT_MERK||(p&&p.kaution?wie(p.kaution):"1.950")}
+// Kautionsart: geld, fahrzeug oder beides (1.11.2026, Baran: manche lassen ihr Auto da und zahlen noch Geld dazu)
+function mitFz(a){return a==="fahrzeug"||a==="beides"}function mitGeld(a){return a!=="fahrzeug"}
+function kautAnzeigen(){const k=$("kautWahl");if(!k)return;const a=gw("k_art")||"geld";
+  [...k.children].forEach(c=>c.classList.toggle("an",c.dataset.ka===a));
+  $("kautGeld").classList.toggle("versteckt",!mitGeld(a));$("kautFz").classList.toggle("versteckt",!mitFz(a));
+  const lb=$("kautGeld").querySelector("label");if(lb)lb.textContent=a==="beides"?"Zuzahlung €":"Betrag €";
+  if(document.activeElement!==$("kfz2"))$("kfz2").value=$("kfz").value;KAUT_IST=a}
+function kautSetzen(x){const vorher=KAUT_IST;gs("k_art",x);
+  if(x!=="geld"&&vorher==="geld"){KAUT_MERK=$("kautB").value;$("kautB").value="";gs("z_kaut","");$("kautAm").value=""}   // Fahrzeug + Geld: Zuzahlung selbst eintippen
+  if(x==="fahrzeug"&&vorher==="beides"){$("kautB").value="";gs("z_kaut","");$("kautAm").value=""}
+  if(x==="geld"&&vorher!=="geld"&&!$("kautB").value.trim()){const p=AUTO&&autoPreis(AUTO);$("kautB").value=KAUT_MERK||(p&&p.kaution?wie(p.kaution):"1.950")}
   kautAnzeigen();$("kautB").dispatchEvent(new Event("input",{bubbles:true}))}
 
 /* ---------- Vorschläge zum Antippen (Preis wie im Preisrechner, Freikilometer pro Tag) ---------- */
@@ -837,7 +842,7 @@ function zeichneAutos(){const l=fahrzeugListe(),zu=!!AUTO&&!AUTO_AUF&&l.some(a=>
   const an=$("autoAndere");if(an)an.onclick=()=>{AUTO_AUF=true;zeichneAutos()}}
 let MEHR_HAND=false;   // Mehr-km-Preis kommt je Auto aus der Preisdatei, bis jemand selbst etwas tippt
 function waehleAuto(a){AUTO=a.name;AUTO_AUF=false;$("modell").value=a.name;$("kz").value=a.kz||"";$("fin").value=a.fin||"";if(a.km)$("km").value=kmText(a.km);
-  const p=autoPreis(a.name);if(p&&p.kaution&&gw("k_art")!=="fahrzeug")$("kautB").value=wie(p.kaution);
+  const p=autoPreis(a.name);if(p&&p.kaution&&(gw("k_art")||"geld")==="geld")$("kautB").value=wie(p.kaution);
   if(p&&p.kmPreis&&!MEHR_HAND)$("mehrkm").value=eur(p.kmPreis);$("sb").value=a.sb||"7.500";zeichneAutos();tipps()}
 
 /* ---------- Kunden: Anfragen-Buch und Stammkunden ---------- */
@@ -990,7 +995,7 @@ async function fuelleVertrag(v){
   [["anzahlung","anzahlung","anz"],["restbetrag","rest","rest"],["kaution_betrag","kaution","kaut"]].forEach(([feld,p,k])=>{const r=z[k]||{};
     T(f,feld,r.betrag);if(r.art)X(f,p+"_"+(r.art==="ec"||r.art==="kredit"?"karte":r.art),true);T(f,p+"_bezahlt_am",de(r.am))});
   if(!(z.kaut||{}).betrag)alle(f,"kaution_betrag").forEach(x=>{try{x.setText("")}catch(e){}});   // Vorlage hat 1.950 als Vorgabe: leer heißt leer (30.10.2026)
-  if(v.kautionArt==="fahrzeug")X(f,"kaution_fahrzeug",true);else if(v.kautionArt==="geld")X(f,"kaution_geld",true);
+  if(mitFz(v.kautionArt))X(f,"kaution_fahrzeug",true);if(v.kautionArt==="geld"||v.kautionArt==="beides")X(f,"kaution_geld",true);
   T(f,"kaution_fahrzeugdaten",v.kfz);T(f,"selbstbeteiligung",v.sb);const vOrtA=ortAnders(u.ort||v.ort);T(f,"v_ort_datum",vOrtA?"":v.datum);
   T(f,"u_datum",de(u.datum||v.vonD));T(f,"u_uhrzeit",u.uhr||v.vonU);T(f,"u_ort",u.ort||ORT);
   X(f,"u_aussen_"+u.aussen,!!u.aussen);X(f,"u_innen_"+u.innen,!!u.innen);X(f,"u_tank_"+u.tank,!!u.tank);
@@ -1024,7 +1029,7 @@ async function fuelleSchaden(v){
   T(f,"sa_schaden_ort",s.ortFz);T(f,"sa_schaden_art",s.art);T(f,"sa_beschreibung",s.besch);
   X(f,"sa_fotos_ja",s.fotos==="ja");X(f,"sa_fotos_nein",s.fotos==="nein");X(f,"sa_besichtigt_ja",s.besichtigt==="ja");X(f,"sa_besichtigt_nein",s.besichtigt==="nein");
   T(f,"sa_sb",s.sb);X(f,"sa_gutachter",s.weiter==="gutachter");X(f,"sa_kv",s.weiter==="kv");
-  if(s.kaution==="fahrzeug")X(f,"sa_kaution_fahrzeug",true);else if(s.kaution==="geld"){X(f,"sa_kaution_geld",true);T(f,"sa_kaution_betrag",s.betrag)}
+  if(mitFz(s.kaution))X(f,"sa_kaution_fahrzeug",true);if(s.kaution==="geld"||s.kaution==="beides"){X(f,"sa_kaution_geld",true);T(f,"sa_kaution_betrag",s.betrag)}
   T(f,"sa_ort_datum",s.ortDatum||heuteDe());X(f,"sa_anerkannt",!!s.anerkannt);
   f.flatten();await stempel(doc,0,LINIE.schaden,s.unterschrift,s.unterschriftVermieter||vermieterUnterschrift());return doc.save()}
 async function fuelleUeberlassung(v){
@@ -1156,7 +1161,7 @@ function formularLaden(erzwingen){const v=aktuell();if(!v)return;
     $("sOrt").value=s.ort||"Peter-Sander-Straße 43 B";$("sOrtFz").value=s.ortFz||"";$("sArt").value=s.art||"";
     $("sBesch").value=s.besch||(v.rueck&&v.rueck.auff==="ja"?v.rueck.bem||"":"");   // aus der Rückgabe übernommen
     $("sSb").value=s.sb||v.sb||"";gs("s_fotos",s.fotos||"ja");gs("s_besichtigt",s.besichtigt||"ja");gs("s_weiter",s.weiter||"");
-    gs("s_kaution",s.kaution||(v.kautionArt==="fahrzeug"?"fahrzeug":"geld"));
+    gs("s_kaution",s.kaution||v.kautionArt||"geld");
     $("sKaution").value=s.betrag||((v.zahlung||{}).kaut||{}).betrag||"";PAD.padS.setzen(s.unterschrift||"");setzeAn("sAnerkannt",s.anerkannt);
 }
   if(SICHT==="ueberlassung"){const s=v.sv||{};$("vInfo").innerHTML="Mieter: "+v.name+"<br>geb. am: "+de(v.geb)+"<br>Anschrift: "+(v.anschrift||"");
@@ -1322,7 +1327,7 @@ $("haupt").onclick=()=>{
     GELADEN={};zeige("mappe");meldung("✓ Schaden festgehalten"+(v.schaden.anerkannt?", vom Mieter anerkannt":", noch nicht vom Mieter bestätigt"));return}
   if(SICHT==="ueberlassung"){const v=aendere(v=>{v.sv={modell:$("vModell").value.trim(),kz:$("vKz").value.trim(),fin:$("vFin").value.trim(),
       wert:betrag("vWert"),schein:an("vSchein"),brief:an("vBrief"),schluessel:$("vSchluessel").value.trim(),ortDatum:heuteDe(),unterschrift:PAD.padSV.wert(),unterschriftVermieter:PAD.padSV.wert()?vermieterUnterschrift():"",bestaetigt:an("svBestaetigt")||!!PAD.padSV.wert()};
-      v.kautionArt="fahrzeug";const kf=[v.sv.modell,v.sv.kz].filter(Boolean).join(", ");if(kf)v.kfz=kf});
+      if(v.kautionArt!=="beides")v.kautionArt="fahrzeug";const kf=[v.sv.modell,v.sv.kz].filter(Boolean).join(", ");if(kf)v.kfz=kf});
     GELADEN={};zeige(v.ueb?"mappe":"uebergabe");meldung("✓ Überlassungserklärung steht. Im Mietvertrag: Fahrzeug als Sicherheit");return}};
 // Sicherheitsnetz (31.10.2026): Bricht ein Schritt mit einem Fehler ab, kommt immer eine laute Meldung, nie still nichts
 const nichtGespeichert=x=>{console.error(x);if(Date.now()-VOLL_GEMELDET<5000)return;VOLL_GEMELDET=Date.now();
@@ -1341,7 +1346,7 @@ function vKarte(v){const z=v.zahlung||{},rest=z.rest||{},kaut=z.kaut||{};
   const mieteOffen=offenBetrag(v)>0,kautOffen=v.status==="zurück"&&kaut.am&&!v.kautionRueck;
   // Überlassungserklärung mit eigenem Haken, sobald unterschrieben oder bestätigt (31.10.2026, Baran: stand immer grau)
   const svOk=!!(v.sv&&(v.sv.unterschrift||v.sv.bestaetigt));
-  const haken=[["Mietvertrag",true],["Übergabe",!!v.ueb]].concat(v.kautionArt==="fahrzeug"?[["Überlassungserklärung",svOk]]:[],[["Rückgabe",v.status==="zurück"]]);
+  const haken=[["Mietvertrag",true],["Übergabe",!!v.ueb]].concat(mitFz(v.kautionArt)?[["Überlassungserklärung",svOk]]:[],[["Rückgabe",v.status==="zurück"]]);
   // Als App-Liste (31.10.2026, Baran: „nicht hingeklatscht“): Kreis mit Anfangsbuchstaben, Name, Auto, Zeitraum, Schritte als Balken, was offen ist als Schild
   const naechst=haken.find(x=>!x[1]),fertig=haken.filter(x=>x[1]).length,kurz=d=>d?d.slice(8,10)+"."+d.slice(5,7)+".":"";
   const ini=String(v.name||"?").trim().split(/\s+/),ik=((ini[0]||"")[0]||"").toUpperCase()+((ini.length>1?ini[ini.length-1]:"")[0]||"").toUpperCase();
@@ -1350,7 +1355,7 @@ function vKarte(v){const z=v.zahlung||{},rest=z.rest||{},kaut=z.kaut||{};
     // Schritte als beschriftete Schilder (31.10.2026, Baran: auf einen Blick, erledigt grün, offen rot)
     '<span class="vschritte">'+haken.map(([t,ok])=>'<em class="'+(ok?"ok":"")+'">'+(ok?"✓ ":"")+t+'</em>').join("")+'</span></span><span class="vpfeil">›</span></div>'+
     ((mieteOffen||kautOffen||v.schaden)?'<div class="vflags">'+(mieteOffen?'<span class="rot" data-bez="1">Miete offen '+eur(offenBetrag(v))+' €, bezahlt?</span>':"")+(kautOffen?'<span class="rot">Kaution zurückgeben</span>':"")+(v.schaden?'<span class="rot">Schaden</span>':"")+'</div>':"")+
-    (AUF===v.nr?'<div class="chips" style="margin-top:10px">'+[["Mietvertrag","vertrag"],["Übergabe","uebergabe"],["Rückgabe","rueckgabe"],["Schadensanerkennung","schaden"]].concat(v.kautionArt==="fahrzeug"?[["Überlassungserklärung","ueberlassung"]]:[])
+    (AUF===v.nr?'<div class="chips" style="margin-top:10px">'+[["Mietvertrag","vertrag"],["Übergabe","uebergabe"],["Rückgabe","rueckgabe"],["Schadensanerkennung","schaden"]].concat(mitFz(v.kautionArt)?[["Überlassungserklärung","ueberlassung"]]:[])
       .map(([t,x])=>'<div class="chip" data-geh="'+x+'">'+t+'</div>').join("")+'<div class="chip" data-wa="1" style="background:#25D366;border-color:#25D366;color:#fff">WhatsApp</div></div>'+druckReihe(v):"")+'</div>'}
 // Drucken ganz einfach: ein Knopf pro Dokument, das es zu diesem Mietvertrag schon gibt (30.10.2026, Baran)
 function allesTeile(v){return ["Mietvertrag","Übergabe"].concat(v.sv?["Überlassungserklärung"]:[],(v.rueck||v.status==="zurück")?["Rückgabe"]:[],v.schaden?["Schaden"]:[])}
@@ -1433,9 +1438,15 @@ function schritteStand(){const li=$("sLi"),gsE=$("sGs"),hk=$("sHaken");if(!li)re
   const pad=k=>!!(PAD[k]&&PAD[k].wert()),wert=i=>!!($(i)&&String($(i).value||"").trim());let l=[];
   if(SICHT==="vertrag"){const f=fehltNoch();li.textContent=f.length?"Noch fehlt: "+f.map(x=>x[1]).join(", "):(v?"Mietvertrag "+v.nr:"Alles Nötige ist drin");
     l=[["Mieter",wert("name")],["Auto",wert("modell")],["Zeitraum",wert("vonD")&&wert("bisD")],["Preis",wert("preis1")],["Unterschrift",pad("padV")||!!(v&&v.unterschrift)]]}
-  else if(v){li.textContent=wt2(v.vonD)+(v.vonU?" "+v.vonU:"")+" bis "+wt2(v.bisD)+(v.bisU?" "+v.bisU:"");
-    if(SICHT==="uebergabe")l=[["Mietvertrag",!!v.unterschrift],["Kilometer",wert("uKm")||!!(v.ueb&&v.ueb.km)],["Unterschrift Übergabe",pad("padU")||!!v.ueb]];
-    if(SICHT==="rueckgabe")l=[["Übergabe",!!v.ueb],["Kilometer",wert("rKm")||v.status==="zurück"],["Unterschrift Rückgabe",pad("padR")||v.status==="zurück"]]}
+  else if(v){const fp=typeof fehltProtokoll==="function"?fehltProtokoll():[];   // Übergabe/Rückgabe: was fehlt, sonst der Zeitraum (1.11.2026)
+    li.textContent=fp.length?"Noch fehlt: "+fp.map(x=>x[1]).join(", "):wt2(v.vonD)+(v.vonU?" "+v.vonU:"")+" bis "+wt2(v.bisD)+(v.bisU?" "+v.bisU:"");
+    if(SICHT==="uebergabe"){l=[["Mietvertrag",!!v.unterschrift],["Kilometer",wert("uKm")||!!(v.ueb&&v.ueb.km)]];
+      if(mitFz(v.kautionArt))l.push(["Überlassungserklärung",pad("padSV")||!!(v.sv&&v.sv.unterschrift)]);
+      if(mitGeld(v.kautionArt)&&v.kautionArt)l.push(["Kaution "+(((v.zahlung||{}).kaut||{}).betrag||"")+" €",!!(((v.zahlung||{}).kaut||{}).am)]);
+      l.push(["Unterschrift Übergabe",pad("padU")||!!(v.ueb&&v.ueb.unterschrift)])}
+    if(SICHT==="rueckgabe"){const sch=gw("r_auff")==="ja"||!!v.schaden;l=[["Übergabe",!!v.ueb],["Kilometer",wert("rKm")||v.status==="zurück"]];
+      if(sch)l.push(["Schadensanerkennung",pad("padS")||!!(v.schaden&&v.schaden.unterschrift)]);
+      l.push(["Unterschrift Rückgabe",pad("padR")||!!(v.rueck&&v.rueck.unterschrift)])}}
   hk.innerHTML="";   // Kästchenzeile weg (01.11.2026, Baran: unnötig), was fehlt steht in der Zeile darüber und unten im Knopf
   const etwas=SICHT==="vertrag"?(wert("name")||!!v):!!v;gsE.textContent=etwas?"✓ gespeichert"+(GESP_ZEIT?" "+GESP_ZEIT:""):""}
 // Jede Eingabe wird schon von selbst gesichert (Entwurf, Übergabe/Rückgabe-Entwurf); hier nur die Uhrzeit dazu zeigen
@@ -1470,7 +1481,7 @@ function schritte(){const el=$("schritte");if(!el)return;
 /* ---------- Kaution-Auto in der Übergabe, Schaden in der Rückgabe (30.10.2026, Baran: einfacher, gut verbunden) ---------- */
 function svSpeichern(){aendere(v=>{v.sv={modell:$("vModell").value.trim(),kz:$("vKz").value.trim(),fin:$("vFin").value.trim(),
     wert:betrag("vWert"),schein:an("vSchein"),brief:an("vBrief"),schluessel:$("vSchluessel").value.trim(),ortDatum:heuteDe(),unterschrift:PAD.padSV.wert(),unterschriftVermieter:PAD.padSV.wert()?vermieterUnterschrift():"",bestaetigt:an("svBestaetigt")||!!PAD.padSV.wert()};
-  v.kautionArt="fahrzeug";const kf=[v.sv.modell,v.sv.kz].filter(Boolean).join(", ");if(kf)v.kfz=kf})}
+  if(v.kautionArt!=="beides")v.kautionArt="fahrzeug";const kf=[v.sv.modell,v.sv.kz].filter(Boolean).join(", ");if(kf)v.kfz=kf})}
 function schadenSpeichern(){if(!$("sKm").value.trim())$("sKm").value=$("rKm").value;
   aendere(v=>{v.schaden={km:$("sKm").value.trim()||$("rKm").value.trim(),datum:$("sD").value,uhr:$("sU").value,ort:$("sOrt").value.trim(),
     ortFz:$("sOrtFz").value.trim(),art:$("sArt").value.trim(),besch:$("sBesch").value.trim(),fotos:gw("s_fotos"),besichtigt:gw("s_besichtigt"),
@@ -1484,13 +1495,13 @@ function einbetten(){const sv=[...$("s_ueberlassung").querySelectorAll(":scope >
   const t=(slot,i,txt)=>{const h=$(slot).querySelectorAll(".karte h2")[i];if(h)h.textContent=txt};
   t("svSlot",0,"Überlassungserklärung (Auto des Kunden als Kaution)");t("svSlot",1,"Unterschrift Kunde: Überlassungserklärung");
   t("schadenSlot",0,"Schaden festgestellt");const n=$("schadenSlot").querySelectorAll(".karte h2").length;t("schadenSlot",n-1,"Unterschrift Kunde: Schadensanerkennung");
-  $("svSlot").insertAdjacentHTML("afterbegin",'<div class="hinweis" style="margin:4px 4px 8px;font-weight:700;color:#C4161C">Der Kunde gibt sein Auto als Kaution. Bitte hier mit ausfüllen, wird mit der Übergabe gespeichert.</div>');
-  $("schadenSlot").insertAdjacentHTML("afterbegin",'<div class="hinweis" style="margin:4px 4px 8px;font-weight:700;color:#C4161C">Auffälligkeiten festgestellt: Schadensanerkennung gleich hier, wird mit der Rückgabe gespeichert.</div>')}
+  $("svSlot").insertAdjacentHTML("afterbegin",'<div class="hinweis" style="margin:4px 4px 8px;font-weight:700;color:#C4161C">Auto des Kunden als Kaution</div>');
+  $("schadenSlot").insertAdjacentHTML("afterbegin",'<div class="hinweis" style="margin:4px 4px 8px;font-weight:700;color:#C4161C">Schaden festgestellt, Schadensanerkennung gleich hier</div>')}
 function schadenZeigen(){$("schadenSlot").classList.toggle("versteckt",gw("r_auff")!=="ja")}
 // Nur wenn wirklich ein (anderer) Mietvertrag ins Formular kommt, wird geladen; sonst bleibt alles Getippte stehen (30.10.2026)
 {const _fl=formularLaden;formularLaden=function(erzwingen){const v=aktuell();const keep=SICHT,vorher=GELADEN[keep];_fl(erzwingen);if(!v)return;
   const neu=!!erzwingen||vorher!==GELADEN[keep];
-  if(keep==="uebergabe"){const an=v.kautionArt==="fahrzeug";$("svSlot").classList.toggle("versteckt",!an);if(an&&neu){SICHT="ueberlassung";_fl(true);SICHT=keep}}
+  if(keep==="uebergabe"){const an=mitFz(v.kautionArt);$("svSlot").classList.toggle("versteckt",!an);if(an&&neu){SICHT="ueberlassung";_fl(true);SICHT=keep}}
   if(keep==="rueckgabe"){if(neu){SICHT="schaden";_fl(true);SICHT=keep}schadenZeigen()}
   if(neu){protHolen();kurzZu()}else kurzAlle();
   if(keep==="rueckgabe"){verspZeigen();eRechne()}}}
@@ -1637,21 +1648,22 @@ function verspZeigen(){const x=verspaetung();
   const t=$("verspT");if(t)t.onclick=e=>{e.preventDefault();VERSP_AN=!VERSP_AN;verspZeigen();eRechne()}}
 ["rD","rU"].forEach(i=>$(i).addEventListener("input",()=>{verspZeigen();eRechne()}));
 // Kaution zurück = Kaution minus Zusatzkosten
-function kautionZurueckText(summe){const v=aktuell();if(!v||v.kautionArt==="fahrzeug")return"";const k=zahl(((v.zahlung||{}).kaut||{}).betrag);if(!k)return"";
+function kautionZurueckText(summe){const v=aktuell();if(!v||!mitGeld(v.kautionArt))return"";const k=zahl(((v.zahlung||{}).kaut||{}).betrag);if(!k)return"";
   return "<br>Kaution zurück an den Kunden: <b>"+eur(Math.max(0,k-(summe||0)))+" €</b>"+(summe>k?" (Kunde zahlt noch "+eur(summe-k)+" € drauf)":"")}
 
 /* ---------- Mappe: ein Kunde, alle Schritte in Reihenfolge, Drucken, Schließen (30.10.2026) ---------- */
 let MAPPE_NX=null;
-function mappeSchritte(v){const fz=v.kautionArt==="fahrzeug",sch=!!v.schaden||(v.rueck&&v.rueck.auff==="ja");
-  return [["vertrag","Mietvertrag",!!v.unterschrift||!!v.ueb],["uebergabe",fz?"Übergabe + Überlassungserklärung":"Übergabe",!!v.ueb&&(!fz||!!v.sv)],
-    ["rueckgabe",sch?"Rückgabe + Schaden":"Rückgabe",v.status==="zurück"&&(!sch||!!v.schaden)]]}
+function mappeSchritte(v){const fz=mitFz(v.kautionArt),sch=!!v.schaden||(v.rueck&&v.rueck.auff==="ja");
+  return [["vertrag","Mietvertrag",!!v.unterschrift||!!v.ueb,!v.unterschrift],["uebergabe",fz?"Übergabe + Überlassungserklärung":"Übergabe",!!v.ueb&&(!fz||!!v.sv),
+      !!v.ueb&&(!v.ueb.unterschrift||(fz&&!(v.sv&&v.sv.unterschrift)))],
+    ["rueckgabe",sch?"Rückgabe + Schaden":"Rückgabe",v.status==="zurück"&&(!sch||!!v.schaden),v.status==="zurück"&&(!(v.rueck&&v.rueck.unterschrift)||(sch&&!(v.schaden&&v.schaden.unterschrift)))]]}   // 4. Wert: erledigt, aber Unterschrift fehlt (1.11.2026)
 function mappeOeffnen(nr){NEU_FREI=true;WAHL=nr;WAHL_OFFEN=false;GELADEN={};zeige("mappe")}
 function zeichneMappe(){const v=aktuell();if(!v){zeige("vertraege");return}
   const st=mappeSchritte(v),nx=st.find(x=>!x[2]);MAPPE_NX=nx?nx[0]:null;
   $("mName").textContent=v.nr+"  "+v.name;
   $("mInfo").textContent=v.auto+(v.kz?" ("+v.kz+")":"")+", "+de(v.vonD)+" "+(v.vonU||"")+" bis "+de(v.bisD)+" "+(v.bisU||"")+(v.status==="zurück"?", zurückgegeben":"");
-  $("mSchritte").innerHTML=st.map(([x,t,ok],i)=>'<div class="mSchritt'+(ok?" ok":"")+(nx&&nx[0]===x?" weiter":"")+'" data-m="'+x+'"><span class="nr">'+(ok?"✓":(i+1))+'</span><b>'+t+'</b><i>'+
-    (ok?"erledigt, ansehen":x==="vertrag"?"Unterschrift fehlt":(nx&&nx[0]===x?"als Nächstes":"noch offen"))+'</i></div>').join("");
+  $("mSchritte").innerHTML=st.map(([x,t,ok,uf],i)=>'<div class="mSchritt'+(ok&&!uf?" ok":"")+(ok&&uf?" luecke":"")+(nx&&nx[0]===x?" weiter":"")+'" data-m="'+x+'"><span class="nr">'+(ok&&!uf?"✓":ok?"!":(i+1))+'</span><b>'+t+'</b><i>'+
+    (ok&&uf?"Unterschrift fehlt":ok?"erledigt, ansehen":x==="vertrag"?"Unterschrift fehlt":(nx&&nx[0]===x?"als Nächstes":"noch offen"))+'</i></div>').join("");
   [...$("mSchritte").children].forEach(c=>c.onclick=()=>{const x=c.dataset.m;if(x==="vertrag")vertragLaden(v);zeige(x)});
   $("mDruck").innerHTML=druckReihe(v)+'<a href="#" class="mWa" id="mWa">Mietvertrag per WhatsApp an den Kunden senden</a>'+(v.status==="zurück"?'<a href="#" class="mWa" id="mDanke">Danke-Nachricht per WhatsApp</a>':'')+(werText(v)?'<div class="hinweis" style="text-align:center;margin-top:10px">'+esc(werText(v))+'</div>':'');
   const md=$("mDanke");if(md)md.onclick=e=>{e.preventDefault();waOeffnen(v,DANKE(v));aendere(x=>{x.bedankt=iso(new Date())});meldung("WhatsApp mit dem Danke geöffnet")};
@@ -1706,7 +1718,7 @@ function alsBezahlt(nr,was,art){const l=vorgaenge(),x=l.find(y=>y.nr===nr);if(!x
 function uZahlZeichnen(){const v=aktuell(),z=(v&&v.zahlung)||{},teile=[];if(!v){$("uZahlKarte").classList.add("versteckt");return}
   const rest=z.rest||{},kaut=z.kaut||{},art=k=>(ZARTEN.find(a=>a[0]===k)||[,k])[1];
   if(zahl(rest.betrag))teile.push(["rest","Restbetrag "+eur(zahl(rest.betrag))+" €",rest]);
-  if(v.kautionArt!=="fahrzeug"&&zahl(kaut.betrag))teile.push(["kaut","Kaution "+eur(zahl(kaut.betrag))+" €",kaut]);
+  if(mitGeld(v.kautionArt)&&zahl(kaut.betrag))teile.push(["kaut","Kaution "+eur(zahl(kaut.betrag))+" €",kaut]);
   $("uZahlKarte").classList.toggle("versteckt",!teile.length);
   $("uZahl").innerHTML=teile.map(([k,t,x])=>'<div class="zeile" style="margin-top:6px"><b>'+t+(x.am?' ✓ erhalten'+(x.art?', '+art(x.art):'')+' am '+de(x.am)+' <a href="#" data-zweg="'+k+'" style="font-weight:700;color:var(--rot)">ändern</a>':' erhalten?')+'</b><div data-zw="'+k+'"></div></div>').join("");
   teile.forEach(([k,t,x])=>{if(!x.am)zahlChips($("uZahl").querySelector('[data-zw="'+k+'"]'),a=>{if(!confirm(t+" von "+(v.name||"dem Kunden")+" per "+art(a)+" erhalten?"))return;alsBezahlt(v.nr,k,a);meldung((k==="rest"?"Restbetrag":"Kaution")+" als erhalten eingetragen");uZahlZeichnen()})});
@@ -1784,7 +1796,7 @@ function zeichneHeute(){const h=iso(new Date()),m=plusTage(h,1),l=vorgaenge().fi
   [...$("hAnf").children].forEach((e,i)=>e.onclick=()=>{if(!NEU&&ungespeichert()&&!confirm("Deine Änderungen am offenen Mietvertrag gelten noch nicht. Trotzdem weiter?"))return;leeren();uebernehmeAnfrage(anf[i]);zeige("vertrag")});
 }
 // Überlassungserklärung hängt an der Übergabe (30.10.2026, Baran): nur sichtbar, wenn das Auto des Kunden die Kaution ist
-function svKarte(){const k=$("uSvKarte");if(!k)return;const v=aktuell(),an=!!(v&&v.kautionArt==="fahrzeug");k.classList.toggle("versteckt",!an);if(!an)return;
+function svKarte(){const k=$("uSvKarte");if(!k)return;const v=aktuell(),an=!!(v&&mitFz(v.kautionArt));k.classList.toggle("versteckt",!an);if(!an)return;
   const sv=v.sv||{},fz=[sv.modell,sv.kz].filter(Boolean).join(", ")||v.kfz||"";
   $("uSvStand").textContent=(sv.unterschrift?"Überlassungserklärung unterschrieben":sv.modell||sv.kz?"Überlassungserklärung angefangen, Unterschrift fehlt":"Überlassungserklärung noch offen")+(fz?". Sicherungsfahrzeug: "+fz:"")+".";
   $("uSvOeffnen").textContent=sv.unterschrift?"Überlassungserklärung ansehen":"Überlassungserklärung ausfüllen";$("uSvOeffnen").classList.toggle("an",!sv.unterschrift)}
@@ -1819,6 +1831,8 @@ $("uSvOeffnen").onclick=()=>zeige("ueberlassung");$("svZurueck").onclick=()=>zei
 [["z_anz","anzAm"],["z_rest","restAm"],["z_kaut","kautAm"]].forEach(([g,d])=>gruppe(g).addEventListener("wahl",()=>{if(gw(g)&&!$(d).value){$(d).value=iso(new Date());$(d).dispatchEvent(new Event("input",{bubbles:true}))}}));
 /* ---------- Kaution Geld oder Fahrzeug verbinden ---------- */
 [...$("kautWahl").children].forEach(c=>c.onclick=()=>kautSetzen(c.dataset.ka));
+gruppe("r_auff").addEventListener("wahl",()=>{if(gw("r_auff")==="ja"&&!$("sKm").value.trim())$("sKm").value=$("rKm").value;setTimeout(schritte,0)});
+$("rKm").addEventListener("input",()=>{if(gw("r_auff")==="ja")$("sKm").value=$("rKm").value});
 gruppe("k_art").addEventListener("wahl",()=>{if(!gw("k_art"))gs("k_art","geld");kautSetzen(gw("k_art"))});
 $("kfz2").addEventListener("input",()=>{$("kfz").value=$("kfz2").value;$("kfz").dispatchEvent(new Event("input",{bubbles:true}))});
 $("kfz").addEventListener("input",()=>{if(document.activeElement!==$("kfz2"))$("kfz2").value=$("kfz").value});
