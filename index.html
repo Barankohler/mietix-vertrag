@@ -293,7 +293,7 @@ body.unterSicht #reiter,body.unterSicht header .mxStart{display:none!important}
 .alK{font-size:12px;font-weight:700;color:#6E6E73;text-transform:uppercase;letter-spacing:.3px;margin:14px 4px 6px}
 .alChips{display:flex;flex-wrap:wrap;gap:7px}.alChips span{font-size:14px;font-weight:600;border-radius:999px;padding:7px 12px;background:#fff;border:1px solid #D1D1D6;cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent}
 .alChips span.an{background:#1C1C1E;color:#fff;border-color:#1C1C1E}.alChips span em{font-style:normal;color:#FF6B6B;margin-left:5px}
-.alVb{display:flex;gap:8px;align-items:center;margin-top:8px}.alVb input{flex:1;min-width:0}.alVb span{color:#6E6E73;font-weight:600}
+.alVb{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:8px;align-items:center;margin-top:8px}.alVb input{min-width:0!important;width:100%!important;max-width:100%!important;box-sizing:border-box}.alVb span{color:#6E6E73;font-weight:600}
 .alSum{display:flex;justify-content:space-between;gap:10px;background:#fff;border-radius:12px;padding:10px 14px;margin:12px 0 4px;font-size:14px;color:#6E6E73}.alSum b{color:#1C1C1E;font-size:16px;white-space:nowrap}
 @media(max-width:899px){.reiter div{flex:1 1 auto!important;padding:9px 8px!important}}   /* vier Reiter: jeder so breit wie sein Wort */
 .buBetrag{flex:0 0 auto;font-size:17px;font-weight:600;white-space:nowrap}
@@ -1863,7 +1863,7 @@ function alZeitraum(){const h=new Date(),j=h.getFullYear(),m=h.getMonth(),f=d=>i
   if(AL.z==="monat")return[f(new Date(j,m,1)),f(new Date(j,m+1,0)),BU_MON[m]];
   if(AL.z==="vormonat")return[f(new Date(j,m-1,1)),f(new Date(j,m,0)),BU_MON[(m+11)%12]];
   if(AL.z==="jahr")return[j+"-01-01",j+"-12-31",String(j)];
-  if(AL.z==="frei"){const a=$("alVon").value,b=$("alBis").value;return a||b?[a||"0000-01-01",b||"9999-12-31",(a?a.split("-").reverse().join("."):"")+" bis "+(b?b.split("-").reverse().join("."):"")]:null}
+  if(AL.z==="frei"){const a=$("alVon").value,b=$("alBis").value;const dd=x=>x.split("-").reverse().join(".");return a||b?[a||"0000-01-01",b||"9999-12-31",a&&b?dd(a)+" bis "+dd(b):a?"ab "+dd(a):"bis "+dd(b)]:null}
   return null}
 function alChips(){$("alZeit").querySelectorAll("[data-z]").forEach(c=>c.classList.toggle("an",c.dataset.z===AL.z));$("alVb").classList.toggle("versteckt",AL.z!=="frei");
   const autos=[...new Set(vorgaenge().filter(v=>!v._weg&&v.auto).map(v=>v.auto))].sort((a,b)=>a.localeCompare(b,"de"));
