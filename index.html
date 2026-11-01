@@ -115,6 +115,7 @@ details summary{cursor:pointer;font-weight:800;color:var(--grau);font-size:14px}
 .weg .s i{display:block;font-style:normal;font-size:11.5px;font-weight:700;color:#AEAEB2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .weg .s.ok .k{background:var(--gruen);color:#fff}.weg .s.ok b,.weg .s.ok i{color:var(--gruen)}
 .weg .s.jetzt .k{background:var(--rot);color:#fff;box-shadow:0 0 0 4px #F9D9DA}.weg .s.jetzt b{color:var(--ink,#1C1C1E)}.weg .s.jetzt i{color:var(--rot)}
+.weg .s:not(.ok):not(.jetzt) .k{background:#FDECEC;color:var(--rot)}   /* offen = rotes X (01.11.2026, Baran) */
 .weg .s.fehlt i{color:var(--rot)}.weg .s.fehlt .k{background:#FDECEC;color:var(--rot)}
 .weg .l{height:3px;border-radius:2px;background:#E5E5EA;margin:0 4px}.weg .l.ok{background:var(--gruen)}
 .sInfo{display:flex;justify-content:space-between;align-items:center;gap:10px;border-top:1px solid #EFEFF2;margin-top:12px;padding-top:9px;font-size:13px;font-weight:700;color:#6E6E73}
@@ -1878,7 +1879,7 @@ window.mxZurueck=function(){if(["uebergabe","rueckgabe","schaden","ueberlassung"
 function wegHTML(v,st){const unter={vertrag:["unterschrieben","Unterschrift fehlt"],uebergabe:["erledigt","danach"],rueckgabe:["zurück","am Ende"]};
   return '<div class="weg">'+st.map(([x,t,ok],i)=>{const jetzt=SICHT===x;const kl=ok&&!jetzt?"ok":jetzt?"jetzt":ok?"ok":(x==="vertrag"&&v?"fehlt":"");
     const u=jetzt?(ok?"erledigt, jetzt offen":"jetzt"):ok?(x==="rueckgabe"&&v&&((v.rueck||{}).verweigert||(v.schaden||{}).verweigert)?"Unterschrift verweigert":unter[x][0]):(x==="vertrag"&&v?unter.vertrag[1]:x==="rueckgabe"&&v&&v.bisD?wt2(v.bisD):unter[x][1]);
-    return (i?'<div class="l'+(st[i-1][2]?" ok":"")+'"></div>':"")+'<div class="s '+kl+'" data-s="'+x+'"><span class="k">'+(ok&&!jetzt?"✓":i+1)+'</span><span><b>'+t+'</b><i>'+u+'</i></span></div>'}).join("")+'</div>'}
+    return (i?'<div class="l'+(st[i-1][2]?" ok":"")+'"></div>':"")+'<div class="s '+kl+'" data-s="'+x+'"><span class="k">'+(ok&&!jetzt?"✓":"✕")+'</span><span><b>'+t+'</b><i>'+u+'</i></span></div>'}).join("")+'</div>'}
 function wt2(d){const x=new Date(d+"T12:00");return ["So","Mo","Di","Mi","Do","Fr","Sa"][x.getDay()]+" "+d.slice(8,10)+"."+d.slice(5,7)+"."}
 let GESP_ZEIT="";
 function schritteStand(){const li=$("sLi"),gsE=$("sGs"),hk=$("sHaken");if(!li)return;const v=SICHT==="vertrag"?(bearbeitet()?aktuell():null):aktuell();
@@ -2612,10 +2613,10 @@ function nbZeichnen(){nbRechnen();const v=$("nbVonD").value,b=$("nbBisD").value,
   const{t:bel}=buBelegt(NB_AUTO,v,b,"",""),kz=(fahrzeugListe().find(f=>f.name===NB_AUTO)||{}).kz||"";
   $("nbAutoZ").className="buZ"+($("nbAutoZ").classList.contains("fehlt")&&!NB_AUTO?" fehlt":"");
   $("nbAutoZ").innerHTML=NB_AUTO?(bel.length?'<span class="buNein">✕</span>':'<span class="buOk">✓</span>')+'<span class="t"><b>'+esc(NB_AUTO)+'</b><i'+(bel.length?' class="rot"':'')+'>'+esc([kz,v&&b?(bel.length?"belegt in dieser Zeit":"frei in dieser Zeit"):"Zeitraum wählen"].filter(Boolean).join(", "))+'</i></span><span class="buPf">›</span>'
-    :'<span class="buKreis"></span><span class="t"><b class="buLeerT">Auto wählen <em>*</em></b></span><span class="buPf">›</span>';
+    :'<span class="buNein">✕</span><span class="t"><b class="buLeerT">Auto wählen <em>*</em></b></span><span class="buPf">›</span>';   // fehlt = rotes X (01.11.2026, Baran)
   $("nbZeitZ").className="buZ"+($("nbZeitZ").classList.contains("fehlt")&&!(v&&b)?" fehlt":"");
-  $("nbZeitZ").innerHTML=v&&b?'<span class="t"><b>'+esc(wt2(v)+" "+$("nbVonU").value+" bis "+wt2(b)+" "+$("nbBisU").value)+'</b><i>'+esc(buTageT(t))+'</i></span><span class="buPf">›</span>'
-    :'<span class="t"><b class="buLeerT">Zeitraum wählen <em>*</em></b></span><span class="buPf">›</span>';
+  $("nbZeitZ").innerHTML=v&&b?'<span class="buOk">✓</span><span class="t"><b>'+esc(wt2(v)+" "+$("nbVonU").value+" bis "+wt2(b)+" "+$("nbBisU").value)+'</b><i>'+esc(buTageT(t))+'</i></span><span class="buPf">›</span>'
+    :'<span class="buNein">✕</span><span class="t"><b class="buLeerT">Zeitraum wählen <em>*</em></b></span><span class="buPf">›</span>';
   $("nbPreisZ").innerHTML='<span class="t"><b>Preis</b><i>'+(km?"inklusive "+kmText(km)+" km":"inklusive Kilometer")+(nbRab()?", "+nbRab()+" % Rabatt":"")+'</i></span><span class="buBetrag">'+(p?eur(p)+" €":"")+'</span><span class="buPf">›</span>';
   $("nbWarn").classList.toggle("versteckt",!bel.length);$("nbWarn").innerHTML=bel.length?esc(NB_AUTO)+" ist in dem Zeitraum schon belegt:<br>"+bel.map(esc).join("<br>"):"";
   [...$("nbWahl").querySelectorAll(".buWahl")].forEach(w=>w.classList.toggle("an",w.dataset.m===NB_MODUS));$("nbAnzW").classList.toggle("versteckt",NB_MODUS!=="erhalten");
