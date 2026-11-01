@@ -232,6 +232,7 @@ input,select,textarea{border:1.5px solid #E4E4E7;border-radius:12px;font-size:16
 .knopf{border:1.5px solid #E4E4E7;color:#1C1C1E;border-radius:14px}
 .heute{border:0;background:#fff;border-radius:16px}.heute span{border-radius:999px}
 .vmStand{background:#F2F2F4}
+@media(min-width:760px){header{padding-left:max(16px,calc((100% - 680px)/2))!important;padding-right:max(16px,calc((100% - 680px)/2))!important}main{max-width:680px!important;margin-left:auto!important;margin-right:auto!important}}
 
 .mxKnopf,.mxKlapp>summary{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;box-sizing:border-box;background:#fff;border:1.5px solid #E4E4E7;border-radius:16px;padding:14px 16px;min-height:60px;text-align:left;font-family:inherit;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.04);color:#1C1C1E;margin:0 0 10px;-webkit-tap-highlight-color:transparent}
 .mxKnopf span,.mxKlapp>summary span{flex:1;min-width:0}
@@ -1015,7 +1016,11 @@ function T(f,n,w){if(w===undefined||w===null||w==="")return;w=String(w);
   alle(f,n).forEach(x=>{try{x.setText(w);
     if(!x.isMultiline()&&FONT){const breite=Math.min(...x.acroField.getWidgets().map(g=>g.getRectangle().width))-4;
       const m=(x.acroField.getDefaultAppearance()||"").match(/(\d+(?:\.\d+)?) Tf/);let fs=m?+m[1]:10;
-      while(fs>6&&FONT.widthOfTextAtSize(w,fs)>breite)fs-=0.5;x.setFontSize(fs)}}catch(e){}})}
+      while(fs>6&&FONT.widthOfTextAtSize(w,fs)>breite)fs-=0.5;
+      // Ort zu lang (01.11.2026, Test: „… 55252 Ma“ abgeschnitten): erst ohne PLZ, dann nur die Stadt
+      if(FONT.widthOfTextAtSize(w,fs)>breite&&/\b\d{5}\s/.test(w)){const k=[w.replace(/,?\s*\b\d{5}\s+/,", "),stadtVon(w)];
+        for(const z of k){let g=m?+m[1]:10;while(g>6&&FONT.widthOfTextAtSize(z,g)>breite)g-=0.5;if(FONT.widthOfTextAtSize(z,g)<=breite){w=z;fs=g;x.setText(w);break}}}
+      x.setFontSize(fs)}}catch(e){}})}
 function X(f,n,ja){if(!ja)return;alle(f,n).forEach(x=>{try{x.check()}catch(e){}})}
 /* Ort in „…, den Datum“ (01.11.2026, Baran: Lieferung, auf Mietvertrag und Übergabe derselbe Ort).
    Die Vorlage hat „Wiesbaden, den“ fest gedruckt. Nur wenn der Ort woanders ist, wird diese Stelle beim Ausfüllen
@@ -2461,6 +2466,10 @@ zeigen();abgleichen();auslagernBald();
     "body{background:#F2F2F7!important;color:#1C1C1E}"+
     "*:not(.mxFenster):not(#mietixRueck):not(#erfolgBox){box-shadow:none!important}"+
     "input:focus,textarea:focus,select:focus{outline:2px solid #C4161C!important;outline-offset:-2px}"+
+    /* PC und Mac (1.11.2026, Baran: auf allen Geräten gleich): Kopfzeile und Inhalt in einer Spalte in der Mitte, nicht Titel links und Inhalt mittig */
+    (istStart||art==="kalender"||art==="schaeden"?"":"@media(min-width:760px){header,.topbar{padding-left:max(16px,calc((100% - 680px)/2))!important;padding-right:max(16px,calc((100% - 680px)/2))!important}"+
+      "main{max-width:680px!important;margin-left:auto!important;margin-right:auto!important;box-sizing:border-box}header .plus{right:max(16px,calc((100% - 680px)/2))!important}}")+
+    "input[type=date],input[type=time]{min-width:0;max-width:100%}"+   /* Datumsfelder laufen auf dem iPhone sonst über den Rand */
     "h2,.karte h2,h2.gruppe,.feldname,.sTitel{text-transform:none!important;letter-spacing:-.2px!important;font-size:17px!important;font-weight:700!important;color:#1C1C1E!important}"+
     (istStart?"":"header{display:block!important;padding-left:16px!important;padding-right:16px!important}header h1,.topbar h1{margin:0!important;padding:0!important}"+
       ".mxTop{display:flex;align-items:center;justify-content:space-between;min-height:34px;margin-bottom:4px}"+
