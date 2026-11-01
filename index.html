@@ -284,6 +284,7 @@ input,select,textarea{border:1.5px solid #E4E4E7;border-radius:12px;font-size:16
 .buPf{flex:0 0 auto;font-size:24px;color:#C7C7CC;line-height:1;font-weight:500}
 .buPkt{display:flex;gap:4px;margin-top:6px}.buPkt s{width:16px;height:5px;border-radius:3px;background:#E3E3E8;text-decoration:none}.buPkt s.g{background:#34C759}.buPkt s.j{background:#FF9500}
 .buZ .t i.gruen{color:#1E8E4E;font-weight:600}
+.nkBlock{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;background:#fff;border-radius:12px;padding:10px 12px;margin:10px 0}.nkBlock .nkLabel{flex:1 1 auto;font-weight:700;font-size:15px}.nkBlock .nkPaar{flex:0 0 auto;margin-top:0}
 .buZ .t i{white-space:normal!important;overflow:visible!important;text-overflow:clip!important}   /* keine halben Sachen: nichts abschneiden (01.11.2026, Baran) */
 .buGk.zwei{display:flex;justify-content:space-between;gap:10px}.buGk.zwei span:last-child{text-transform:none;letter-spacing:0}
 .alK{font-size:12px;font-weight:700;color:#6E6E73;text-transform:uppercase;letter-spacing:.3px;margin:14px 4px 6px}
@@ -467,12 +468,44 @@ input[type=date],input[type=time]{min-width:0;max-width:100%}
 .karte .pbTipp,.k .pbTipp{padding-left:0;padding-right:0}
 .karte .pbFrei,.k .pbFrei{margin-left:0;margin-right:0}
 @media(max-width:380px){.pbF label{flex-basis:96px;width:96px}}
+</style><style>
+/* Knopf-Paar je Nachricht (02.11.2026) */
+.nkPaar{display:flex;justify-content:flex-end;gap:6px;margin-top:6px;flex:1 0 100%}
+.nkPaar button{display:inline-flex;align-items:center;gap:5px;height:30px;padding:0 11px;border:0;border-radius:999px;font-family:inherit;font-size:13px;font-weight:700;line-height:1;cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent;margin:0;width:auto;min-height:0;box-shadow:none}
+.nkPaar button svg{width:14px;height:14px;flex:0 0 auto}
+.nkPaar .nkWa{background:#E3F4EA!important;color:#1E8E4E!important}.nkPaar .nkKo{background:#FDECEC!important;color:#C4161C!important}
+.nkPaar button:active{opacity:.7}
+.nkPaar.gross{justify-content:stretch;gap:8px;margin-top:0}.nkPaar.gross button{flex:1;justify-content:center;height:46px;font-size:16px;border-radius:14px}
+.nkPaar.gross .nkWa{background:#25D366!important;color:#fff!important}.nkPaar.gross .nkKo{background:#FDECEC!important;color:#C4161C!important}
+.nkPaar.gross button svg{width:18px;height:18px}
+#nkMeld{position:fixed;left:50%;top:calc(14px + env(safe-area-inset-top));transform:translateX(-50%) translateY(-10px);background:#1E8E4E;color:#fff;font:700 15px -apple-system,"SF Pro Text",system-ui,sans-serif;border-radius:999px;padding:9px 16px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:99999;white-space:nowrap}
+#nkMeld.an{opacity:1;transform:translateX(-50%) translateY(0)}
 </style></head><body><div id="mxLaden" style="position:fixed;inset:0;z-index:300;background:#F6F6F7;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px">
 <img src="https://barankohler.github.io/mietix-zentrale/logo.png" alt="Mietix" style="width:200px;height:auto">
 <div style="width:34px;height:34px;border-radius:50%;border:3px solid #E4E4E7;border-top-color:#C4161C;animation:mxDreh .8s linear infinite"></div>
 <div style="font:700 15px -apple-system,Inter,system-ui,sans-serif;color:#6F6F72">Mietvertrag lädt …</div>
 <style>@keyframes mxDreh{to{transform:rotate(360deg)}}</style></div>
 <script>setTimeout(function(){var l=document.getElementById("mxLaden");if(l)l.remove()},10000)</script><script>
+/* Knopf-Paar je Nachricht: WhatsApp und Kopieren (02.11.2026) */
+(function(){if(window.nkPaar)return;
+  const SWA='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2z"/></svg>';
+  const SKO='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="12" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h2"/></svg>';
+  window.nkPaar=function(art){return'<span class="nkPaar'+(art?" "+art:"")+'"><button type="button" class="nkWa" data-nk="wa">'+SWA+'WhatsApp</button><button type="button" class="nkKo" data-nk="ko">'+SKO+'Kopieren</button></span>'};
+  window.nkNummer=function(t){let n=String(t||"").replace(/\D/g,"");if(String(t||"").trim().startsWith("+"))return n;if(n.startsWith("00"))return n.slice(2);if(n.startsWith("0"))return"49"+n.slice(1);return n};
+  window.nkWa=function(tel,text){const n=nkNummer(tel);window.open("https://wa.me/"+(n&&n.length>=8?n:"")+"?text="+encodeURIComponent(text||""),"_blank")};
+  function meld(t){let m=document.getElementById("nkMeld");if(!m){m=document.createElement("div");m.id="nkMeld";m.setAttribute("role","status");document.body.appendChild(m)}
+    m.textContent=t;m.classList.add("an");clearTimeout(meld.z);meld.z=setTimeout(()=>m.classList.remove("an"),1800)}
+  window.nkMeldung=meld;
+  window.nkKopieren=async function(text){let ok=false;try{await navigator.clipboard.writeText(text);ok=true}catch(e){}
+    if(!ok){try{const a=document.createElement("textarea");a.value=text;a.setAttribute("readonly","");a.style.position="fixed";a.style.opacity="0";document.body.appendChild(a);a.select();ok=document.execCommand("copy");a.remove()}catch(e){}}
+    meld(ok?"✓ Kopiert":"Kopieren ging nicht, bitte Text lange antippen");return ok};
+  // beide Knöpfe in el verbinden; textFn liefert den Text erst beim Tippen, nachher(art) z. B. zum Merken „gesendet“
+  window.nkVerbinden=function(el,tel,textFn,nachher){if(!el)return;const w=el.querySelector('[data-nk="wa"]'),k=el.querySelector('[data-nk="ko"]');
+    const tx=()=>typeof textFn==="function"?textFn():String(textFn||""),tl=()=>typeof tel==="function"?tel():tel;
+    if(w)w.onclick=e=>{e.preventDefault();e.stopPropagation();nkWa(tl(),tx());if(nachher)nachher("wa")};
+    if(k)k.onclick=async e=>{e.preventDefault();e.stopPropagation();const ok=await nkKopieren(tx());if(ok&&nachher)nachher("ko")}};
+})();
+</script><script>
 /* Preis-Block: ein Hinweis-Text für alle Seiten (01.11.2026) */
 (function(){if(window.pbTipp)return;
   const E=n=>Math.round(n).toLocaleString("de-DE")+" €";
@@ -818,7 +851,7 @@ input[type=date],input[type=time]{min-width:0;max-width:100%}
       <div class="chips" id="eExtra" style="margin-top:10px"></div>
       <div class="zwei"><div><label>Sonstiges, wofür?</label><input id="eSonstT"></div><div><label>Betrag €</label><input id="eSonstB" inputmode="decimal"></div></div></details>
     <div class="ergebnis" id="eErgebnis">Endabrechnung: noch nichts zu berechnen.</div>
-    <a class="knopf" id="eKopieren">Endabrechnung per WhatsApp an den Kunden</a>
+    <div class="nkBlock" id="eKopieren"></div>
     <div class="kurz" id="kRZeit"><span></span><a href="#">ändern</a></div>
     <div id="wRZeit"><div class="drei"><div><label>Datum Rückgabe</label><input id="rD" type="date"></div><div><label>Uhrzeit Rückgabe</label><input id="rU" type="time"></div></div>
     <label>Ort der Rückgabe</label><input id="rOrt"></div>
@@ -881,7 +914,7 @@ input[type=date],input[type=time]{min-width:0;max-width:100%}
 </main>
 <div id="ug" class="versteckt"><div id="ugInnen"><div class="kopf"><b id="ugTitel">Unterschrift</b><div class="chips"><div class="chip" id="ugWeg">Löschen</div><div class="chip an" id="ugFertig">Fertig</div></div></div>
   <canvas id="ugCanvas"></canvas><div class="linie"></div><div class="fuss">Handy quer halten, mit dem Finger unterschreiben, dann „Fertig“.</div></div></div>
-<div class="leiste"><div class="bSum versteckt" id="bSum"></div><div class="knoepfe"><button id="haupt">+ Neue Buchung</button></div><div class="bUnter versteckt" id="bUnter">Name, Auto, Zeitraum und Preis sind schon drin</div><a href="#" class="bLink versteckt" id="bLink"></a></div>
+<div class="leiste"><div class="bSum versteckt" id="bSum"></div><div class="knoepfe"><button id="haupt">+ Neue Buchung</button><div id="bPaar" class="versteckt" style="flex:1"></div></div><div class="bUnter versteckt" id="bUnter">Name, Auto, Zeitraum und Preis sind schon drin</div><a href="#" class="bLink versteckt" id="bLink"></a></div>
 <!-- Fassung 2 (01.11.2026): Anzahlung da (Entwurf c4), Auto, Zeitraum und Preis der neuen Buchung -->
 <div class="mxFenster buBlatt" id="fDa" role="dialog" aria-label="Anzahlung da"><div class="buBlattK"><b id="daTitel"></b><i id="daInfo"></i></div>
   <div class="buFeld"><label for="daBetrag">Betrag <span class="pfl">*</span></label><input id="daBetrag" inputmode="numeric" data-einheit="€"></div>
@@ -1619,7 +1652,8 @@ function eRechne(){const e=eWerte();
 $("eSatz").addEventListener("input",()=>rRechne(false));$("eAufFrei").addEventListener("input",eRechne);
 ["eSonstT","eSonstB"].forEach(i=>$(i).addEventListener("input",eRechne));eExtraZeichnen();
 $("eAuf").addEventListener("change",eRechne);$("rMehr").addEventListener("input",eRechne);$("rGef").addEventListener("input",eRechne);
-$("eKopieren").onclick=async()=>{const v=aktuell();if(!v)return;
+// Endabrechnung als Text, gesendet über das Knopf-Paar (02.11.2026)
+function endText(){const v=aktuell();if(!v)return"";
   const e=eWerte(),gef=zahl($("rGef").value)||0,frei=zahl(v.freikm);
   let t="*Endabrechnung "+(v.auto||"")+"*\n";
   t+="Gefahren: "+kmText(gef)+" km"+(frei!==null?" (inklusive: "+kmText(frei)+" km)":"")+"\n";
@@ -1629,7 +1663,9 @@ $("eKopieren").onclick=async()=>{const v=aktuell();if(!v)return;
   if(e.versp)t+="Verspätete Rückgabe: "+verspaetung().std+" angefangene Std. = "+eur(e.versp)+" €\n";
   e.extra.forEach(x=>{t+=x.t+": "+eur(x.betrag)+" €\n"});
   t+=e.summe?("*Gesamt: "+eur(e.summe)+" €*"):"*Nichts nachzuberechnen.*";
-  try{await navigator.clipboard.writeText(t)}catch(err){}waOeffnen(v,t);meldung("WhatsApp mit der Endabrechnung geöffnet")};   // direkt der Chat mit dem Kunden (Liste Punkt 16)
+  return t}
+function endWa(){const v=aktuell();if(v)nkWa(v.telefon,endText())}   // direkt der Chat mit dem Kunden (Liste Punkt 16)
+$("eKopieren").innerHTML='<span class="nkLabel">Endabrechnung an den Kunden</span>'+nkPaar();nkVerbinden($("eKopieren"),()=>(aktuell()||{}).telefon,endText);
 
 /* ---------- Hauptknopf: speichern und das Formular dieses Reiters drucken ---------- */
 const KNOPF={mappe:"Weiter",heute:"+ Neue Buchung",abgeschlossen:"+ Neue Buchung",unterwegs:"+ Neue Buchung",vertraege:"+ Neue Buchung",buchung:"Mietvertrag anlegen",neu:"✓ Reservieren",iban:"In WhatsApp öffnen",reserviert:"Bestätigung per WhatsApp senden",vertrag:"Weiter zur Übergabe ›",uebergabe:"Auto übergeben ✓",rueckgabe:"Auto zurück ✓",
@@ -1749,7 +1785,7 @@ $("haupt").onclick=()=>{
     zeige("mappe");
     const kB=zahl(((v.zahlung||{}).kaut||{}).betrag)||0,kAkt=kautZurueck&&kB?[{t:"Kaution "+eur(kB)+" € komplett zurück",voll:!e.summe,f:()=>kautVoll(v.nr)}]:[];
     if(e.summe)nachSheet("Abrechnung: "+eur(e.summe)+" € offen",v.name+", "+v.auto,[
-      {t:"Endabrechnung per WhatsApp an den Kunden",wa:true,voll:true,f:()=>$("eKopieren").click(),bleibt:true}].concat(kAkt));
+      {t:"Endabrechnung per WhatsApp an den Kunden",wa:true,voll:true,text:()=>endText(),tel:()=>v.telefon,f:()=>endWa(),bleibt:true}].concat(kAkt));
     else if(kAkt.length)nachSheet(v.schaden?"Auto zurück":"Sauber zurück!",v.name+", "+v.auto+". "+tagesStand(),kAkt);
     else erfolg(v.schaden?"Auto zurück, Schaden festgehalten":"Sauber zurück!",tagesStand());return}
   if(SICHT==="schaden"){const v=aendere(v=>{v.schaden={km:$("sKm").value.trim(),datum:$("sD").value,uhr:$("sU").value,ort:$("sOrt").value.trim(),
@@ -2029,7 +2065,7 @@ function verlSpeichern(){const v0=aktuell();if(!v0)return;const neu=$("verlBis")
   $("verlKarte").classList.add("versteckt");zeichneMappe();
   const text="*Ihre Verlängerung ist bestätigt*\n\nFahrzeug: "+v.auto+"\nNeue Rückgabe: "+de(v.bisD)+", "+(v.bisU||"")+" Uhr\nAufpreis: "+eur(auf+zfa)+" €"+(zfa?" (davon Zusatzfahrer "+eur(zfa)+" €)":"")+"\nInklusive Kilometer jetzt: "+(v.freikm||"")+" km"+(kmPlus?" (+"+kmText(kmPlus)+" km für die Verlängerung)":"")+"\n\nVielen Dank und weiterhin gute Fahrt!";
   nachSheet("✓ Verlängert bis "+de(v.bisD),v.name+", "+v.auto+". Aufpreis "+eur(auf+zfa)+" €, inklusive jetzt "+(v.freikm||"")+" km.",[
-    {t:"Bestätigung per WhatsApp an den Kunden",voll:true,wa:true,f:()=>waOeffnen(v,text),bleibt:true},
+    {t:"Bestätigung per WhatsApp an den Kunden",voll:true,wa:true,text:()=>text,tel:()=>v.telefon,f:()=>waOeffnen(v,text),bleibt:true},
     {t:"Geänderten Mietvertrag drucken",f:()=>oeffnen(()=>seite(()=>fuelleVertrag(aktuell()),0)),bleibt:true}])}
 function offenBetrag(v){return ((!((v.zahlung||{}).rest||{}).am)?(zahl(((v.zahlung||{}).rest||{}).betrag)||0):0)+verlOffen(v)}
 function verlOffen(v){return (v.verlaengerungen||[]).filter(x=>!x.bezahlt).reduce((s,x)=>s+(x.aufpreis||0),0)}
@@ -2126,8 +2162,8 @@ function zeichneMappe(){const v=aktuell();if(!v){zeige("vertraege");return}
   $("mSchritte").innerHTML=st.map(([x,t,ok,uf],i)=>'<div class="mSchritt'+(ok&&!uf?" ok":"")+(ok&&uf?" luecke":"")+(nx&&nx[0]===x?" weiter":"")+'" data-m="'+x+'"><span class="nr">'+(ok&&!uf?"✓":ok?"!":(i+1))+'</span><b>'+t+'</b><i>'+
     (ok&&uf?"Unterschrift fehlt":ok&&x==="rueckgabe"&&((v.rueck||{}).verweigert||(v.schaden||{}).verweigert)?"Unterschrift verweigert":ok?"erledigt, ansehen":x==="vertrag"?"Unterschrift fehlt":(nx&&nx[0]===x?"als Nächstes":"noch offen"))+'</i></div>').join("");
   [...$("mSchritte").children].forEach(c=>c.onclick=()=>{const x=c.dataset.m;if(x==="vertrag")vertragLaden(v);zeige(x)});
-  $("mDruck").innerHTML=druckReihe(v)+'<a href="#" class="mWa" id="mWa">Mietvertrag per WhatsApp an den Kunden senden</a>'+(v.status==="zurück"?'<a href="#" class="mWa" id="mDanke">Danke-Nachricht per WhatsApp</a>':'')+(werText(v)?'<div class="hinweis" style="text-align:center;margin-top:10px">'+esc(werText(v))+'</div>':'');
-  const md=$("mDanke");if(md)md.onclick=e=>{e.preventDefault();waOeffnen(v,DANKE(v));aendere(x=>{x.bedankt=iso(new Date())});meldung("WhatsApp mit dem Danke geöffnet")};
+  $("mDruck").innerHTML=druckReihe(v)+'<a href="#" class="mWa" id="mWa">Mietvertrag per WhatsApp an den Kunden senden</a>'+(v.status==="zurück"?'<div class="nkBlock" id="mDanke"><span class="nkLabel">Danke-Nachricht an den Kunden</span>'+nkPaar()+'</div>':'')+(werText(v)?'<div class="hinweis" style="text-align:center;margin-top:10px">'+esc(werText(v))+'</div>':'');
+  const md=$("mDanke");if(md)nkVerbinden(md,v.telefon,()=>DANKE(v),()=>aendere(x=>{x.bedankt=iso(new Date())}));
   $("mDruck").querySelectorAll("[data-dr]").forEach(d=>d.onclick=e=>{e.preventDefault();druckeDoc(v,d.dataset.dr)});
   $("mWa").onclick=e=>{e.preventDefault();teilen(v)};
   $("haupt").textContent=nx?"Weiter: "+nx[1]:"Neuer Mietvertrag";
@@ -2155,18 +2191,19 @@ function tagesStand(){const h=iso(new Date()),V=vorgaenge(),erl=V.filter(v=>v.ue
   offen=V.filter(v=>v.ueb&&v.status!=="zurück"&&v.bisD&&v.bisD<=h).length+V.filter(v=>!v.ueb&&v.vonD&&v.vonD<=h&&v.status!=="zurück").length;
   return offen?"Heute schon "+erl+" erledigt, noch "+offen+".":"Heute alles erledigt ✓"}
 function nachSheet(titel,unter,aktionen){$("nach").innerHTML='<h3>'+esc(titel)+'</h3><div class="unter">'+esc(unter)+'</div>'+
-    aktionen.map((a,i)=>'<div class="knopf'+(a.voll?" voll":"")+(a.wa?" wa":"")+'" data-i="'+i+'">'+esc(a.t)+'</div>').join("")+'<a href="#" class="zu" id="nachZu">'+(zurMappe()?"Fertig, zur Mappe":"Schließen")+'</a>'+(zurMappe()?'<div class="unter" style="text-align:center;margin-top:4px">Einzelne Blätter druckst du jederzeit in der Mappe.</div>':"");
+    aktionen.map((a,i)=>a.text?'<div class="nkBlock" data-w="'+i+'"><span class="nkLabel">'+esc(a.t.replace(/ per WhatsApp/,""))+'</span>'+nkPaar()+'</div>':'<div class="knopf'+(a.voll?" voll":"")+(a.wa?" wa":"")+'" data-i="'+i+'">'+esc(a.t)+'</div>').join("")+'<a href="#" class="zu" id="nachZu">'+(zurMappe()?"Fertig, zur Mappe":"Schließen")+'</a>'+(zurMappe()?'<div class="unter" style="text-align:center;margin-top:4px">Einzelne Blätter druckst du jederzeit in der Mappe.</div>':"");
   $("nach").classList.remove("versteckt");$("nachBg").classList.remove("versteckt");
   const zu=()=>{$("nach").classList.add("versteckt");$("nachBg").classList.add("versteckt")};
   [...$("nach").querySelectorAll("[data-i]")].forEach(k=>k.onclick=()=>{const a=aktionen[+k.dataset.i];if(!a.bleibt)zu();a.f()});
+  [...$("nach").querySelectorAll("[data-w]")].forEach(k=>{const a=aktionen[+k.dataset.w];nkVerbinden(k,a.tel,a.text)});
   const zm=zurMappe();$("nachZu").onclick=e=>{e.preventDefault();zu();if(zm)zeige("mappe")};$("nachBg").onclick=zu}
 function teilenBlatt(v){v=aktuell()||v;$("nach").innerHTML='<h3>Teilen</h3><div class="unter">'+esc(v.nr+"  "+v.name+", "+v.auto)+'</div>'+druckReihe(v)+
     '<div class="knopf wa" id="tWa">Mietvertrag per WhatsApp an den Kunden</div>'+
-    ((v.endabrechnung||{}).summe?'<div class="knopf wa" id="tEnd">Endabrechnung ('+eur(v.endabrechnung.summe)+' €) per WhatsApp</div>':'')+(v.status==="zurück"?'<div class="knopf wa" id="tDanke">Danke-Nachricht per WhatsApp</div>':'')+'<a href="#" class="zu" id="nachZu">Schließen</a>';
+    ((v.endabrechnung||{}).summe?'<div class="knopf wa" id="tEnd">Endabrechnung ('+eur(v.endabrechnung.summe)+' €) per WhatsApp</div>':'')+(v.status==="zurück"?'<div class="nkBlock" id="tDanke"><span class="nkLabel">Danke-Nachricht an den Kunden</span>'+nkPaar()+'</div>':'')+'<a href="#" class="zu" id="nachZu">Schließen</a>';
   $("nach").classList.remove("versteckt");$("nachBg").classList.remove("versteckt");
   const zu=()=>{$("nach").classList.add("versteckt");$("nachBg").classList.add("versteckt")};
   $("nach").querySelectorAll("[data-dr]").forEach(d=>d.onclick=e=>{e.preventDefault();druckeDoc(v,d.dataset.dr)});
-  $("tWa").onclick=()=>teilen(v);const td=$("tDanke");if(td)td.onclick=()=>{waOeffnen(v,DANKE(v));zu()};const te=$("tEnd");if(te)te.onclick=()=>{if(SICHT!=="rueckgabe")zeige("rueckgabe");zu();setTimeout(()=>$("eKopieren").click(),300)};$("nachZu").onclick=e=>{e.preventDefault();zu()};$("nachBg").onclick=zu}
+  $("tWa").onclick=()=>teilen(v);const td=$("tDanke");if(td)nkVerbinden(td,v.telefon,()=>DANKE(v),()=>aendere(x=>{x.bedankt=iso(new Date())}));const te=$("tEnd");if(te)te.onclick=()=>{if(SICHT!=="rueckgabe")zeige("rueckgabe");zu();setTimeout(endWa,300)};$("nachZu").onclick=e=>{e.preventDefault();zu()};$("nachBg").onclick=zu}
 const DRUCK_BEIDE=v=>{const u=aendere(x=>{if(!x.ueb)x.ueb=uebStandard(x)})||v;lerneAuto(u.auto,{reifen:u.ueb.reifen,felgen:u.ueb.felgen,marke:u.ueb.marke});oeffnen(()=>fuelleVertrag(aktuell()||u))};
 const HEUTE=()=>{AUF=null;location.href="https://barankohler.github.io/mietix-zentrale/"};   // Fertig: zur Startseite mit Heute (30.10.2026)
 let NEU=true;   // true = das Formular ist ein neuer Mietvertrag; false = ein gespeicherter Mietvertrag ist geladen (zurück zeigt ihn wieder, nichts geht verloren)
@@ -2573,13 +2610,16 @@ function buKopieren(t){let ok=false;try{const a=document.createElement("textarea
 
 /* ---------- Leiste unten je Ansicht ---------- */
 function buLeiste(){const s=SICHT,k=$("haupt"),sum=$("bSum"),un=$("bUnter"),li=$("bLink");if(!k)return;
-  k.classList.remove("wa");sum.classList.add("versteckt");un.classList.add("versteckt");li.classList.add("versteckt");
+  k.classList.remove("wa","versteckt");$("bPaar").classList.add("versteckt");sum.classList.add("versteckt");un.classList.add("versteckt");li.classList.add("versteckt");
   if(s==="buchung"){const x=bAnfrage();if(!x)return;const w=x.status!=="gebucht";k.innerHTML=w?"✓ Anzahlung da":BU_SVG.doc+"Mietvertrag anlegen";
     un.textContent=w?"Auto wird dann im Kalender geblockt":"Name, Auto, Zeitraum, Preis und Anzahlung sind schon drin";un.classList.remove("versteckt")}
   else if(s==="neu"){nbSumme();sum.classList.remove("versteckt");const a=NB_MODUS==="anfordern";k.classList.toggle("wa",a);k.innerHTML=a?BU_SVG.wa+"Weiter: Anzahlung anfordern":"✓ Reservieren"}
-  else if(s==="iban"){k.classList.add("wa");k.innerHTML=BU_SVG.wa+"In WhatsApp öffnen";li.textContent="Text kopieren";li.classList.remove("versteckt")}
-  else if(s==="reserviert"){k.classList.add("wa");k.innerHTML=BU_SVG.wa+"Bestätigung per WhatsApp senden";li.textContent="Später";li.classList.remove("versteckt")}}
-$("bLink").onclick=e=>{e.preventDefault();if(SICHT==="iban"){const x=buAnfrage(IBAN_ID);if(x)buKopieren(buIbanText(x))}else if(SICHT==="reserviert")zeige("heute")};
+  // Anzahlung und Bestätigung: Knopf-Paar WhatsApp und Kopieren statt eines großen Knopfs (02.11.2026, Baran)
+  else if(s==="iban"){const x=buAnfrage(IBAN_ID);if(!x)return;k.classList.add("versteckt");const bp=$("bPaar");bp.classList.remove("versteckt");bp.innerHTML=nkPaar("gross");
+    nkVerbinden(bp,x.nummer,()=>buIbanText(x))}
+  else if(s==="reserviert"){const x=buAnfrage(RES_ID);if(!x)return;k.classList.add("versteckt");const bp=$("bPaar");bp.classList.remove("versteckt");bp.innerHTML=nkPaar("gross");
+    nkVerbinden(bp,x.nummer,()=>buBestText(x),()=>buAendern(x.id,y=>{y.bestaetigt={am:iso(new Date())}}));li.textContent="Später";li.classList.remove("versteckt")}}
+$("bLink").onclick=e=>{e.preventDefault();if(SICHT==="reserviert")zeige("heute")};
 function buHaupt(){const s=SICHT;
   if(s==="buchung"){const x=bAnfrage();if(!x){zeige(BU_REITER);return}if(x.status!=="gebucht")daAuf(x.id);else bMietvertrag();return}
   if(s==="neu"){nbSpeichern();return}
