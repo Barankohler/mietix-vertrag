@@ -232,6 +232,28 @@ input,select,textarea{border:1.5px solid #E4E4E7;border-radius:12px;font-size:16
 .knopf{border:1.5px solid #E4E4E7;color:#1C1C1E;border-radius:14px}
 .heute{border:0;background:#fff;border-radius:16px}.heute span{border-radius:999px}
 .vmStand{background:#F2F2F4}
+/* Runde 2 (1.11.2026, Baran): Auto als eine Zeile mit Fenster, Mietvertrag-Nr. ordentlich, Mappe verbunden */
+.azZeile{display:flex;align-items:center;gap:12px;width:100%;box-sizing:border-box;min-height:56px;padding:10px 14px;margin:4px 0 6px;background:#fff;border:1.5px solid #E4E4E7;border-radius:14px;font-family:inherit;text-align:left;cursor:pointer;color:#1C1C1E;-webkit-tap-highlight-color:transparent}
+.azZeile:active{background:#F6F6F7}
+.azKreis{flex:0 0 auto;width:26px;height:26px;border-radius:50%;box-sizing:border-box;border:2px solid #C7C7CC;display:inline-flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;color:#fff;line-height:1}
+.azKreis.an{background:#1E9E5A;border-color:#1E9E5A}
+.azT{flex:1;min-width:0}.azT b{display:block;font-size:17px;font-weight:600;color:#1C1C1E;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.azT i{display:block;font-style:normal;font-size:14px;color:#8A8A8E;margin-top:2px}
+.azT b.azLeer{color:#8A8A8E;font-weight:600}.azT b.azLeer em{font-style:normal;color:#FF3B30}
+.azPf{flex:0 0 auto;font-size:24px;color:#C7C7CC;line-height:1;font-weight:500}
+.azZeile.fehlt{background:#FDE8E8;border-color:#FF3B30}.azZeile.fehlt .azKreis{border-color:#FF3B30}.azZeile.fehlt b.azLeer{color:#C4161C}
+#fAuto .autos{grid-template-columns:1fr;gap:0;background:#fff;border:1.5px solid #E4E4E7;border-radius:14px;overflow:hidden;margin:0 0 10px}
+#fAuto .auto{border:0;border-top:1px solid #ECECEF;border-radius:0;min-height:50px;padding:9px 14px;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center}
+#fAuto .auto:first-child{border-top:0}#fAuto .auto b{font-size:17px;font-weight:600}#fAuto .auto i{font-size:14px;color:#8A8A8E}
+#fAuto .auto.an{border:0;border-top:1px solid #ECECEF;background:#EEF8F2}#fAuto .auto.an:first-child{border-top:0}#fAuto .auto.an b{color:#1E8E4E}#fAuto .auto.an b::after{content:" ✓"}
+.azOk{display:block;text-align:center;margin-top:10px;padding:14px;border-radius:14px;background:var(--rot,#C4161C);color:#fff;font-weight:800;font-size:17px;text-decoration:none}
+#kNr{background:#fff;min-height:50px;padding:0 16px;border-radius:16px;margin:0 0 12px;font-size:17px;color:#1C1C1E}
+#kNr span{font-weight:600}#kNr span b{font-weight:600;font-variant-numeric:tabular-nums}#kNr a{color:#C4161C;font-weight:600;font-size:17px}
+.mLinks{margin:12px -16px -14px;border-top:1px solid #ECECEF}
+.mLink{display:flex;align-items:center;gap:12px;min-height:50px;padding:8px 16px;box-sizing:border-box;text-decoration:none;color:#1C1C1E;border-top:1px solid #ECECEF}.mLink:first-child{border-top:0}
+.mLink span{flex:1;min-width:0}.mLink b{display:block;font-size:17px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mLink i{display:block;font-style:normal;font-size:14px;color:#8A8A8E}
+.mLink em,.hz .hPf{flex:0 0 auto;font-style:normal;font-size:24px;color:#C7C7CC;line-height:1;font-weight:500}
+.mLink:active{background:#F6F6F7}
 @media(min-width:760px){header{padding-left:max(16px,calc((100% - 680px)/2))!important;padding-right:max(16px,calc((100% - 680px)/2))!important}main{max-width:680px!important;margin-left:auto!important;margin-right:auto!important}}
 
 .mxKnopf,.mxKlapp>summary{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;box-sizing:border-box;background:#fff;border:1.5px solid #E4E4E7;border-radius:16px;padding:14px 16px;min-height:60px;text-align:left;font-family:inherit;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.04);color:#1C1C1E;margin:0 0 10px;-webkit-tap-highlight-color:transparent}
@@ -299,6 +321,10 @@ html body .app>h2,html body main>h2{margin-left:16px!important;margin-right:16px
 .chips [data-jn=ja].an:before{content:"✓"}.chips [data-jn=nein].an:before{content:"✕"}
 .frage .chips [data-jn=ja].an{background:#34C759!important;color:#fff!important;outline:0}
 .frage .chips [data-jn=nein].an{background:#FF3B30!important;color:#fff!important;outline:0}
+/* Kunden: „‹ Kunden“ wie „‹ Start“ als rote Schrift, Überschriften klein und grau */
+html body .kTop #kZu{border:0!important;background:none!important;padding:4px 0!important;color:#C4161C!important;font-size:17px!important;font-weight:600!important}
+html body .ab{font-size:13px!important;letter-spacing:.3px;color:#6E6E73!important;font-weight:600!important;text-transform:uppercase;margin:20px 16px 7px!important}
+html body .ab span{text-transform:none;letter-spacing:0}
 /* Kreise mit Anfangsbuchstaben: grau statt bunt (Baran: „viel zu bunt“) */
 .av,.vav{background:#C7C7CC!important;color:#fff!important}
 .leiste button{border-radius:13px!important}
@@ -354,7 +380,7 @@ input[type=date],input[type=time]{min-width:0;max-width:100%}
 
 <!-- ================= MAPPE: ein Kunde, alle Schritte (30.10.2026, Baran) ================= -->
 <section id="s_mappe" class="versteckt">
-  <div class="karte mKopf"><div class="mZeile"><div><b id="mName"></b><i id="mInfo"></i></div><a href="#" class="fX" id="mZu" title="Schließen">✕</a></div></div>
+  <div class="karte mKopf"><div class="mZeile"><div><b id="mName"></b><i id="mInfo"></i></div><a href="#" class="fX" id="mZu" title="Schließen">✕</a></div><div class="mLinks" id="mLinks"></div></div>
   <div class="karte"><h2>Schritte</h2><div id="mSchritte"></div>
     <div id="mVerlInfo"></div>
     <a href="#" class="mVerlKnopf" id="mVerl">Verlängern</a></div>
@@ -399,9 +425,12 @@ input[type=date],input[type=time]{min-width:0;max-width:100%}
 
   <div class="karte">
     <h2>Fahrzeug</h2>
-    <label>Fahrzeug (Hersteller, Modell) *</label>
-    <div class="autos" id="autos"></div>
-    <input id="modell" placeholder="oder hier eintippen">
+    <!-- 1.11.2026, Baran: eine Zeile „Auto“ statt 11 Kacheln, Tipp öffnet das Fenster mit allen Autos (Kacheln und Felder unverändert, nur verschoben) -->
+    <button type="button" class="azZeile" id="autoZeile" aria-label="Auto wählen"><span class="azKreis" id="autoKreis"></span><span class="azT" id="autoText"><b class="azLeer">Auto wählen <em>*</em></b></span><span class="azPf">›</span></button>
+    <div class="mxFenster" id="fAuto" role="dialog" aria-label="Auto wählen"><div class="mxKopf"><h3>Auto wählen</h3><button class="mxZu" type="button" aria-label="Schließen">✕</button></div>
+      <div class="autos" id="autos"></div>
+      <input id="modell" placeholder="oder hier eintippen" enterkeyhint="done">
+      <a href="#" class="azOk versteckt" id="autoOk">Übernehmen ✓</a></div>
     <div class="kurz" id="kFz"><span></span><a href="#">ändern</a></div>
     <div id="wFz"><label>Kennzeichen</label><input id="kz">
     <label>Fahrgestellnummer (FIN)</label><input id="fin">
@@ -925,8 +954,20 @@ let AUTO_AUF=false;   // false: nach der Wahl nur das gewählte Auto zeigen (kur
 function zeichneAutos(){const l=fahrzeugListe(),zu=!!AUTO&&!AUTO_AUF&&l.some(a=>a.name===AUTO);
   $("autos").innerHTML=l.map((a,i)=>(zu&&a.name!==AUTO)?"":'<div class="auto'+(AUTO===a.name?" an":"")+'" data-i="'+i+'"><b>'+a.name+'</b><i>'+(a.kz||"&nbsp;")+'</i></div>').join("")+
     (zu?'<div class="auto" id="autoAndere" style="display:flex;align-items:center;justify-content:center"><b>Anderes Auto</b></div>':"");
-  [...$("autos").querySelectorAll("[data-i]")].forEach(e=>e.onclick=()=>waehleAuto(l[+e.dataset.i]));
-  const an=$("autoAndere");if(an)an.onclick=()=>{AUTO_AUF=true;zeichneAutos()}}
+  [...$("autos").querySelectorAll("[data-i]")].forEach(e=>e.onclick=()=>{waehleAuto(l[+e.dataset.i]);autoFensterZu()});
+  const an=$("autoAndere");if(an)an.onclick=()=>{AUTO_AUF=true;zeichneAutos()};autoZeile()}
+// Auto als eine Zeile (1.11.2026, Baran): links Kreis (grün ✓ wenn gewählt), Modell, grau Kennzeichen und Tagespreis, rechts ›
+function autoTagText(name){try{const p=autoPreis(name);if(!p||!D||!D.rabatt)return"";
+  const m=Math.min(...[0,1,2,3,4,5,6].map(s=>wochenmiete(p,s,1)))*(1-D.rabatt[0]);return isFinite(m)&&m>0?"ab "+Math.round(m).toLocaleString("de-DE")+" € am Tag":""}catch(e){return""}}
+function autoZeile(){const z=$("autoZeile");if(!z)return;const esc=t=>String(t==null?"":t).replace(/&/g,"&amp;").replace(/</g,"&lt;");const m=String($("modell").value||"").trim();
+  $("autoKreis").classList.toggle("an",!!m);$("autoKreis").textContent=m?"✓":"";
+  $("autoText").innerHTML=m?"<b>"+esc(m)+"</b><i>"+esc([$("kz").value.trim(),autoTagText(m)].filter(Boolean).join(", ")||"Kennzeichen unten eintragen")+"</i>":'<b class="azLeer">Auto wählen <em>*</em></b>';
+  if(m)z.classList.remove("fehlt");$("autoOk").classList.toggle("versteckt",!m||fahrzeugListe().some(a=>a.name===m))}
+function autoFensterZu(){if($("fAuto").classList.contains("auf"))mxZu();autoZeile()}
+$("autoZeile").onclick=()=>{AUTO_AUF=true;zeichneAutos();mxAuf("fAuto")};
+$("modell").addEventListener("input",autoZeile);
+$("modell").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();$("modell").blur();autoFensterZu()}});
+$("autoOk").onclick=e=>{e.preventDefault();autoFensterZu()};
 let MEHR_HAND=false;   // Mehr-km-Preis kommt je Auto aus der Preisdatei, bis jemand selbst etwas tippt
 function waehleAuto(a){AUTO=a.name;AUTO_AUF=false;$("modell").value=a.name;$("kz").value=a.kz||"";$("fin").value=a.fin||"";if(a.km)$("km").value=kmText(a.km);
   const p=autoPreis(a.name);if(p&&p.kaution&&(gw("k_art")||"geld")==="geld")$("kautB").value=wie(p.kaution);
@@ -1337,7 +1378,8 @@ function fehltNoch(){const f=[],w=i=>!!String($(i).value||"").trim();if(!w("name
   if(!w("modell"))f.push(["modell","Auto"]);if(!w("kz"))f.push(["kz","Kennzeichen"]);
   if(!$("vonD").value||!$("bisD").value)f.push([!$("vonD").value?"vonD":"bisD","Zeitraum"]);if(!w("preis1"))f.push(["preis1","Preis"]);return f}
 // Zum ersten fehlenden Feld springen (versteckte Felder wie die Anschrift: das sichtbare Feld daneben)
-function hinZu(id){let el=$(id);if(!el)return;if(el.offsetParent===null&&el.nextElementSibling)el=el.nextElementSibling.querySelector("input")||el.nextElementSibling;
+function hinZu(id){if(id==="modell"){const z=$("autoZeile");z.classList.add("fehlt");try{z.scrollIntoView({block:"center",behavior:"smooth"})}catch(x){}return}
+  let el=$(id);if(!el)return;if(el.offsetParent===null&&el.nextElementSibling)el=el.nextElementSibling.querySelector("input")||el.nextElementSibling;
   try{el.scrollIntoView({block:"center",behavior:"smooth"});if(el.focus&&el.tagName==="INPUT")el.focus()}catch(x){}}
 // Übergabe und Rückgabe erst, wenn alles da und unterschrieben ist. Getipptes bleibt als Entwurf gesichert, auch für das andere Gerät.
 /* Kunde verweigert Unterschrift (1.11.2026, Baran mit Anwalt): nur Rückgabe und Schadensanerkennung, nie Mietvertrag oder Übergabe.
@@ -1361,7 +1403,7 @@ if(!pad("padSV"))f.push(["padSV","Unterschrift Überlassungserklärung"])}
     if(!pad("padR")&&!verwOk("padR"))f.push(["padR","Unterschrift Rückgabe"]);
     if(gw("r_auff")==="ja"){if(!w("sBesch"))f.push(["sBesch","Schadensbeschreibung"]);if(!pad("padS")&&!verwOk("padS"))f.push(["padS","Unterschrift Schadensanerkennung"])}}
   return f}
-function gesperrtMeldung(f){hinZu(f[0][0]);meldungRot("Noch fehlt: "+f.map(x=>x[1]).join(", "))}
+function gesperrtMeldung(f){if(f.some(x=>x[0]==="modell"))$("autoZeile").classList.add("fehlt");hinZu(f[0][0]);meldungRot("Noch fehlt: "+f.map(x=>x[1]).join(", "))}
 function padsAusEntwurf(){const d=protAlle()[WAHL+"|"+SICHT];if(d&&d.p)Object.entries(d.p).forEach(([k,x])=>{if(x&&PAD[k]&&!PAD[k].wert())PAD[k].setzen(x)})}
 function hauptText(){const k=$("haupt");k.classList.remove("aus");if(gesperrt(SICHT))return;
   if(SICHT==="vertrag"){   // 1.11.2026 Baran: keine Dauer-Anzeige „Noch fehlt“, erst beim Tippen roter Hinweis
@@ -1719,7 +1761,7 @@ function zustText(p){const L={sauber:"sauber",leicht:"leicht verschmutzt",stark:
   const g=n=>L[gw(p+"_"+n)]||gw(p+"_"+n)||"–";
   return "<b>✓ Zustand</b><br>Außen "+g("aussen")+", innen "+g("innen")+", Tank "+g("tank")+", "+(gw(p+"_gegen")==="nein"?"Abweichungen":"alles vollständig")+", "+g("reifen")+", "+g("felgen")}
 function kurzAlle(){
-  kurzZeile("kNr","wNr","Mietvertrag-Nr. <b>"+kfmt($("nr").value)+"</b>",!!$("nr").value);
+  kurzZeile("kNr","wNr","Mietvertrag Nr. <b>"+esc($("nr").value||neueNr())+"</b>",true);autoZeile();
   kurzZeile("kFz","wFz","Kennzeichen <b>"+kfmt($("kz").value)+"</b>, FIN …"+kfmt(String($("fin").value).slice(-6)),!!$("kz").value);
   kurzZeile("kKm","wKm","Inklusive <b>"+kfmt($("freikm").value)+" km</b>, Mehr-km <b>"+kfmt($("mehrkm").value)+" €</b>, Selbstbeteiligung <b>"+kfmt($("sb").value)+" €</b>",!!$("freikm").value&&!!$("mehrkm").value&&!!$("sb").value);
   kurzZeile("kUZeit","wUZeit",kfmt(de($("uD").value))+", "+kfmt($("uU").value)+" Uhr, "+kfmt($("uOrt").value),!!$("uD").value);
@@ -1784,6 +1826,9 @@ function mappeOeffnen(nr){NEU_FREI=true;WAHL=nr;WAHL_OFFEN=false;GELADEN={};zeig
 function zeichneMappe(){const v=aktuell();if(!v){zeige("vertraege");return}
   const st=mappeSchritte(v),nx=st.find(x=>!x[2]);MAPPE_NX=nx?nx[0]:null;
   $("mName").textContent=v.nr+"  "+v.name;
+  // Mappe verbunden (1.11.2026, Baran): Kunde öffnet die Kundenakte, Auto die Autoseite
+  $("mLinks").innerHTML=(v.name?'<a class="mLink" id="mKunde" href="https://barankohler.github.io/mietix-zentrale/kunden.html?kunde='+encodeURIComponent(v.name)+'"><span><b>'+esc(v.name)+'</b><i>Kunde ansehen</i></span><em>›</em></a>':'')+
+    (v.auto?'<a class="mLink" id="mAuto" href="https://barankohler.github.io/mietix-autos/?auto='+encodeURIComponent(v.auto)+'"><span><b>'+esc(v.auto)+'</b><i>'+esc([v.kz,"Auto ansehen"].filter(Boolean).join(", "))+'</i></span><em>›</em></a>':'');
   $("mInfo").textContent=v.auto+(v.kz?" ("+v.kz+")":"")+", "+de(v.vonD)+" "+(v.vonU||"")+" bis "+de(v.bisD)+" "+(v.bisU||"")+(v.status==="zurück"?", zurückgegeben":"");
   $("mSchritte").innerHTML=st.map(([x,t,ok,uf],i)=>'<div class="mSchritt'+(ok&&!uf?" ok":"")+(ok&&uf?" luecke":"")+(nx&&nx[0]===x?" weiter":"")+'" data-m="'+x+'"><span class="nr">'+(ok&&!uf?"✓":ok?"!":(i+1))+'</span><b>'+t+'</b><i>'+
     (ok&&uf?"Unterschrift fehlt":ok&&x==="rueckgabe"&&((v.rueck||{}).verweigert||(v.schaden||{}).verweigert)?"Unterschrift verweigert":ok?"erledigt, ansehen":x==="vertrag"?"Unterschrift fehlt":(nx&&nx[0]===x?"als Nächstes":"noch offen"))+'</i></div>').join("");
@@ -1870,10 +1915,10 @@ function zeichneHeute(){const h=iso(new Date()),m=plusTage(h,1),l=vorgaenge().fi
   const zeile=z=>{const v=z.v,spaet=z.d<h,ueb=z.art==="ueb",erin=ueb&&z.d===m&&!v.erinnert;
     // Übergabe immer grün, Rückgabe immer rot, auch bei Morgen (31.10.2026, Baran: „überall gleichmäßig“)
     if(z.anf)return'<div class="hz" data-anf="'+esc(z.anf.id)+'"><span class="uhr">'+(z.u||"&nbsp;")+'</span><span class="t"><b>'+esc(v.name)+'</b><i>'+esc([v.auto,"gebucht, noch kein Mietvertrag"].filter(Boolean).join(", "))+'</i></span>'+
-      '<span class="schild gruen">Übergabe</span></div>';
+      '<span class="schild gruen">Übergabe</span><span class="hPf">›</span></div>';
     return'<div class="hz" data-nr="'+esc(v.nr)+'" data-art="'+z.art+'"><span class="uhr">'+(z.u||"&nbsp;")+'</span><span class="t"><b>'+esc(v.name)+'</b><i>'+esc([v.auto,(ueb?"Übergabe":"Rückgabe")+(z.d===h?" heute":"")].filter(Boolean).join(", "))+'</i>'+
       (spaet?'<i class="spaet">überfällig seit '+de(z.d).slice(0,6)+'</i>':'')+(ueb&&!v.unterschrift?'<i class="spaet">Mietvertrag noch nicht unterschrieben</i>':'')+(erin?'<u data-erin="1">Erinnerung senden</u>':'')+(!ueb?'<u data-verl="1">Verlängert ›</u>':'')+'</span>'+
-      '<span class="schild '+(ueb?"gruen":"rot")+'">'+(ueb?"Übergabe":"Rückgabe")+'</span></div>'};
+      '<span class="schild '+(ueb?"gruen":"rot")+'">'+(ueb?"Übergabe":"Rückgabe")+'</span><span class="hPf">›</span></div>'};
   const hz=zeilen.filter(z=>z.d<=h),mz=zeilen.filter(z=>z.d===m);
   $("hHeuteT").textContent=kopf("Heute",h);$("hMorgenT").textContent=kopf("Morgen",m);
   // Fortschritt: heute erledigte Übergaben und Rückgaben gegen alles, was heute noch ansteht
@@ -1937,7 +1982,7 @@ function zeige(s){SICHT=s;["heute","vertraege","mappe","vertrag","uebergabe","ru
   if(s==="heute")zeichneHeute();
   else if(s==="vertraege")zeichneAlle();
   else if(s==="mappe")zeichneMappe();
-  else if(s==="vertrag"){if(!NEU&&!$("name").value.trim()&&aktuell())vertragLaden(aktuell());zeichneAnfragen();if(!$("name").value)$("nr").value=neueNr()}
+  else if(s==="vertrag"){if(!NEU&&!$("name").value.trim()&&aktuell())vertragLaden(aktuell());zeichneAnfragen();if(!$("name").value)$("nr").value=neueNr();kurzAlle()}
   else{wahlFuellen();formularLaden()}
   svKarte();schritte();hauptText();document.querySelector(".leiste").classList.toggle("versteckt",s==="vertraege"||s==="heute");   // 01.11.2026, Baran: unnötig
   const sp=gesperrt(s);$("neuSperre").classList.toggle("versteckt",!sp);
