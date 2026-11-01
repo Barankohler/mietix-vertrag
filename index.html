@@ -529,8 +529,8 @@ h2.hT{margin:18px 4px 8px}#s_heute h2.hT:first-of-type{margin-top:6px}
   <div class="karte"><h2>Hinterlegtes Sicherungsfahrzeug</h2>
     <label>Marke, Modell</label><input id="vModell">
     <label>Kennzeichen</label><input id="vKz">
-    <label>Fahrgestellnummer (FIN)</label><input id="vFin">
-    <label>Geschätzter Wert € (mindestens 2.500)</label><input id="vWert" inputmode="decimal"><div class="hinweis versteckt" id="vWertHinweis" style="color:var(--rot);font-weight:800">Unter dem Mindestwert von 2.500 €</div>
+    <label>Fahrgestellnummer (FIN) *</label><input id="vFin">
+    <label>Geschätzter Wert € (mindestens 2.500) *</label><input id="vWert" inputmode="decimal"><div class="hinweis versteckt" id="vWertHinweis" style="color:var(--rot);font-weight:800">Unter dem Mindestwert von 2.500 €</div>
     <label>Zugleich übergeben</label>
     <div class="chips"><div class="chip" id="vSchein">Fahrzeugschein (ZB I)</div><div class="chip" id="vBrief">Fahrzeugbrief (ZB II)</div></div>
     <label>Schlüssel (Stück)</label><input id="vSchluessel" inputmode="numeric">
@@ -740,8 +740,11 @@ function zuschneiden(png){if(ZUGESCHNITTEN[png])return Promise.resolve(ZUGESCHNI
 async function stempel(doc,seite,yLinie,mieterPng,vermieterPng,verweigert){const p=doc.getPages()[seite];
   // Kunde verweigert: Vermerk über der Linie des Mieters (Spalte ab x 440, 112 pt breit), Vorlage bleibt unverändert
   if(!mieterPng&&verweigert&&verweigert.am&&FONT){const t=verwText(verweigert.am),i=t.indexOf(", "),z=[t.slice(0,i),t.slice(i+2)],g=(PLATZ[yLinie]||[20,20])[1];
-    let gr=8;while(gr>5&&(Math.max(...z.map(x=>FONT.widthOfTextAtSize(x,gr)))>110||2*(gr+1.2)+3>g))gr-=0.25;   // passt in Breite und Höhe über der Linie
-    z.forEach((x,j)=>{const w=FONT.widthOfTextAtSize(x,gr);p.drawText(x,{x:440+(112-w)/2,y:yLinie+2+(z.length-1-j)*(gr+1.2)+Math.max(0,Math.min(g-2*(gr+1.2)-3,4)),size:gr,font:FONT,color:PDFLib.rgb(0.1,0.1,0.1)})})}
+    // so groß wie der Platz über der Linie erlaubt, höchstens 9 pt (01.11.2026, Baran: etwas größer, nichts überschreiben):
+    // untere Zeile mit Unterlängen-Abstand über der Linie, obere Zeile bleibt 0,8 pt unter dem nächsten Text
+    let gr=9;while(gr>5&&(Math.max(...z.map(x=>FONT.widthOfTextAtSize(x,gr)))>110||1.2+2.05*gr>g-0.8))gr-=0.1;
+    const b1=yLinie+1.2+0.22*gr+Math.max(0,Math.min(g-0.8-(1.2+2.05*gr),4));
+    z.forEach((x,j)=>{const w=FONT.widthOfTextAtSize(x,gr);p.drawText(x,{x:440+(112-w)/2,y:b1+(z.length-1-j)*1.1*gr,size:gr,font:FONT,color:PDFLib.rgb(0.1,0.1,0.1)})})}
   for(const[png,x]of[[mieterPng,440],[vermieterPng,283]]){if(!png)continue;
     const echt=await bildEcht(png);if(!echt){alert("Eine Unterschrift fehlt auf diesem Gerät und kommt nicht ins PDF.\n\nBitte mit Internet die Seite neu öffnen und noch einmal drucken.");continue}
     // bis 40 pt hoch, wo die Vorlage Platz hat (31.10.2026, Baran: Unterschrift gut erkennbar, nicht zu klein)
@@ -1252,7 +1255,8 @@ const verwOk=k=>!!VERW[k]&&!(PAD[k]&&PAD[k].wert());
   const P=PAD[k];if(P){const alt=P.setzen;P.setzen=function(d){const r=alt.apply(P,arguments);if(d&&VERW[k])verwSetzen(k,"");return r}}});
 function fehltProtokoll(){const v=aktuell(),f=[];if(!v)return f;const pad=k=>!!(PAD[k]&&PAD[k].wert()),w=i=>!!($(i)&&String($(i).value||"").trim());
   if(SICHT==="uebergabe"&&!v.ueb){if(!v.unterschrift)f.push(["schritte","Unterschrift Mietvertrag"]);if(!w("uKm"))f.push(["uKm","Kilometerstand"]);
-    if(!$("svSlot").classList.contains("versteckt")){if(!w("vModell")||!w("vKz"))f.push(["vModell","Sicherungsfahrzeug"]);if(!pad("padSV"))f.push(["padSV","Unterschrift Überlassungserklärung"])}
+    if(!$("svSlot").classList.contains("versteckt")){if(!w("vModell")||!w("vKz"))f.push(["vModell","Sicherungsfahrzeug"]);if(!w("vFin"))f.push(["vFin","Fahrgestellnummer"]);   // 1.11.2026 Baran: FIN und Wert ab 2.500 € Pflicht
+      {const x=parseFloat(String($("vWert").value||"").replace(/[^\d,]/g,"").replace(",","."));if(!(x>=2500))f.push(["vWert",x>0?"Wert mindestens 2.500 €":"Wert Sicherungsfahrzeug"])}if(!pad("padSV"))f.push(["padSV","Unterschrift Überlassungserklärung"])}
     if(!pad("padU"))f.push(["padU","Unterschrift Übergabe"])}
   if(SICHT==="rueckgabe"&&v.status!=="zurück"){if(!w("rKm"))f.push(["rKm","Kilometerstand"]);if(!pad("padR")&&!verwOk("padR"))f.push(["padR","Unterschrift Rückgabe"]);
     if(gw("r_auff")==="ja"){if(!w("sBesch"))f.push(["sBesch","Schadensbeschreibung"]);if(!pad("padS")&&!verwOk("padS"))f.push(["padS","Unterschrift Schadensanerkennung"])}}
@@ -1859,7 +1863,7 @@ gruppe("r_auff").addEventListener("wahl",schadenAusRueckgabe);
 // Kaution nur Fahrzeug: kein Geldbetrag in der Schadensanerkennung
 function sKautZeigen(){$("sKautW").classList.toggle("versteckt",gw("s_kaution")==="fahrzeug")}
 gruppe("s_kaution").addEventListener("wahl",sKautZeigen);
-// Sicherungsfahrzeug: Hinweis unter 2.500 € (AVB), sperrt nicht
+// Sicherungsfahrzeug: Hinweis unter 2.500 € (AVB); seit 1.11.2026 sperrt fehltProtokoll die Übergabe darunter
 function vWertPruefen(){const x=parseFloat(String($("vWert").value||"").replace(/[^\d,]/g,"").replace(",","."));$("vWertHinweis").classList.toggle("versteckt",!(x>0&&x<2500))}
 $("vWert").addEventListener("input",vWertPruefen);
 gruppe("k_art").addEventListener("wahl",()=>{if(!gw("k_art"))gs("k_art","geld");kautSetzen(gw("k_art"))});
