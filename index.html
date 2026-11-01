@@ -692,7 +692,7 @@ const jetztUhr=()=>{const d=new Date();return pad(d.getHours())+":"+pad(d.getMin
 const de=s=>s?s.split("-").reverse().join("."):"";
 const zahl=v=>{if(v===null||v===undefined)return null;const s=String(v).trim();if(!s)return null;
   const n=parseFloat(s.indexOf(",")>=0?s.replace(/\./g,"").replace(",","."):s.replace(/\.(?=\d{3}(\D|$))/g,""));return isNaN(n)?null:n};
-const eur=n=>(n||0).toLocaleString("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2});
+const eur=n=>{n=+n||0;const g=Math.abs(n-Math.round(n))<0.005;return (g?Math.round(n):n).toLocaleString("de-DE",g?{maximumFractionDigits:0}:{minimumFractionDigits:2,maximumFractionDigits:2})};   // ganze Euro ohne ,00, Sätze wie 2,49 bleiben (1.11.2026)
 const wie=n=>n%1===0?n.toLocaleString("de-DE"):eur(n);          // 1.950 und 7.500 ohne ,00
 const betrag=id=>{const n=zahl($(id).value);return n===null?"":wie(n)};
 const geld=id=>{const n=zahl($(id).value);return n===null?"":eur(n)};
@@ -897,7 +897,7 @@ function tipps(){
     const m=Math.round(wochenmiete(p,start,t)*(1-D.rabatt[Math.min(t,D.days)-1]));   // ganze Euro (1.11.2026, Baran: keine Cent)
     if(preisAuto){$("preis1").value=eur(m);summe();$("preisTipp").innerHTML='<div class="klein">aus dem Preisrechner, überschreiben geht</div>'}
     else if(ABGEMACHT&&ABGEMACHT.preis===$("preis1").value)$("preisTipp").innerHTML='<div class="klein">abgemachter Preis aus dem Angebot</div>';
-    else if(eur(m)!==$("preis1").value){$("preisTipp").innerHTML='<div class="chip tipp">Preisrechner: '+eur(m)+' € übernehmen</div>';
+    else if(Math.abs((zahl($("preis1").value)||0)-m)>=0.005){$("preisTipp").innerHTML='<div class="chip tipp">Preisrechner: '+eur(m)+' € übernehmen</div>';
       $("preisTipp").firstChild.onclick=()=>{preisAuto=true;tipps()}}}
   if(D&&t){const km=D.freiKm*t+(+($("paketKm").value||0));
     if(kmAuto){$("freikm").value=kmText(km);$("kmTipp").innerHTML='<div class="klein">'+D.freiKm+' km pro Tag × '+t+(t===1?' Tag':' Tage')+'</div>'}
@@ -1258,7 +1258,7 @@ function werMerken(v){const m=ichMail();if(m)v.geaendert={wer:m,am:new Date().to
 function werText(v){const g=v&&v.geaendert;if(!g||!g.wer)return"";const n=g.wer.split("@")[0],d=new Date(g.am),p=x=>String(x).padStart(2,"0");
   return"Zuletzt geändert von "+n.charAt(0).toUpperCase()+n.slice(1)+", "+p(d.getDate())+"."+p(d.getMonth()+1)+". "+p(d.getHours())+":"+p(d.getMinutes())+" Uhr"}
 // Danke nach der Rückgabe (31.10.2026): fertiger Text, öffnet den Chat mit dem Kunden
-const DANKE=v=>"Hallo "+String(v.name||"").trim().split(/\s+/)[0]+",\n\nvielen Dank, dass Sie bei Mietix gemietet haben! Wir hoffen, Sie hatten eine tolle Zeit mit dem "+v.auto+".\n\nWir freuen uns auf das nächste Mal.\n\nViele Grüße\nIhr Mietix-Team";
+const DANKE=v=>"Hallo "+String(v.name||"").trim().split(/\s+/)[0]+",\n\nvielen Dank, dass Sie bei Mietix gemietet haben! Wir hoffen, Sie hatten eine tolle Zeit mit dem "+v.auto+".\n\nWir freuen uns auf das nächste Mal.\n\nViele Grüße\nB. Köhler vom Mietix-Team";
 
 /* ---------- Mietvertrag wählen (für die anderen 4 Formulare) ---------- */
 function wahlFuellen(){const l=vorgaenge().slice().reverse();
@@ -1895,9 +1895,10 @@ function uZahlZeichnen(){const v=aktuell(),z=(v&&v.zahlung)||{},teile=[];if(!v){
     const l=vorgaenge(),x=l.find(y=>y.nr===v.nr);if(x&&x.zahlung&&x.zahlung[k]){x.zahlung[k].am="";x.zahlung[k].art="";schreib("mietixVorgaenge",l);GELADEN.vertrag=null}uZahlZeichnen()})}
 function eintrag(t,u,knopf,spaet){return'<div class="heute'+(spaet?" spaet":"")+'"><div><b>'+t+'</b><i>'+u+'</i></div><span>'+knopf+'</span></div>'}
 // Texte für WhatsApp (E2). Baran kann sie hier anpassen, sie werden nirgends sonst gebraucht.
-const ERINNERUNG=v=>"Hallo "+v.name+",\n\nkurze Erinnerung an Ihre Abholung morgen, "+de(v.vonD)+(v.vonU?" um "+v.vonU+" Uhr":"")+", bei Mietix in der Peter-Sander-Straße 43 B, 55252 Mainz-Kastel.\n\nBitte mitbringen:\n- Personalausweis\n- Führerschein"+
-  (((v.zahlung||{}).kaut||{}).am?"":"\n- Kaution "+eur(zahl(((v.zahlung||{}).kaut||{}).betrag)||0)+" €")+(((v.zahlung||{}).rest||{}).am?"":"\n- Restbetrag "+eur(zahl(((v.zahlung||{}).rest||{}).betrag)||0)+" €")+"\n\nBis morgen!\nIhr Mietix-Team";
-const MAHNUNG=v=>"Hallo "+v.name+",\n\nfür Ihre Miete "+v.auto+" vom "+de(v.vonD)+" bis "+de(v.bisD)+" ist noch ein Betrag von "+eur(offenBetrag(v))+" € offen.\n\nBitte überweisen Sie den Betrag in den nächsten Tagen:\nMietix Sportwagenvermietung\nIBAN DE59 5105 0015 0997 0123 49\nVerwendungszweck: "+v.name+", "+v.auto+"\n\nVielen Dank!\nIhr Mietix-Team";
+const VORN=v=>String(v.name||"").trim().split(/\s+/)[0];
+const ERINNERUNG=v=>"Hallo "+VORN(v)+",\n\nkurze Erinnerung an Ihre Abholung morgen, "+de(v.vonD)+(v.vonU?" um "+v.vonU+" Uhr":"")+", bei Mietix in der Peter-Sander-Straße 43 B, 55252 Mainz-Kastel.\n\nBitte mitbringen:\n- Personalausweis\n- Führerschein"+
+  (((v.zahlung||{}).kaut||{}).am||!mitGeld(v.kautionArt||"geld")?"":"\n- Kaution "+eur(zahl(((v.zahlung||{}).kaut||{}).betrag)||0)+" €")+(((v.zahlung||{}).rest||{}).am?"":"\n- Restbetrag "+eur(zahl(((v.zahlung||{}).rest||{}).betrag)||0)+" €")+"\n\nBis morgen!\n\nViele Grüße\nB. Köhler vom Mietix-Team";
+const MAHNUNG=v=>"Hallo "+VORN(v)+",\n\nfür Ihre Miete "+v.auto+" vom "+de(v.vonD)+" bis "+de(v.bisD)+" ist noch ein Betrag von "+eur(offenBetrag(v))+" € offen.\n\nBitte überweisen Sie den Betrag in den nächsten Tagen:\nMietix Sportwagenvermietung\nIBAN DE59 5105 0015 0997 0123 49\nVerwendungszweck: "+v.name+", "+v.auto+"\n\nVielen Dank!\n\nViele Grüße\nB. Köhler vom Mietix-Team";
 const waNr=n=>{let s=String(n||"").replace(/[^0-9+]/g,"");if(!s)return"";if(s.startsWith("+"))s=s.slice(1);else if(s.startsWith("00"))s=s.slice(2);else if(s.startsWith("0"))s="49"+s.slice(1);return s.length>=8?s:""};
 function waOeffnen(v,text){const n=waNr(v.telefon);window.open("https://wa.me/"+(n?n+"?text=":"?text=")+encodeURIComponent(text),"_blank")}
 function zeichneHeute(){const h=iso(new Date()),m=plusTage(h,1),l=vorgaenge().filter(v=>v.status!=="zurück");
