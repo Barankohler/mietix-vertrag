@@ -1371,8 +1371,8 @@ function schritte(){const el=$("schritte");if(!el)return;
   const v=SICHT==="vertrag"?(bearbeitet()?aktuell():null):aktuell();
   $("wahl").classList.toggle("versteckt",SICHT==="vertrag"||!vorgaenge().length||(!!v&&!WAHL_OFFEN));   // Auswahl nur auf Wunsch, oben steht der Mietvertrag schon
   $("wahlLeer").classList.toggle("versteckt",SICHT==="vertrag"||vorgaenge().length>0);
-  if(!v){miniStand(null,null);el.innerHTML='<div class="sKopf"><div><b>Neuer Mietvertrag</b></div><a href="#" class="fX" id="sX" title="Schließen">✕</a></div>';
-    $("sX").onclick=e=>{e.preventDefault();try{if(neuInArbeit()){clearTimeout(entwurfTimer);localStorage.setItem("mietixEntwurfVertrag",JSON.stringify(entwurfSchnappschuss()))}}catch(_){}zeige("vertraege");if(neuInArbeit())meldung("Angefangen, steht oben unter Mietverträge zum Weitermachen")};return}
+  // Neuer Mietvertrag: kein Kasten oben (01.11.2026, Baran: oben steht schon „Neuer Mietvertrag“, gespeichert wird von selbst)
+  if(!v){miniStand(null,null);el.innerHTML="";$("wahlKarte").classList.add("versteckt");return}
   const st=[["vertrag","Mietvertrag",!!v.unterschrift||!!v.ueb],["uebergabe","Übergabe",!!v.ueb],["rueckgabe","Rückgabe",v.status==="zurück"]];
   el.innerHTML='<div class="sKopf"><div><b>'+esc(v.nr)+"  "+esc(v.name)+'</b><i>'+esc(v.auto)+", "+de(v.vonD)+" bis "+de(v.bisD)+(v.status==="zurück"?", zurückgegeben":"")+'</i></div>'+
     (WAHL_OFFEN?'<a href="#" id="sAlle">zu</a>':'<span class="fNav"><a href="#" class="teilen" id="sTeilen">Teilen</a><a href="#" class="mz" id="sMappe">‹ Mappe</a><a href="#" class="fX" id="sX" title="Schließen">✕</a></span>')+'</div>'+
