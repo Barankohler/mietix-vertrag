@@ -728,6 +728,8 @@ const LINIE={vertrag1:92,vertrag2:168,rueck:131,schaden:176,sv:289};
 // Freier Platz über jeder Linie bis zum nächsten Text oder Feld, in den Vorlagen gemessen (30.10.2026): [Vermieter, Mieter].
 // Die Unterschrift darf die Linie 3 pt nach unten kreuzen (darunter steht "Unterschrift ..." erst nach 7 pt), oben bleibt 1,5 pt Luft.
 const PLATZ={92:[14.8,45.2],168:[16,16],131:[15.5,15.5],176:[26.8,57.7],289:[23.2,23.2]};
+// Wo die Linie „Unterschrift Mieter“ in der Vorlage wirklich liegt (01.11.2026 gemessen, Spalte x 434 bis 561)
+const LINIE_ECHT={92:85.2,168:162.0,131:124.5,176:169.1,289:282.5};
 // Leeren Rand um die Unterschrift abschneiden, damit sie den freien Platz ganz nutzt (30.10.2026)
 const ZUGESCHNITTEN={};
 function zuschneiden(png){if(ZUGESCHNITTEN[png])return Promise.resolve(ZUGESCHNITTEN[png]);
@@ -740,11 +742,12 @@ function zuschneiden(png){if(ZUGESCHNITTEN[png])return Promise.resolve(ZUGESCHNI
 async function stempel(doc,seite,yLinie,mieterPng,vermieterPng,verweigert){const p=doc.getPages()[seite];
   // Kunde verweigert: Vermerk über der Linie des Mieters (Spalte ab x 440, 112 pt breit), Vorlage bleibt unverändert
   if(!mieterPng&&verweigert&&verweigert.am&&FONT){const t=verwText(verweigert.am),i=t.indexOf(", "),z=[t.slice(0,i),t.slice(i+2)],g=(PLATZ[yLinie]||[20,20])[1];
-    // so groß wie der Platz über der Linie erlaubt, höchstens 9 pt (01.11.2026, Baran: etwas größer, nichts überschreiben):
-    // untere Zeile mit Unterlängen-Abstand über der Linie, obere Zeile bleibt 0,8 pt unter dem nächsten Text
-    let gr=9;while(gr>5&&(Math.max(...z.map(x=>FONT.widthOfTextAtSize(x,gr)))>110||1.2+2.05*gr>g-0.8))gr-=0.1;
-    const b1=yLinie+1.2+0.22*gr+Math.max(0,Math.min(g-0.8-(1.2+2.05*gr),4));
-    z.forEach((x,j)=>{const w=FONT.widthOfTextAtSize(x,gr);p.drawText(x,{x:440+(112-w)/2,y:b1+(z.length-1-j)*1.1*gr,size:gr,font:FONT,color:PDFLib.rgb(0.1,0.1,0.1)})})}
+    // so groß wie der Platz über der Linie erlaubt, höchstens 9 pt (01.11.2026, Baran: etwas größer, nichts überschreiben).
+    // Gemessen an der echten Linie der Vorlage (LINIE liegt für Unterschriften etwas höher) und am nächsten Text darüber (PLATZ).
+    const echt=LINIE_ECHT[yLinie]||yLinie-6.6,platz=yLinie+g-0.8-(echt+2);   // nutzbare Höhe zwischen Linie und Text darüber
+    let gr=9;while(gr>5&&(Math.max(...z.map(x=>FONT.widthOfTextAtSize(x,gr)))>122||2.05*gr>platz))gr-=0.1;
+    const b1=echt+2+0.22*gr+Math.max(0,Math.min((platz-2.05*gr)/2,3));
+    z.forEach((x,j)=>{const w=FONT.widthOfTextAtSize(x,gr);p.drawText(x,{x:497.5-w/2,y:b1+(z.length-1-j)*1.1*gr,size:gr,font:FONT,color:PDFLib.rgb(0.1,0.1,0.1)})})}
   for(const[png,x]of[[mieterPng,440],[vermieterPng,283]]){if(!png)continue;
     const echt=await bildEcht(png);if(!echt){alert("Eine Unterschrift fehlt auf diesem Gerät und kommt nicht ins PDF.\n\nBitte mit Internet die Seite neu öffnen und noch einmal drucken.");continue}
     // bis 40 pt hoch, wo die Vorlage Platz hat (31.10.2026, Baran: Unterschrift gut erkennbar, nicht zu klein)
