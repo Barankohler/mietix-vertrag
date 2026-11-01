@@ -822,6 +822,7 @@ input[type=date],input[type=time]{min-width:0;max-width:100%}
   <a href="#" class="azOk" id="nbZeitOk">Übernehmen ✓</a></div>
 <div class="mxFenster" id="fNbPreis" role="dialog" aria-label="Preis"><div class="mxKopf"><h3>Preis</h3><button class="mxZu" type="button" aria-label="Schließen">✕</button></div>
   <div class="zwei"><div><label for="nbPreis">Preis</label><input id="nbPreis" inputmode="numeric" data-einheit="€"></div><div><label for="nbKm">Inklusive-Kilometer</label><input id="nbKm" inputmode="numeric" data-einheit="km"></div></div>
+  <div class="zwei"><div><label for="nbRab">Rabatt</label><input id="nbRab" inputmode="numeric" placeholder="0" data-einheit="%"></div><div></div></div>   <!-- Rabatt wie im Kalender (01.11.2026, Baran: wo ein Preis entsteht, gibt es ein Rabatt-Feld) -->
   <div class="hinweis" id="nbPreisTipp"></div>
   <a href="#" class="azOk" id="nbPreisOk">Übernehmen ✓</a></div>
 <div id="nachBg" class="versteckt"></div><div id="nach" class="versteckt"></div>
@@ -2460,19 +2461,21 @@ document.querySelectorAll(".buZurueck").forEach(a=>a.onclick=e=>{e.preventDefaul
 let NB_MODUS="anfordern",NB_PREIS_HAND=false,NB_KM_HAND=false,NB_ANZ_HAND=false,NB_SPERRE=0,NB_AUTO="";
 const NB_K="mietixEntwurfBuchung";
 function nbWerte(){return{name:$("nbName").value,tel:$("nbTel").value,auto:NB_AUTO,von:$("nbVonD").value,bis:$("nbBisD").value,vonU:$("nbVonU").value,bisU:$("nbBisU").value,
-  preis:$("nbPreis").value,km:$("nbKm").value,ph:NB_PREIS_HAND,kh:NB_KM_HAND,ah:NB_ANZ_HAND,modus:NB_MODUS,anzB:$("nbAnzB").value,art:(($("nbArt").querySelector(".chip.an")||{}).dataset||{}).za||"",zeit:Date.now()}}
+  preis:$("nbPreis").value,km:$("nbKm").value,rab:$("nbRab").value,ph:NB_PREIS_HAND,kh:NB_KM_HAND,ah:NB_ANZ_HAND,modus:NB_MODUS,anzB:$("nbAnzB").value,art:(($("nbArt").querySelector(".chip.an")||{}).dataset||{}).za||"",zeit:Date.now()}}
 function nbMerken(){const w=nbWerte();try{if(w.name.trim()||w.tel.trim()||w.auto||w.von)localStorage.setItem(NB_K,JSON.stringify(w));else localStorage.removeItem(NB_K)}catch(e){}}
 function nbHolen(){let w=null;try{w=JSON.parse(localStorage.getItem(NB_K)||"null")}catch(e){}if(!w||Date.now()-(w.zeit||0)>7*864e5)return false;
   $("nbName").value=w.name||"";$("nbTel").value=w.tel||"";NB_AUTO=w.auto||"";$("nbVonD").value=w.von||"";$("nbBisD").value=w.bis||"";$("nbVonU").value=w.vonU||"10:00";$("nbBisU").value=w.bisU||"10:00";
-  $("nbPreis").value=w.preis||"";$("nbKm").value=w.km||"";NB_PREIS_HAND=!!w.ph;NB_KM_HAND=!!w.kh;NB_ANZ_HAND=!!w.ah;NB_MODUS=w.modus||"anfordern";$("nbAnzB").value=w.anzB||"";zahlartChips($("nbArt"),w.art||"");return true}
-function nbLeeren(){["nbName","nbTel","nbVonD","nbBisD","nbPreis","nbKm","nbAnzB"].forEach(i=>{$(i).value="";$(i).classList.remove("fehlt")});$("nbVonU").value="10:00";$("nbBisU").value="10:00";
+  $("nbPreis").value=w.preis||"";$("nbKm").value=w.km||"";$("nbRab").value=w.rab||"";NB_PREIS_HAND=!!w.ph;NB_KM_HAND=!!w.kh;NB_ANZ_HAND=!!w.ah;NB_MODUS=w.modus||"anfordern";$("nbAnzB").value=w.anzB||"";zahlartChips($("nbArt"),w.art||"");return true}
+function nbLeeren(){["nbName","nbTel","nbVonD","nbBisD","nbPreis","nbKm","nbRab","nbAnzB"].forEach(i=>{$(i).value="";$(i).classList.remove("fehlt")});$("nbVonU").value="10:00";$("nbBisU").value="10:00";
   NB_AUTO="";NB_MODUS="anfordern";NB_PREIS_HAND=NB_KM_HAND=NB_ANZ_HAND=false;zahlartChips($("nbArt"),"");["nbAutoZ","nbZeitZ"].forEach(i=>$(i).classList.remove("fehlt"));try{localStorage.removeItem(NB_K)}catch(e){}}
 function nbAuf(){if(!$("nbName").value&&!$("nbTel").value&&!NB_AUTO&&!$("nbVonD").value)nbHolen();zeige("neu");if(!$("nbName").value)setTimeout(()=>{try{$("nbName").focus()}catch(e){}},300)}
 // Preis aus dem Preisrechner, bis jemand selbst etwas tippt (ganze Euro); Inklusive-km als Gesamtzahl
-function nbRechnen(){const v=$("nbVonD").value,b=$("nbBisD").value,ok=v&&b&&b>=v,r=NB_AUTO&&ok?buRechner(NB_AUTO,v,b):null;
+function nbRab(){return Math.min(90,Math.max(0,+String($("nbRab").value||"").replace(",",".")||0))}
+function nbRechnen(){const v=$("nbVonD").value,b=$("nbBisD").value,ok=v&&b&&b>=v,r0=NB_AUTO&&ok?buRechner(NB_AUTO,v,b):null,rab=nbRab(),
+  r=r0?Object.assign({},r0,{preis:Math.round(r0.preis*(1-rab/100))}):null;   // Vorschlag mit Rabatt; von Hand Getipptes bleibt (NB_PREIS_HAND)
   if(r&&!NB_PREIS_HAND)$("nbPreis").value=String(r.preis);if(!r&&!NB_PREIS_HAND&&!ok)$("nbPreis").value="";
   if(!NB_KM_HAND)$("nbKm").value=ok?String(((D&&D.freiKm)||150)*buTage(v,b)):"";
-  $("nbPreisTipp").textContent=r?(NB_PREIS_HAND&&Math.round(zahl($("nbPreis").value)||0)!==r.preis?"Preisrechner sagt "+eur(r.preis)+" €":"Aus dem Preisrechner, überschreiben geht"):"";
+  $("nbPreisTipp").textContent=r?(NB_PREIS_HAND&&Math.round(zahl($("nbPreis").value)||0)!==r.preis?"Preisrechner sagt "+eur(r.preis)+" €"+(rab?" mit "+rab+" % Rabatt":""):"Aus dem Preisrechner"+(rab?", mit "+rab+" % Rabatt":"")+", überschreiben geht"):"";
   if(NB_MODUS==="erhalten"&&!NB_ANZ_HAND){const p=Math.round(zahl($("nbPreis").value)||0);$("nbAnzB").value=p?String(Math.round(p*0.3)):""}}
 function nbZeichnen(){nbRechnen();const v=$("nbVonD").value,b=$("nbBisD").value,t=buTage(v,b),p=Math.round(zahl($("nbPreis").value)||0),km=Math.round(zahl($("nbKm").value)||0);
   const{t:bel}=buBelegt(NB_AUTO,v,b,"",""),kz=(fahrzeugListe().find(f=>f.name===NB_AUTO)||{}).kz||"";
@@ -2482,7 +2485,7 @@ function nbZeichnen(){nbRechnen();const v=$("nbVonD").value,b=$("nbBisD").value,
   $("nbZeitZ").className="buZ"+($("nbZeitZ").classList.contains("fehlt")&&!(v&&b)?" fehlt":"");
   $("nbZeitZ").innerHTML=v&&b?'<span class="t"><b>'+esc(wt2(v)+" "+$("nbVonU").value+" bis "+wt2(b)+" "+$("nbBisU").value)+'</b><i>'+esc(buTageT(t))+'</i></span><span class="buPf">›</span>'
     :'<span class="t"><b class="buLeerT">Zeitraum wählen <em>*</em></b></span><span class="buPf">›</span>';
-  $("nbPreisZ").innerHTML='<span class="t"><b>Preis</b><i>'+(km?"inklusive "+kmText(km)+" km":"inklusive Kilometer")+'</i></span><span class="buBetrag">'+(p?eur(p)+" €":"")+'</span><span class="buPf">›</span>';
+  $("nbPreisZ").innerHTML='<span class="t"><b>Preis</b><i>'+(km?"inklusive "+kmText(km)+" km":"inklusive Kilometer")+(nbRab()?", "+nbRab()+" % Rabatt":"")+'</i></span><span class="buBetrag">'+(p?eur(p)+" €":"")+'</span><span class="buPf">›</span>';
   $("nbWarn").classList.toggle("versteckt",!bel.length);$("nbWarn").innerHTML=bel.length?esc(NB_AUTO)+" ist in dem Zeitraum schon belegt:<br>"+bel.map(esc).join("<br>"):"";
   [...$("nbWahl").querySelectorAll(".buWahl")].forEach(w=>w.classList.toggle("an",w.dataset.m===NB_MODUS));$("nbAnzW").classList.toggle("versteckt",NB_MODUS!=="erhalten");
   $("nbWahlTxt").innerHTML=(p?'<em>30 % = '+eur(Math.round(p*0.3))+' €</em>. ':'<em>30 % vom Preis</em>. ')+'WhatsApp mit IBAN, das Auto wird erst nach der Zahlung geblockt.';
@@ -2511,6 +2514,7 @@ $("nbZeitOk").onclick=e=>{e.preventDefault();if($("nbVonD").value&&$("nbBisD").v
 $("nbPreisZ").onclick=()=>{nbRechnen();mxAuf("fNbPreis")};
 $("nbPreis").addEventListener("input",()=>{NB_PREIS_HAND=$("nbPreis").value.trim()!=="";nbMerken()});
 $("nbKm").addEventListener("input",()=>{NB_KM_HAND=$("nbKm").value.trim()!=="";nbMerken()});
+$("nbRab").addEventListener("input",()=>{NB_PREIS_HAND=false;nbRechnen();nbMerken()});   // wie im Kalender: neuer Rabatt rechnet den Preis neu
 $("nbPreisOk").onclick=e=>{e.preventDefault();mxZu();nbZeichnen();nbMerken()};
 ["nbName","nbTel"].forEach(i=>$(i).addEventListener("input",()=>{$(i).classList.remove("fehlt");nbMerken()}));
 $("nbAnzB").addEventListener("input",()=>{NB_ANZ_HAND=$("nbAnzB").value.trim()!=="";$("nbAnzB").classList.remove("fehlt");nbMerken()});
@@ -2535,7 +2539,7 @@ function nbSpeichern(){if(Date.now()-NB_SPERRE<2000)return;   // Doppeltippen le
   const x={id:String(Date.now())+Math.random().toString(36).slice(2,6),tag:heute,uhr:pad(hJ.getHours())+":"+pad(hJ.getMinutes()),
     name,alter:"",ort:"",nummer:w("nbTel"),anschrift:"",geb:"",gebort:"",auto,von:v,bis:b,vonU,bisU,
     notiz:"Buchung aus Buchungen",status:NB_MODUS==="anfordern"?"angebot":"gebucht",zusatzfahrer:"",quelle:"buchung",
-    angebot:{auto,von:v,bis:b,vonU,bisU,preis,kmInkl:km,freikm:km,kmExtra:0,rabatt:0,am:hJ.toISOString()}};
+    angebot:{auto,von:v,bis:b,vonU,bisU,preis,kmInkl:km,freikm:km,kmExtra:0,rabatt:Math.round(nbRab()),am:hJ.toISOString()}};
   if(NB_MODUS==="anfordern")x.anzahlungAngefordert={am:heute,betrag:preis?Math.round(preis*0.3):0};
   if(NB_MODUS==="erhalten")x.anzahlung={betrag:anzB,quote:preis&&anzB===Math.round(preis*0.3)?30:0,art:art.dataset.za,am:heute};
   if(NB_MODUS==="ohne")x.ohneAnzahlung=true;
