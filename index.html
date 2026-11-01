@@ -292,7 +292,7 @@ h2.hT{margin:18px 4px 8px}#s_heute h2.hT:first-of-type{margin-top:6px}
     <div class="zwei"><div><label>Neue Rückgabe am</label><input id="verlBis" type="date"></div><div><label>Uhrzeit</label><input id="verlBisU" type="time"></div></div>
     <div class="zwei"><div><label>Aufpreis €</label><input id="verlAuf" inputmode="decimal"></div><div><label>Extra km für die Verlängerung</label><input id="verlKm" inputmode="numeric"></div></div>
     <div class="ergebnis" id="verlInfo">Neues Datum wählen.</div>
-    <div id="verlZahlW" class="versteckt"><label>Der Aufpreis wird</label><div class="chips"><div class="chip an" data-vz="rueckgabe">bei Rückgabe bezahlt</div><div class="chip" data-vz="jetzt">schon bezahlt</div></div></div>
+    <div id="verlZahlW" class="versteckt"><label>Ist der Aufpreis schon bezahlt?</label><div class="chips"><div class="chip an" data-vz="rueckgabe">Nein, wird bei Rückgabe kassiert</div><div class="chip" data-vz="jetzt">Ja, bereits bezahlt</div></div></div>
     <a class="knopf voll" id="verlOk" style="margin-top:12px">Verlängern ✓</a>
     <a href="#" class="zu" id="verlAb" style="display:block;text-align:center;margin-top:10px;color:#6F6F72;font-weight:700">Abbrechen</a>
   </div>
@@ -1927,7 +1927,7 @@ window.addEventListener("mietix-abgleich",()=>{kundenListe();if(SICHT==="vertrae
    window.mietixKunden.merken(name, werte)  Felder eines Kunden im gemeinsamen Speicher ändern */
 (function(){
 const lies=(k,d)=>{try{return JSON.parse(localStorage.getItem(k)||"")||d}catch(e){return d}};
-const schreib=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+const schreib=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){return false}};   // false: nicht gespeichert, roter Hinweis kommt aus stil/schutz.py
 const norm=s=>String(s||"").toLowerCase().replace(/ä/g,"ae").replace(/ö/g,"oe").replace(/ü/g,"ue").replace(/ß/g,"ss").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g," ").trim();   // Çelik findet man auch als celik
 const ziffern=n=>String(n||"").replace(/\D/g,"").replace(/^0049/,"0").replace(/^49/,"0");
 const de=s=>s&&/^\d{4}-\d{2}-\d{2}$/.test(s)?s.split("-").reverse().join("."):String(s||"");
@@ -2370,15 +2370,15 @@ zeigen();abgleichen();auslagernBald();
 
   // Unerwartete Fehler: lieber sagen als still hängen
   let zuletzt="";
-  const melde=m=>{m=String(m||"").trim();if(!m||m===zuletzt||/ResizeObserver|^Script error|AbortError|NotAllowedError|share|Load failed|Failed to fetch|NetworkError/i.test(m))return;
+  const melde=m=>{m=String(m||"").trim();if(!m||m===zuletzt||/ResizeObserver|^Script error|AbortError|NotAllowedError|share|Load failed|Failed to fetch|NetworkError|Transition|view transition|InvalidStateError/i.test(m))return;
     zuletzt=m;mxFehler("Da hat etwas nicht geklappt ("+m.slice(0,120)+"). Bitte die Seite neu laden.",15000)};
   addEventListener("error",e=>{if(e.message)melde(e.message)});
   addEventListener("unhandledrejection",e=>melde(e.reason&&(e.reason.message||e.reason)));
 
   // Entwurf: Felder eines Bereichs beim Tippen sichern
-  window.mxEntwurf=function(bereich,schluessel){const el=typeof bereich==="string"?document.querySelector(bereich):bereich,K="mietixFeld:"+schluessel;
+  window.mxEntwurf=function(bereich,schluessel,nur){const el=typeof bereich==="string"?document.querySelector(bereich):bereich,K="mietixFeld:"+schluessel;
     const leer={holen(){return false},weg(){},merken(){}};if(!el)return leer;
-    const felder=()=>[...el.querySelectorAll("input[id],textarea[id],select[id]")].filter(f=>!/^(password|file|hidden|button|submit|search)$/.test(f.type));
+    const felder=()=>[...el.querySelectorAll("input[id],textarea[id],select[id]")].filter(f=>!/^(password|file|hidden|button|submit|search)$/.test(f.type)&&(!nur||nur.includes(f.id)));
     let aus=false;
     const merken=()=>{if(aus)return;const d={};let etwas=false;felder().forEach(f=>{const v=f.type==="checkbox"?f.checked:f.value;d[f.id]=v;if(v&&v!==true)etwas=true});
       try{if(etwas)localStorage.setItem(K,JSON.stringify(d));else localStorage.removeItem(K)}catch(e){}};
