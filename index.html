@@ -272,6 +272,13 @@ input,select,textarea{border:1.5px solid #E4E4E7;border-radius:12px;font-size:16
 .buZ{flex-wrap:wrap}.buZ .t{flex:1 1 0}
 .buChips{display:flex;flex-wrap:wrap;gap:6px;flex:1 0 100%;margin-top:-4px}.buChips u{display:inline-block;white-space:nowrap;margin:0;text-decoration:none;font-size:13px;font-weight:700;color:#1E8E4E;background:#E3F4EA;border-radius:999px;padding:6px 11px;min-height:30px;box-sizing:border-box;cursor:pointer}.buChips u[data-verl]{color:#1C1C1E;background:#F2F2F7}
 @media(max-width:420px){.buDa{font-size:14px;padding:6px 9px}}
+/* Ein Knopf je Buchung für den nächsten Schritt (01.11.2026, Baran zum Bild buchungen_knopf: „ja das kannst du so bauen aber schreib lieber mietvertrag starten“) */
+.buWeg{display:flex;flex-wrap:wrap;gap:6px;flex:1 0 100%;margin-top:-2px}
+.buWeg .bwS{display:inline-block;position:static;width:auto;height:auto;min-width:0;text-decoration:none;font-size:12px;font-weight:600;line-height:1.3;color:#6E6E73;background:#F2F2F7;border:0;border-radius:999px;padding:3px 9px;margin:0;white-space:nowrap}
+.buWeg .bwS:before,.buWeg .bwS:after{content:none;display:none}
+.buWeg .bwS.ok{background:#E3F4EA;color:#1E8E4E}.buWeg .bwS.jetzt{background:#1C1C1E;color:#fff}
+.buGross{display:block;flex:1 0 100%;width:100%;border:0;border-radius:12px;padding:13px;font-size:17px;font-weight:700;font-family:inherit;color:#fff;background:#1E8E4E;text-align:center;cursor:pointer;margin:2px 0 2px;-webkit-tap-highlight-color:transparent}
+.buGross.rot{background:#C4161C}.buGross.hell{background:#F2F2F7;color:#1C1C1E;font-size:15px;padding:10px;margin-top:-4px}
 .buSt{flex:0 0 auto;font-size:13px;font-weight:600;border-radius:6px;padding:3px 8px;white-space:nowrap}.buSt.g{background:#E3F4EA;color:#1E8E4E}.buSt.r{background:#FDE8E8;color:#C4161C}.buSt.o{background:#FFF1DC;color:#9A6400}
 .buPf{flex:0 0 auto;font-size:24px;color:#C7C7CC;line-height:1;font-weight:500}
 .buPkt{display:flex;gap:4px;margin-top:6px}.buPkt s{width:16px;height:5px;border-radius:3px;background:#E3E3E8;text-decoration:none}.buPkt s.g{background:#34C759}.buPkt s.j{background:#FF9500}
@@ -2365,6 +2372,11 @@ function buBereitAnfrage(x){if(!buFormFrei())return;leeren();uebernehmeAnfrage(x
 function buBereitVorgang(v){if(!(WAHL===v.nr&&!NEU)&&!buFormFrei())return;WAHL=v.nr;NEU_FREI=true;vertragLaden(v);zeige("vertrag");buUnterschreiben()}
 
 /* ---------- Kommend und Unterwegs ---------- */
+// Leiste 1 Mietvertrag, 2 Übergabe, 3 Rückgabe: n = jetziger Schritt (01.11.2026)
+function buWeg(n){return'<span class="buWeg">'+["Mietvertrag","Übergabe","Rückgabe"].map((t,i)=>i+1<n?'<span class="bwS ok">✓ '+t+'</span>':'<span class="bwS'+(i+1===n?" jetzt":"")+'">'+(i+1)+" "+t+'</span>').join("")+'</span>'}
+// Übergabe oder Rückgabe eines Mietvertrags direkt aus der Liste öffnen
+function buSchritt(v,s){if(!(WAHL===v.nr&&!NEU)&&!buFormFrei())return;NEU_FREI=true;WAHL=v.nr;WAHL_OFFEN=false;GELADEN={};zeige(s)}
+function buStarten(x){if(!buFormFrei())return;leeren();uebernehmeAnfrage(x);zeige("vertrag")}
 function zeichneBuchungen(){if(!$("buKommend"))return;const h=iso(new Date()),m=plusTage(h,1),jetzt=jetztUhr(),V=vorgaenge().filter(v=>!v._weg);
   const W=buWartende(V).sort((p,q)=>String(p.von||"9999").localeCompare(String(q.von||"9999"))),A=buAnfragen(V),vk=V.filter(v=>!v.ueb&&v.status!=="zurück"),vu=V.filter(v=>v.ueb&&v.status!=="zurück");
   $("rkKommend").textContent=(W.length+A.length+vk.length)||"";$("rkUnterwegs").textContent=vu.length||"";
@@ -2382,13 +2394,14 @@ function zeichneBuchungen(){if(!$("buKommend"))return;const h=iso(new Date()),m=
     if(z.a){const x=z.a,unter=[x.auto,z.u?z.u+" Uhr":"",buTageT(buTage(x.von,x.bis)),buAnz(x)?"":"ohne Anzahlung"].filter(Boolean).join(", ");
       return'<div class="buZ" data-bu="'+esc(x.id)+'"><span class="t"><b>'+esc(x.name||x.nummer||"ohne Namen")+'</b><i class="umbr">'+esc(unter)+'</i>'+
         (ueber?'<i class="rot">Abholung war '+esc(wt2(z.d))+'</i>':'')+
-        '</span><span class="buSt o">Mietvertrag fehlt</span><span class="buPf">›</span>'+
-        (z.d&&z.d<=m?'<span class="buChips"><u data-bereit="1">Unterschreiben lassen ›</u></span>':'')+'</div>'}
+        '</span><span class="buPf">›</span>'+buWeg(1)+'<button type="button" class="buGross" data-start="1">Mietvertrag starten ›</button></div>'}
     const v=z.v,unt=!!v.unterschrift,erin=z.d===m&&!v.erinnert,unter=[v.auto,z.u?z.u+" Uhr":"",buTageT(buTage(v.vonD,v.bisD))].filter(Boolean).join(", ");
     return'<div class="buZ" data-nr="'+esc(v.nr)+'"><span class="t"><b>'+esc(v.name)+'</b><i class="umbr">'+esc(unter)+'</i>'+
+      '<i>'+(unt?"Mietvertrag unterschrieben":"Mietvertrag fertig, Unterschrift fehlt")+'</i>'+
       (ueber?'<i class="rot">Abholung war '+esc(wt2(z.d))+'</i>':'')+
-      '</span>'+(unt?'<span class="buSt g">startklar</span>':'<span class="buSt o">Unterschrift fehlt</span>')+'<span class="buPf">›</span>'+
-      ((!unt&&z.d&&z.d<=m)||erin?'<span class="buChips">'+(!unt&&z.d&&z.d<=m?'<u data-bereit="1">Unterschreiben lassen ›</u>':'')+(erin?'<u data-erin="1">Erinnerung senden</u>':'')+'</span>':'')+'</div>'};   // startklar nur mit Unterschrift (01.11.2026)
+      '</span><span class="buPf">›</span>'+buWeg(unt?2:1)+
+      (unt?'<button type="button" class="buGross" data-ueb="1">Übergabe ›</button>':'<button type="button" class="buGross" data-bereit="1">Unterschreiben lassen ›</button>')+
+      (erin?'<span class="buChips"><u data-erin="1">Erinnerung senden</u></span>':'')+'</div>'};   // Übergabe erst mit Unterschrift (01.11.2026)
   $("buKommend").innerHTML=K.length?gruppen(K,z=>z.d&&z.d<h?"ueber":z.d,(z,k)=>k==="ueber"?"Abholung überfällig":buTagKopf(z.d),zeileK)
     :(W.length?'':'<div class="buLeer"><b>Keine kommenden Buchungen</b>Unten auf „+ Neue Buchung“ geht es los.</div>');
   // Unterwegs: Auto ist beim Kunden, nach Rückgabetag, überfällige zuerst
@@ -2396,17 +2409,20 @@ function zeichneBuchungen(){if(!$("buKommend"))return;const h=iso(new Date()),m=
   const U=sortiert(vu.map(v=>({v,d:v.bisD||"",u:v.bisU||""})));
   const zeileU=z=>{const v=z.v,sp=spaet(z),seit=z.d===plusTage(h,-1)?"seit gestern":z.d===h?"seit heute":"seit "+wt2(z.d);
     return'<div class="buZ" data-nr="'+esc(v.nr)+'"><span class="t"><b>'+esc(v.name)+'</b><i class="umbr'+(sp?' rot':'')+'">'+esc([v.auto,sp?seit+(z.u?" "+z.u:""):(z.u?z.u+" Uhr":"")].filter(Boolean).join(", "))+'</i>'+
-      '</span><span class="buSt r">'+(sp?"überfällig":"Rückgabe")+'</span><span class="buPf">›</span>'+
-      (z.d&&z.d<=m?'<span class="buChips"><u data-verl="1">Verlängert ›</u></span>':'')+'</div>'};
+      (sp?'<i class="rot">Rückgabe überfällig</i>':'')+
+      '</span><span class="buPf">›</span>'+buWeg(3)+'<button type="button" class="buGross rot" data-rueck="1">Rückgabe ›</button>'+
+      (z.d&&z.d<=m?'<button type="button" class="buGross hell" data-verl="1">Verlängert ›</button>':'')+'</div>'};
   $("buUnterwegs").innerHTML=U.length?gruppen(U,z=>spaet(z)?"ueber":z.d,(z,k)=>k==="ueber"?"Überfällig":buTagKopf(z.d,"Zurück"),zeileU)
     :'<div class="buLeer"><b>Gerade ist kein Auto unterwegs</b>Nach der Übergabe steht der Mietvertrag hier.</div>';
   // Tippen: Anfrage öffnet die Buchung, Mietvertrag die Mappe. Knöpfe in der Zeile wie bisher unter Heute
   document.querySelectorAll("#buWarten [data-bu],#buKommend [data-bu]").forEach(e=>{const x=W.concat(A).find(y=>y.id===e.dataset.bu);if(!x)return;e.onclick=()=>bOeffnen(x.id);
     const da=e.querySelector("[data-da]");if(da)da.onclick=ev=>{ev.stopPropagation();daAuf(x.id)};
-    const ub=e.querySelector("[data-bereit]");if(ub)ub.onclick=ev=>{ev.stopPropagation();buBereitAnfrage(x)}});
+    const st=e.querySelector("[data-start]");if(st)st.onclick=ev=>{ev.stopPropagation();buStarten(x)}});
   document.querySelectorAll("#buKommend [data-nr],#buUnterwegs [data-nr]").forEach(e=>{const v=V.find(x=>x.nr===e.dataset.nr);if(!v)return;
     e.onclick=()=>mappeOeffnen(v.nr);
     const ub=e.querySelector("[data-bereit]");if(ub)ub.onclick=ev=>{ev.stopPropagation();buBereitVorgang(v)};
+    const ug=e.querySelector("[data-ueb]");if(ug)ug.onclick=ev=>{ev.stopPropagation();buSchritt(v,"uebergabe")};
+    const rg=e.querySelector("[data-rueck]");if(rg)rg.onclick=ev=>{ev.stopPropagation();buSchritt(v,"rueckgabe")};
     // Kunde hat verlängert (wie bisher unter Heute): Mappe mit dem Verlängern-Fenster, neues Datum frühestens heute
     const vl=e.querySelector("[data-verl]");if(vl)vl.onclick=ev=>{ev.stopPropagation();NEU_FREI=true;WAHL=v.nr;GELADEN={};zeige("mappe");verlOeffnen();
       if($("verlBis").value<h){$("verlBis").value=h;verlRechnen(false)}};
