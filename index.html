@@ -214,6 +214,24 @@ h2.hT{margin:18px 4px 8px}#s_heute h2.hT:first-of-type{margin-top:6px}
 .mehrLink{display:inline-block;margin-top:10px;font-weight:800;color:#C4161C;text-decoration:none;font-size:14px}
 .frage{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:12px}.frage b{font-size:15px}.frage .chips{margin:0}
 .versp{margin-top:10px;background:#FFF6E5;border-radius:12px;padding:10px 12px;font-size:14px}
+/* ===== Design wie die Seite Angebot (01.11.2026, Baran: Muster Fassung 2, nur Aussehen, Funktionen bleiben) ===== */
+body{background:#F2F2F7;color:#1C1C1E;-webkit-font-smoothing:antialiased}
+.karte{border:0;border-radius:18px;padding:14px 16px;margin-bottom:10px}
+main .karte h2{font-size:11.5px!important;letter-spacing:.6px!important;color:#8A8A8E!important;font-weight:800!important;text-transform:uppercase!important;margin-bottom:9px}   /* wie „ZEITRAUM“ im Angebot, gegen die 17-px-Regel aus stil/app.py */
+h2.gruppe{font-size:11.5px;letter-spacing:.6px;color:#8A8A8E}
+label{font-size:13px;color:#6E6E73;margin:10px 2px 5px}
+input,select,textarea{border:1.5px solid #E4E4E7;border-radius:12px;font-size:16px;color:#1C1C1E}
+.chip{border:0;background:#F2F2F4;font-weight:800;color:#1C1C1E}
+.chip.an{background:#1C1C1E;border-color:#1C1C1E;color:#fff}
+.chip.tipp{border:1.5px dashed #E4E4E7;background:#fff}
+.reiter div{background:#F2F2F4;color:#6E6E73;border-radius:999px}.reiter div.an{background:#1C1C1E;color:#fff}
+.auto{border:1.5px solid #EFEFF2;background:#fff}.auto b{font-weight:800}.auto.an{border:2px solid #1E8E4E;background:#EEF8F2}.auto.an b{color:#1E8E4E}
+.ergebnis{background:#F2F2F4;color:#1C1C1E}
+.info{background:#F2F2F4}
+.leiste{border-top:1px solid #E5E5EA}.leiste button{border-radius:15px;font-size:17px}
+.knopf{border:1.5px solid #E4E4E7;color:#1C1C1E;border-radius:14px}
+.heute{border:0;background:#fff;border-radius:16px}.heute span{border-radius:999px}
+.vmStand{background:#F2F2F4}
 
 .mxKnopf,.mxKlapp>summary{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;box-sizing:border-box;background:#fff;border:1.5px solid #E4E4E7;border-radius:16px;padding:14px 16px;min-height:60px;text-align:left;font-family:inherit;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.04);color:#1C1C1E;margin:0 0 10px;-webkit-tap-highlight-color:transparent}
 .mxKnopf span,.mxKlapp>summary span{flex:1;min-width:0}
@@ -1231,7 +1249,9 @@ function eRechne(){const e=eWerte();
     +(e.versp?"Verspätung: "+verspaetung().std+" Std. = "+eur(e.versp)+" €<br>":"")
     +e.extra.map(x=>x.t+": "+eur(x.betrag)+" €<br>").join("")
     +(e.summe?"<b>Gesamt: "+eur(e.summe)+" €</b>":"Nichts nachzuberechnen.")
-    +kautionZurueckText(e.summe);
+    +kautionZurueckText(e.summe)
+    // Miete noch offen bei der Rückgabe sichtbar (01.11.2026, Baran: steht nicht mehr auf der Startseite, hier übersichtlich)
+    +(()=>{const v=aktuell(),o=v?offenBetrag(v):0;return o>0?'<div style="margin-top:10px;padding-top:10px;border-top:1px solid #EFEFF2;color:#C4161C">Außerdem noch offen: Miete '+eur(o)+' € (unter Mietverträge als bezahlt eintragen)</div>':""})();
   $("eKopieren").classList.toggle("versteckt",!e.summe)}
 $("eSatz").addEventListener("input",()=>rRechne(false));$("eAufFrei").addEventListener("input",eRechne);
 ["eSonstT","eSonstB"].forEach(i=>$(i).addEventListener("input",eRechne));eExtraZeichnen();
