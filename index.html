@@ -793,7 +793,7 @@ function tipps(){
   const t=tage(),p=autoPreis($("modell").value.trim());
   $("preisTipp").innerHTML="";$("kmTipp").innerHTML="";
   if(p&&t&&$("vonD").value){const start=(new Date($("vonD").value).getDay()+6)%7;
-    const m=wochenmiete(p,start,t)*(1-D.rabatt[Math.min(t,D.days)-1]);
+    const m=Math.round(wochenmiete(p,start,t)*(1-D.rabatt[Math.min(t,D.days)-1]));   // ganze Euro (1.11.2026, Baran: keine Cent)
     if(preisAuto){$("preis1").value=eur(m);summe();$("preisTipp").innerHTML='<div class="klein">aus dem Preisrechner, überschreiben geht</div>'}
     else if(ABGEMACHT&&ABGEMACHT.preis===$("preis1").value)$("preisTipp").innerHTML='<div class="klein">abgemachter Preis aus dem Angebot</div>';
     else if(eur(m)!==$("preis1").value){$("preisTipp").innerHTML='<div class="chip tipp">Preisrechner: '+eur(m)+' € übernehmen</div>';
@@ -932,13 +932,15 @@ function entwurfMerken(){if(entwurfAus||SICHT!=="vertrag")return;clearTimeout(en
   try{localStorage.setItem("mietixEntwurfVertrag",JSON.stringify(e))}catch(x){}},300)}
 // Änderungen an einem schon gespeicherten Mietvertrag: Entwurf je Nummer (1.11.2026, Baran: nichts darf verloren gehen)
 const ALT_K=nr=>"mietixEntwurfAlt:"+nr;
-function altMerken(){const v=aktuell();if(!v||!bearbeitet())return;try{if(ungespeichert())localStorage.setItem(ALT_K(v.nr),JSON.stringify(entwurfSchnappschuss()));else localStorage.removeItem(ALT_K(v.nr))}catch(x){}}
+function altMerken(){const v=aktuell();if(!v||!bearbeitet())return;try{if(ungespeichert()){const e=entwurfSchnappschuss();delete e.u;localStorage.setItem(ALT_K(v.nr),JSON.stringify(e))}/* ohne Unterschrift-Bild (Speicher, iPad) */else localStorage.removeItem(ALT_K(v.nr))}catch(x){}}
 function altWeg(nr){try{localStorage.removeItem(ALT_K(nr))}catch(x){}}
+try{Object.keys(localStorage).filter(k=>k.startsWith("mietixEntwurfAlt:")).forEach(k=>{let e=null;try{e=JSON.parse(localStorage.getItem(k))}catch(x){}
+  if(!e||!e.zeit||Date.now()-new Date(e.zeit).getTime()>48*3600e3||e.u)localStorage.removeItem(k)})}catch(x){}   // alte Entwürfe aufräumen
 function altHolen(v){let e=null;try{e=JSON.parse(localStorage.getItem(ALT_K(v.nr))||"null")}catch(x){}
-  if(!e||!e.f||e.f.nr!==v.nr||Date.now()-new Date(e.zeit).getTime()>7*24*3600e3)return;
+  if(!e||!e.f||e.f.nr!==v.nr||Date.now()-new Date(e.zeit).getTime()>48*3600e3){altWeg(v.nr);return}
   const g=v.geaendert&&v.geaendert.am;if(g&&g>e.zeit){altWeg(v.nr);return}   // auf einem anderen Gerät neuer gespeichert: alter Entwurf gilt nicht mehr
   entwurfAus=true;Object.keys(e.f).forEach(id=>{const el=$(id);if(el&&id!=="nr"&&e.f[id]!==undefined)el.value=e.f[id]});
-  Object.keys(e.chips||{}).forEach(k=>{if(gruppe(k))gs(k,e.chips[k])});if(e.u&&PAD.padV&&!PAD.padV.wert())PAD.padV.setzen(e.u);
+  Object.keys(e.chips||{}).forEach(k=>{if(gruppe(k))gs(k,e.chips[k])});
   summe();entwurfAus=false;if(!ungespeichert()){altWeg(v.nr);return}
   ungespeichertZeigen();setTimeout(()=>meldung("Deine nicht gespeicherten Änderungen an Mietvertrag "+v.nr+" sind wieder da"),300)}
 function entwurfWeg(){clearTimeout(entwurfTimer);try{localStorage.removeItem("mietixEntwurfVertrag")}catch(x){}$("entwurf").classList.add("versteckt")}
@@ -1217,9 +1219,9 @@ function eExtraListe(){const l=E_EXTRA.filter(([t])=>E_AN.has(t)).map(([t,b])=>(
 function eExtraSetzen(l){E_AN=new Set();$("eSonstT").value="";$("eSonstB").value="";(l||[]).forEach(x=>{if(E_EXTRA.some(([t])=>t===x.t))E_AN.add(x.t);else{$("eSonstT").value=x.t||"";$("eSonstB").value=eur(x.betrag)}});
   $("eExtraW").open=!!(l&&l.length);eExtraZeichnen()}
 function eWerte(){const mehr=zahl($("rMehr").value)||0,satz=zahl($("eSatz").value)||0,auf=eAufBetrag();
-  const liter=JN.tankJn==="nein"?(zahl($("eLiter").value)||0):0,tank=liter?Math.round((liter*2.5+25)*100)/100:0,versp=VERSP_AN?verspaetung().betrag:0;
+  const liter=JN.tankJn==="nein"?(zahl($("eLiter").value)||0):0,tank=liter?Math.round(liter*2.5+25):0,versp=VERSP_AN?verspaetung().betrag:0;
   const extra=eExtraListe(),ex=extra.reduce((s,x)=>s+x.betrag,0);
-  const c=x=>Math.round(x*100)/100;   // auf Cent (1.11.2026, Test: 747.0000000000001 im Speicher)
+  const c=x=>Math.round(x);   // ganze Euro (1.11.2026, Baran: keine Cent; Test: 747.0000000000001 im Speicher)
   return{mehr,satz,auf,kmB:c(mehr*satz),liter,tank,versp,extra,summe:c(mehr*satz+auf+tank+versp+ex)}}
 function eRechne(){const e=eWerte();
   $("eErgebnis").innerHTML="Endabrechnung:<br>"
@@ -1584,7 +1586,7 @@ let VERL_ZAHL="rueckgabe";
 const plusTag=(d,n)=>{const x=new Date(d+"T12:00");x.setDate(x.getDate()+n);return iso(x)};
 const tageZw=(a,b)=>Math.max(1,Math.round((new Date(b+"T12:00")-new Date(a+"T12:00"))/86400000));
 function listenpreis(v,bis){const p=autoPreis(v.auto);if(!p||!D)return null;const t=tageZw(v.vonD,bis),start=(new Date(v.vonD+"T12:00").getDay()+6)%7;
-  return wochenmiete(p,start,t)*(1-D.rabatt[Math.min(t,D.days)-1])}
+  return Math.round(wochenmiete(p,start,t)*(1-D.rabatt[Math.min(t,D.days)-1]))}
 // Zusatzfahrer läuft bei der Verlängerung mit: Preis je Tag wie bisher mal neue Tage (31.10.2026, Prüfbericht)
 function zfAufpreis(v,neu){const p2=zahl(v.preis2)||0;if(!v.zf||!p2||!neu||neu<=v.bisD)return 0;return Math.round(p2/tageZw(v.vonD,v.bisD)*(tageZw(v.vonD,neu)-tageZw(v.vonD,v.bisD))*100)/100}
 function verlRechnen(handPreis){const v=aktuell();if(!v)return;const neu=$("verlBis").value;
@@ -1685,7 +1687,7 @@ let VERSP_AN=false;
 function verspaetung(){const v=aktuell();if(!v||!v.bisD||!$("rD").value)return{std:0,betrag:0};
   const soll=new Date(v.bisD+"T"+(v.bisU||"10:00")),ist=new Date($("rD").value+"T"+($("rU").value||"00:00")),min=(ist-soll)/60000;
   if(min<=30)return{std:0,betrag:0};const std=Math.ceil(min/60),p=autoPreis(v.auto),gp=p?p.gp:0;
-  const tage=Math.floor(std/24),rest=std%24;return{std,betrag:Math.round((tage*gp+Math.min(rest,4)*gp/4)*100)/100}}
+  const tage=Math.floor(std/24),rest=std%24;return{std,betrag:Math.round(tage*gp+Math.min(rest,4)*gp/4)}}   // ganze Euro (1.11.2026, Baran: keine Cent)
 function verspZeigen(){const x=verspaetung();
   $("verspW").innerHTML=x.std?'<div class="versp">Rückgabe '+x.std+' Std. später als vereinbart. <a href="#" id="verspT" style="font-weight:800;color:#C4161C">'+(VERSP_AN?"nicht berechnen":"Verspätung berechnen ("+eur(x.betrag)+" €)")+'</a></div>':"";
   const t=$("verspT");if(t)t.onclick=e=>{e.preventDefault();VERSP_AN=!VERSP_AN;verspZeigen();eRechne()}}
