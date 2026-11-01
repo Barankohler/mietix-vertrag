@@ -927,9 +927,20 @@ let entwurfTimer=null,entwurfAus=false;
 function entwurfSchnappschuss(){const f={};$("s_vertrag").querySelectorAll("input,textarea,select").forEach(e=>{if(e.id)f[e.id]=e.value});
   const chips={};document.querySelectorAll("#s_vertrag [data-gruppe]").forEach(g=>chips[g.dataset.gruppe]=chipWert(g));
   return{f,chips,an:["avbHaken"].filter(i=>$(i).classList.contains("an")),auto:AUTO,u:PAD.padV?PAD.padV.wert():"",anfrage:ANFRAGE,zeit:new Date().toISOString()}}
-function entwurfMerken(){if(entwurfAus||SICHT!=="vertrag")return;clearTimeout(entwurfTimer);entwurfTimer=setTimeout(()=>{ungespeichertZeigen();if(!NEU){try{localStorage.removeItem("mietixEntwurfVertrag")}catch(x){}return}const e=entwurfSchnappschuss();
+function entwurfMerken(){if(entwurfAus||SICHT!=="vertrag")return;clearTimeout(entwurfTimer);entwurfTimer=setTimeout(()=>{ungespeichertZeigen();if(!NEU){try{localStorage.removeItem("mietixEntwurfVertrag")}catch(x){}altMerken();return}const e=entwurfSchnappschuss();
   if(!(e.f.name||"").trim()&&!e.auto){try{localStorage.removeItem("mietixEntwurfVertrag")}catch(x){}return}
   try{localStorage.setItem("mietixEntwurfVertrag",JSON.stringify(e))}catch(x){}},300)}
+// Änderungen an einem schon gespeicherten Mietvertrag: Entwurf je Nummer (1.11.2026, Baran: nichts darf verloren gehen)
+const ALT_K=nr=>"mietixEntwurfAlt:"+nr;
+function altMerken(){const v=aktuell();if(!v||!bearbeitet())return;try{if(ungespeichert())localStorage.setItem(ALT_K(v.nr),JSON.stringify(entwurfSchnappschuss()));else localStorage.removeItem(ALT_K(v.nr))}catch(x){}}
+function altWeg(nr){try{localStorage.removeItem(ALT_K(nr))}catch(x){}}
+function altHolen(v){let e=null;try{e=JSON.parse(localStorage.getItem(ALT_K(v.nr))||"null")}catch(x){}
+  if(!e||!e.f||e.f.nr!==v.nr||Date.now()-new Date(e.zeit).getTime()>7*24*3600e3)return;
+  const g=v.geaendert&&v.geaendert.am;if(g&&g>e.zeit){altWeg(v.nr);return}   // auf einem anderen Gerät neuer gespeichert: alter Entwurf gilt nicht mehr
+  entwurfAus=true;Object.keys(e.f).forEach(id=>{const el=$(id);if(el&&id!=="nr"&&e.f[id]!==undefined)el.value=e.f[id]});
+  Object.keys(e.chips||{}).forEach(k=>{if(gruppe(k))gs(k,e.chips[k])});if(e.u&&PAD.padV&&!PAD.padV.wert())PAD.padV.setzen(e.u);
+  summe();entwurfAus=false;if(!ungespeichert()){altWeg(v.nr);return}
+  ungespeichertZeigen();setTimeout(()=>meldung("Deine nicht gespeicherten Änderungen an Mietvertrag "+v.nr+" sind wieder da"),300)}
 function entwurfWeg(){clearTimeout(entwurfTimer);try{localStorage.removeItem("mietixEntwurfVertrag")}catch(x){}$("entwurf").classList.add("versteckt")}
 ["input","change","click","wahl"].forEach(ev=>$("s_vertrag").addEventListener(ev,entwurfMerken,true));
 function entwurfHolen(){let e=null;try{e=JSON.parse(localStorage.getItem("mietixEntwurfVertrag")||"null")}catch(x){}
@@ -1308,7 +1319,7 @@ function vertragSpeichern(){if($("haupt").textContent==="Wird gespeichert …")r
   if(neu&&!navigator.onLine&&!confirm("Kein Internet: Die Nummer "+v.nr+" ist nur vorläufig.\n\nBitte am anderen Handy nicht gleichzeitig einen neuen Mietvertrag anlegen, sonst gibt es die Nummer doppelt.\n\nOK = trotzdem weiter"))return;
   let schonFertig=false;
   const fertig=()=>{if(schonFertig)return;schonFertig=true;merke(v);
-    if(!vorgaenge().some(x=>x.nr===v.nr)){meldung("Nicht gespeichert, bitte Baran Bescheid geben");return}try{if(+v.nr>(+(localStorage.getItem("mietixHoechsteNr")||0)||0))localStorage.setItem("mietixHoechsteNr",String(+v.nr))}catch(x){}ANFRAGE=null;nrVonHand=true;$("nr").value=v.nr;NEU=false;GELADEN={};standMerken();
+    if(!vorgaenge().some(x=>x.nr===v.nr)){meldung("Nicht gespeichert, bitte Baran Bescheid geben");return}try{if(+v.nr>(+(localStorage.getItem("mietixHoechsteNr")||0)||0))localStorage.setItem("mietixHoechsteNr",String(+v.nr))}catch(x){}ANFRAGE=null;nrVonHand=true;$("nr").value=v.nr;NEU=false;GELADEN={};standMerken();altWeg(v.nr);
     const voll=aktuell();schritte();
     $("vSenden").classList.remove("versteckt");$("vSenden").onclick=e=>{e.preventDefault();teilen(aktuell())};
     // Übergabe heute oder schon fällig: gleich weiter; liegt sie in der Zukunft oder ist sie schon gemacht: zur Mappe
@@ -1437,7 +1448,7 @@ function vertragLaden(v){entwurfAus=true;leeren();NEU=false;$("nr").value=v.nr;n
   const z=v.zahlung||{};[["anz","anzB","z_anz","anzAm"],["rest","restB","z_rest","restAm"],["kaut","kautB","z_kaut","kautAm"]].forEach(([k,b,g,d])=>{const x=z[k]||{};$(b).value=x.betrag||"";gs(g,x.art||"");$(d).value=x.am||""});
   $("vOrt").value=v.ort||(v.ueb||{}).ort||ORT;ortZeigen();
   gs("k_art",v.kautionArt||"geld");PAD.padV.setzen(v.unterschrift||"");setzeAn("avbHaken",!!v.avb||!!v.unterschrift);
-  preisAuto=false;kmAuto=false;restVonHand=true;summe();tipps();entwurfAus=false;$("stamm").textContent="";standMerken();
+  preisAuto=false;kmAuto=false;restVonHand=true;summe();tipps();entwurfAus=false;$("stamm").textContent="";standMerken();altHolen(v);
   $("vSenden").classList.remove("versteckt");$("vSenden").onclick=e=>{e.preventDefault();teilen(aktuell()||v)}}
 // Nicht gespeicherte Änderungen: Stand beim Laden/Speichern merken, beim Tippen vergleichen, in der Schrittleiste zeigen
 let STAND="";
