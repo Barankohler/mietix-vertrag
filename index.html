@@ -2458,6 +2458,7 @@ $("bZurueck").onclick=e=>{e.preventDefault();zeige(BU_REITER)};
 document.querySelectorAll(".buZurueck").forEach(a=>a.onclick=e=>{e.preventDefault();zeige(BU_REITER)});
 
 /* ---------- Neue Buchung (Entwurf c2): ein Formular, Entwurf bleibt beim Tippen gesichert ---------- */
+let NB_ANFRAGE=null;   // Buchung aus einer Anfrage: die Anfrage wird zur Buchung, keine zweite (1.11.2026, ein Formular für alle Wege)
 let NB_MODUS="anfordern",NB_PREIS_HAND=false,NB_KM_HAND=false,NB_ANZ_HAND=false,NB_SPERRE=0,NB_AUTO="";
 const NB_K="mietixEntwurfBuchung";
 function nbWerte(){return{name:$("nbName").value,tel:$("nbTel").value,auto:NB_AUTO,von:$("nbVonD").value,bis:$("nbBisD").value,vonU:$("nbVonU").value,bisU:$("nbBisU").value,
@@ -2543,7 +2544,9 @@ function nbSpeichern(){if(Date.now()-NB_SPERRE<2000)return;   // Doppeltippen le
   if(NB_MODUS==="anfordern")x.anzahlungAngefordert={am:heute,betrag:preis?Math.round(preis*0.3):0};
   if(NB_MODUS==="erhalten")x.anzahlung={betrag:anzB,quote:preis&&anzB===Math.round(preis*0.3)?30:0,art:art.dataset.za,am:heute};
   if(NB_MODUS==="ohne")x.ohneAnzahlung=true;
-  const l=lies("mietixAnfragen",[]);l.push(x);if(!schreib("mietixAnfragen",l))return;
+  const l=lies("mietixAnfragen",[]),alt=NB_ANFRAGE?l.find(y=>y.id===NB_ANFRAGE):null;
+  if(alt){Object.assign(x,{id:alt.id,tag:alt.tag||x.tag,uhr:alt.uhr||x.uhr,ort:alt.ort||"",alter:alt.alter||"",notiz:alt.notiz||x.notiz});l[l.indexOf(alt)]=x}else l.push(x);
+  NB_ANFRAGE=null;if(!schreib("mietixAnfragen",l))return;
   NB_SPERRE=Date.now();const modus=NB_MODUS;nbLeeren();
   if(modus==="anfordern"){IBAN_ID=x.id;zeige("iban");buGruen("✓ Gespeichert, wartet auf die Anzahlung")}else{RES_ID=x.id;zeige("reserviert")}}
 
@@ -2555,7 +2558,7 @@ fetch("https://barankohler.github.io/mietix-preise/preise.json",{cache:"no-store
     if(AUTO){const k=autoPreis(AUTO);if(k&&k.kaution&&$("kautB").value==="1.950")$("kautB").value=wie(k.kaution)}   // Kaution je Auto, auch wenn die Preisdatei später kam
     tipps()}}).catch(()=>{});
 // Aus dem Anfragen-Buch: ...mietix-vertrag/?anfrage=ID öffnet den Mietvertrag schon ausgefüllt
-(()=>{const id=new URLSearchParams(location.search).get("anfrage");if(!id)return;
+(()=>{const id=new URLSearchParams(location.search).get("anfrage");if(!id||new URLSearchParams(location.search).get("neu"))return;   // ?neu=1 geht ins Formular Neue Buchung
   const x=lies("mietixAnfragen",[]).find(x=>x.id===id);history.replaceState(null,"",location.pathname);
   if(x){leeren();uebernehmeAnfrage(x);zeige("vertrag")}})();
 // Kommt die Anzahlung (oder der abgemachte Preis) erst nach dem Öffnen von einem anderen Handy an, wird sie still nachgetragen,
@@ -2565,7 +2568,7 @@ window.addEventListener("mietix-abgleich",e=>{if(!ANFRAGE||!(e.detail||[]).inclu
   if(preisAuto&&ab.preis&&ab.auto===x.auto&&ab.von===$("vonD").value&&ab.bis===$("bisD").value){$("preis1").value=eur(ab.preis);preisAuto=false;if(ab.freikm&&kmAuto){$("freikm").value=kmText(ab.freikm);kmAuto=false}ABGEMACHT={preis:$("preis1").value,km:$("freikm").value};summe()}
   if(x.anzahlung&&x.anzahlung.betrag&&!$("anzB").value.trim()){$("anzB").value=eur(x.anzahlung.betrag);if(x.anzahlung.art)gs("z_anz",x.anzahlung.art);if(x.anzahlung.am)$("anzAm").value=x.anzahlung.am;summe()}});
 // Von der Belegungstafel: ...mietix-vertrag/?auto=NAME&von=JJJJ-MM-TT&bis=JJJJ-MM-TT öffnet einen neuen Mietvertrag mit Auto und Zeitraum (29.10.2026)
-(()=>{const q=new URLSearchParams(location.search),a=q.get("auto");if(!a&&!q.get("von"))return;if(q.get("nr")||q.get("anfrage")||q.get("kunde"))return;
+(()=>{const q=new URLSearchParams(location.search),a=q.get("auto");if(!a&&!q.get("von"))return;if(q.get("nr")||q.get("anfrage")||q.get("kunde")||q.get("neu"))return;
   history.replaceState(null,"",location.pathname);leeren();
   const setzen=()=>{if(a){const f=fahrzeugListe().find(f=>f.name===a);if(f)waehleAuto(f);else{AUTO=a;$("modell").value=a}}
     if(q.get("von"))$("vonD").value=q.get("von");if(q.get("bis"))$("bisD").value=q.get("bis");if(q.get("vonU"))$("vonU").value=q.get("vonU");if(q.get("bisU"))$("bisU").value=q.get("bisU");tipps()};
@@ -2575,6 +2578,18 @@ setTimeout(zeichneHeute,0);   // erst wenn der Abgleich-Baustein geladen ist
 (()=>{const q=new URLSearchParams(location.search),nr=q.get("nr"),z=q.get("zeige");if(!nr&&!z)return;history.replaceState(null,"",location.pathname);
   const zz={kommend:"heute",zurueck:"vertraege",buchungen:"heute"}[z]||z;   // 01.11.2026: ?zeige=heute = Kommend, ?zeige=vertraege = Zurück
   if(nr&&vorgaenge().some(v=>v.nr===nr)){WAHL=nr;NEU_FREI=true}if(zz&&$("s_"+zz))zeige(zz)})();
+// Ein Formular für alle Wege (1.11.2026, Baran: „überall gleich“): ?neu=1&auto=&von=&bis=&vonU=&bisU=&anfrage=<id>
+// öffnet „Neue Buchung“ vorausgefüllt, aus Startseite, Kalender und Anfragen
+(()=>{const q=new URLSearchParams(location.search);if(!q.get("neu"))return;history.replaceState(null,"",location.pathname);
+  setTimeout(()=>{   // nach dem Start der Seite, sonst schaltet sie wieder auf Kommend
+  nbLeeren();const a=q.get("anfrage")?lies("mietixAnfragen",[]).find(y=>y.id===q.get("anfrage")):null,ab=(a&&a.angebot)||{};
+  if(a){NB_ANFRAGE=a.id;$("nbName").value=a.name||"";$("nbTel").value=a.nummer||""}
+  const auto=q.get("auto")||(a&&a.auto)||"",von=q.get("von")||(a&&a.von)||"",bis=q.get("bis")||(a&&a.bis)||"";
+  if(auto&&fahrzeugListe().some(f=>f.name===auto))NB_AUTO=auto;if(von)$("nbVonD").value=von;if(bis)$("nbBisD").value=bis;
+  const vu=q.get("vonU")||(a&&(a.vonU||ab.vonU)),bu=q.get("bisU")||(a&&(a.bisU||ab.bisU));if(vu)$("nbVonU").value=vu;if(bu)$("nbBisU").value=bu;
+  if(ab.rabatt)$("nbRab").value=ab.rabatt;
+  if(ab.preis&&ab.auto===NB_AUTO&&ab.von===von&&ab.bis===bis){$("nbPreis").value=String(Math.round(ab.preis));NB_PREIS_HAND=true;if(ab.freikm){$("nbKm").value=String(ab.freikm);NB_KM_HAND=true}}
+  zeige("neu");nbZeichnen()},600)})();
 // Neu (01.11.2026): ?buchung=<Anfrage-id> öffnet die Buchung, hat sie schon einen Mietvertrag, dessen Mappe
 (()=>{const id=new URLSearchParams(location.search).get("buchung");if(!id)return;history.replaceState(null,"",location.pathname);
   const x=lies("mietixAnfragen",[]).find(y=>y.id===id);if(!x){meldungRot("Diese Buchung gibt es auf diesem Gerät nicht (mehr).");return}
