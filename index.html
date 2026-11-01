@@ -445,10 +445,11 @@ h2.hT{margin:18px 4px 8px}#s_heute h2.hT:first-of-type{margin-top:6px}
 <section id="s_rueckgabe" class="versteckt">
   <div class="karte"><h2>Fahrzeug und Rückgabe</h2>
     <div class="info" id="rFz"></div>
-    <div class="zwei"><div><label>Kilometerstand jetzt (km) *</label><input id="rKm" inputmode="numeric"></div>
-      <div><label>Kilometerstand bei Übergabe (km)</label><input id="rKmAb" inputmode="numeric"></div></div>
+    <div><label>Kilometerstand jetzt (km) *</label><input id="rKm" inputmode="numeric"></div>
+      <!-- 01.11.2026, Baran: unnötig. Wert kommt aus der Übergabe; nur sichtbar, wenn dort keiner steht -->
+      <div id="rKmAbFeld"><label>Kilometerstand bei Übergabe (km)</label><input id="rKmAb" inputmode="numeric"></div>
     <input id="rGef" type="hidden"><input id="rMehr" type="hidden">
-    <div class="ergebnis" id="rErgebnis">Kilometerstand eintragen, gefahrene km und Mehrkilometer rechnen sich.</div>
+    <div class="ergebnis versteckt" id="rErgebnis">Kilometerstand eintragen, gefahrene km und Mehrkilometer rechnen sich.</div>
     <div class="frage"><b>Tank voll zurück?</b><div class="chips" id="tankJn"><div class="chip" data-jn="ja">Ja</div><div class="chip" data-jn="nein">Nein</div></div></div>
     <div id="tankW" class="versteckt"><div id="tankChips"></div><label>Fehlende Liter (ungefähr)</label><input id="eLiter" inputmode="decimal">
       <div class="hinweis">2,50 € je Liter plus 25 € Pauschale fürs Tanken.</div></div>
@@ -1108,7 +1109,7 @@ function formularLaden(erzwingen){const v=aktuell();if(!v)return;
     // Reifen und Felgen merkt sich das Werkzeug je Auto, die Reifengröße kommt aus dem Fahrzeugschein
     protokollSetzen("u",u);$("uBem").value=u.bem||"";PAD.padU.setzen(u.unterschrift||"");uZahlZeichnen()}
   if(SICHT==="rueckgabe"){const r=v.rueck||{},u=v.ueb||{};$("rFz").innerHTML=fzInfo(v);$("rMieter").innerHTML=mieterInfo(v);
-    $("rKm").value=kmText(r.km||"");$("rKmAb").value=kmText(u.km||v.km||"");$("rGef").value=kmText(r.gefahren||"");$("rMehr").value=kmText(r.mehrkm||"");
+    $("rKm").value=kmText(r.km||"");$("rKmAb").value=kmText(u.km||v.km||"");$("rKmAbFeld").classList.toggle("versteckt",!!$("rKmAb").value.trim());$("rGef").value=kmText(r.gefahren||"");$("rMehr").value=kmText(r.mehrkm||"");
     $("rD").value=r.datum||iso(new Date());$("rU").value=r.uhr||jetztUhr();$("rOrt").value=r.ort||ORT;
     protokollSetzen("r",Object.assign({aussen:"sauber",innen:"sauber",tank:"voll",gegen:"ja",fotos:"ja",
       reifen:u.reifen,felgen:u.felgen,reserve:u.reserve,marke:u.marke,profil:u.profil},v.rueck||{}));
@@ -1723,7 +1724,7 @@ function zeige(s){SICHT=s;["heute","vertraege","mappe","vertrag","uebergabe","ru
   else if(s==="mappe")zeichneMappe();
   else if(s==="vertrag"){if(!NEU&&!$("name").value.trim()&&aktuell())vertragLaden(aktuell());zeichneAnfragen();if(!$("name").value)$("nr").value=neueNr()}
   else{wahlFuellen();formularLaden()}
-  svKarte();schritte();hauptText();
+  svKarte();schritte();hauptText();document.querySelector(".leiste").classList.toggle("versteckt",s==="vertraege");   // 01.11.2026, Baran: unnötig
   const sp=gesperrt(s);$("neuSperre").classList.toggle("versteckt",!sp);
   if(sp){$("s_"+s).classList.add("versteckt");$("wahlKarte").classList.add("versteckt");$("haupt").textContent="Zurück zum neuen Mietvertrag";
     $("neuSperreText").textContent="Du schreibst gerade einen neuen Mietvertrag für "+$("name").value.trim()+". Erst den Mietvertrag unten abschließen, dann geht es hier mit genau diesem Mietvertrag weiter."}
