@@ -2397,10 +2397,10 @@ function zeichneBuchungen(){if(!$("buKommend"))return;const h=iso(new Date()),m=
         '</span><span class="buPf">›</span>'+buWeg(1)+'<button type="button" class="buGross" data-start="1">Mietvertrag starten ›</button></div>'}
     const v=z.v,unt=!!v.unterschrift,erin=z.d===m&&!v.erinnert,unter=[v.auto,z.u?z.u+" Uhr":"",buTageT(buTage(v.vonD,v.bisD))].filter(Boolean).join(", ");
     return'<div class="buZ" data-nr="'+esc(v.nr)+'"><span class="t"><b>'+esc(v.name)+'</b><i class="umbr">'+esc(unter)+'</i>'+
-      '<i>'+(unt?"Mietvertrag unterschrieben":"Mietvertrag fertig, Unterschrift fehlt")+'</i>'+
+      '<i>'+(unt?"Mietvertrag unterschrieben":"Mietvertrag angefangen, Unterschrift fehlt noch")+'</i>'+
       (ueber?'<i class="rot">Abholung war '+esc(wt2(z.d))+'</i>':'')+
       '</span><span class="buPf">›</span>'+buWeg(unt?2:1)+
-      (unt?'<button type="button" class="buGross" data-ueb="1">Übergabe ›</button>':'<button type="button" class="buGross" data-bereit="1">Unterschreiben lassen ›</button>')+
+      (unt?'<button type="button" class="buGross" data-ueb="1">Übergabe ›</button>':'<button type="button" class="buGross" data-bereit="1">Mietvertrag fortsetzen ›</button>')+
       (erin?'<span class="buChips"><u data-erin="1">Erinnerung senden</u></span>':'')+'</div>'};   // Übergabe erst mit Unterschrift (01.11.2026)
   $("buKommend").innerHTML=K.length?gruppen(K,z=>z.d&&z.d<h?"ueber":z.d,(z,k)=>k==="ueber"?"Abholung überfällig":buTagKopf(z.d),zeileK)
     :(W.length?'':'<div class="buLeer"><b>Keine kommenden Buchungen</b>Unten auf „+ Neue Buchung“ geht es los.</div>');
