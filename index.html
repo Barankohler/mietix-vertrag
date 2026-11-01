@@ -552,7 +552,7 @@ input[type=date],input[type=time]{min-width:0;max-width:100%}
     <div class="chips" style="margin-top:10px"><div class="chip an" id="uSvOeffnen">Überlassungserklärung ausfüllen</div></div></div>
   <div class="karte"><h2>Fahrzeug und Übergabe</h2>
     <div class="info" id="uFz"></div>
-    <label>Kilometerstand (km)</label><input id="uKm" inputmode="numeric">
+    <label>Kilometerstand (km)</label><input id="uKm" inputmode="numeric"><div class="hinweis" id="uKmHin" style="color:#1E8E4E;font-weight:700"></div>
     <div class="kurz" id="kUZeit"><span></span><a href="#">ändern</a></div>
     <div id="wUZeit"><div class="drei"><div><label>Datum Übergabe</label><input id="uD" type="date"></div><div><label>Uhrzeit Übergabe</label><input id="uU" type="time"></div></div>
     <label>Ort der Übergabe</label><input id="uOrt"></div>
@@ -573,6 +573,7 @@ input[type=date],input[type=time]{min-width:0;max-width:100%}
   <div class="karte"><h2>Fahrzeug und Rückgabe</h2>
     <div class="info" id="rFz"></div>
     <div><label>Kilometerstand jetzt (km) *</label><input id="rKm" inputmode="numeric"></div>
+    <div class="chips" style="margin-top:10px"><div class="chip an" id="rAlles" style="background:#1E8E4E;border-color:#1E8E4E">✓ Alles wie bei der Übergabe</div></div>
       <!-- 01.11.2026, Baran: unnötig. Wert kommt aus der Übergabe; nur sichtbar, wenn dort keiner steht -->
       <div id="rKmAbFeld"><label>Kilometerstand bei Übergabe (km)</label><input id="rKmAb" inputmode="numeric"></div>
     <input id="rGef" type="hidden"><input id="rMehr" type="hidden">
@@ -810,9 +811,15 @@ function kundeUnterschreibt(){const v=aktuell(),l=fehlendeUnterschriften(v);if(!
 function folgeWeiter(){const f=FOLGE;if(!f)return;if(f.i>=f.liste.length){FOLGE=null;folgeEnde(f);return}
   const[ziel,titel]=f.liste[f.i];grossOeffnen(ziel);$("ugTitel").textContent=(f.liste.length>1?(f.i+1)+" von "+f.liste.length+": ":"")+"Unterschrift Mieter, "+titel}
 function folgeEnde(f){schritte();hauptText();if(!f.fertig.length)return;const nurV=f.fertig.every(x=>x==="Mietvertrag");
+  // 1.11.2026 Baran: nach der letzten Unterschrift gleich speichern, kein extra Tipp mehr (nur wenn sonst nichts fehlt)
+  const fertigS=(SICHT==="uebergabe"||SICHT==="rueckgabe")&&!nurV&&!(typeof fehltProtokoll==="function"&&fehltProtokoll().length)&&!fehlendeUnterschriften(aktuell()).length;
+  const fertigV=SICHT==="vertrag"&&!fehltNoch().length&&!!PAD.padV.wert();
+  if(fertigS||fertigV){meldung("✓ Unterschrieben, wird gespeichert …");setTimeout(()=>{hauptText();$("haupt").click()},500);return}
   const weiter=SICHT==="uebergabe"&&!nurV?" Jetzt unten auf „Auto übergeben ✓“ tippen.":SICHT==="rueckgabe"&&!nurV?" Jetzt unten auf „Auto zurück ✓“ tippen.":SICHT==="vertrag"?" Jetzt unten auf „"+$("haupt").textContent+"“ tippen.":"";
   meldung("✓ Unterschrieben: "+f.fertig.join(", ")+"."+weiter)}
 const PAD={};["padV","padU","padR","padS","padSV","padVM"].forEach(id=>{if($(id))PAD[id]=padMachen(id)});
+// Rückgabe in Sekunden (1.11.2026): keine Auffälligkeiten, Zustand wie bei der Übergabe, weiter zur Unterschrift
+$("rAlles").onclick=()=>{gs("r_auff","nein");if(typeof schadenZeigen==="function")schadenZeigen();schritte();hauptText();const z=$("sKunde")||$("padR");if(z)z.scrollIntoView({behavior:"smooth",block:"center"});meldung("✓ Wie bei der Übergabe übernommen")};
 // Meine Unterschrift einmal pro Person (Liste Punkt 20): liegt im gemeinsamen Speicher unter der Anmelde-Mail, gilt auf iPhone und iPad
 const ichMail=()=>{try{return((JSON.parse(localStorage.getItem("mietixSitzung")||"null")||{}).email||"").toLowerCase()}catch(e){return""}};
 function vmGemeinsam(daten){const m=ichMail();if(!m)return;try{const st=JSON.parse(localStorage.getItem("mietixStand")||"{}")||{},u=Object.assign({},st.unterschriften||{});
@@ -1296,7 +1303,7 @@ let GELADEN={};   // je Reiter: welcher Mietvertrag steht gerade im Formular (Ge
 function formularLaden(erzwingen){const v=aktuell();if(!v)return;
   if(!erzwingen&&GELADEN[SICHT]===v.nr)return;GELADEN[SICHT]=v.nr;
   if(SICHT==="uebergabe"){const u=Object.assign(uebStandard(v),v.ueb||{});$("uFz").innerHTML=fzInfo(v);$("uMieter").innerHTML=mieterInfo(v);
-    $("uKm").value=kmText(u.km);$("uD").value=u.datum;$("uU").value=u.uhr;$("uOrt").value=u.ort||v.ort||ORT;
+    $("uKm").value=kmText(u.km);$("uKmHin").textContent=!v.ueb&&u.km?"✓ Stand der letzten Rückgabe. Nur ändern, wenn der Tacho etwas anderes zeigt.":"";$("uD").value=u.datum;$("uU").value=u.uhr;$("uOrt").value=u.ort||v.ort||ORT;
     // Reifen und Felgen merkt sich das Werkzeug je Auto, die Reifengröße kommt aus dem Fahrzeugschein
     protokollSetzen("u",u);$("uBem").value=u.bem||"";PAD.padU.setzen(u.unterschrift||"");uZahlZeichnen()}
   if(SICHT==="rueckgabe"){const r=v.rueck||{},u=v.ueb||{};$("rFz").innerHTML=fzInfo(v);$("rMieter").innerHTML=mieterInfo(v);
@@ -1489,9 +1496,11 @@ $("haupt").onclick=()=>{
     protWeg(v.nr,"rueckgabe");GELADEN={};const e=v.endabrechnung||{};
     const kautZurueck=((v.zahlung||{}).kaut||{}).am&&!v.kautionRueck;
     zeige("mappe");
-    if(e.summe)nachSheet("Abrechnung: "+eur(e.summe)+" € offen",v.name+", "+v.auto+(kautZurueck?". Kaution zurückgeben: unter Heute":""),[
-      {t:"Endabrechnung per WhatsApp an den Kunden",wa:true,voll:true,f:()=>$("eKopieren").click(),bleibt:true}]);
-    else erfolg("Auto zurück, alles erledigt!",kautZurueck?"Jetzt noch die Kaution zurückgeben.":"Nichts nachzuberechnen.");return}
+    const kB=zahl(((v.zahlung||{}).kaut||{}).betrag)||0,kAkt=kautZurueck&&kB?[{t:"Kaution "+eur(kB)+" € komplett zurück",voll:!e.summe,f:()=>kautVoll(v.nr)}]:[];
+    if(e.summe)nachSheet("Abrechnung: "+eur(e.summe)+" € offen",v.name+", "+v.auto,[
+      {t:"Endabrechnung per WhatsApp an den Kunden",wa:true,voll:true,f:()=>$("eKopieren").click(),bleibt:true}].concat(kAkt));
+    else if(kAkt.length)nachSheet(v.schaden?"Auto zurück":"Sauber zurück!",v.name+", "+v.auto+". "+tagesStand(),kAkt);
+    else erfolg(v.schaden?"Auto zurück, Schaden festgehalten":"Sauber zurück!",tagesStand());return}
   if(SICHT==="schaden"){const v=aendere(v=>{v.schaden={km:$("sKm").value.trim(),datum:$("sD").value,uhr:$("sU").value,ort:$("sOrt").value.trim(),
       ortFz:$("sOrtFz").value.trim(),art:$("sArt").value.trim(),besch:$("sBesch").value.trim(),fotos:gw("s_fotos"),besichtigt:gw("s_besichtigt"),
       sb:betrag("sSb"),weiter:gw("s_weiter"),kaution:gw("s_kaution"),betrag:betrag("sKaution"),ortDatum:heuteDe(),unterschrift:PAD.padS.wert(),unterschriftVermieter:(PAD.padS.wert()||verwOk("padS"))?vermieterUnterschrift():"",verweigert:verwOk("padS")?{am:VERW.padS}:null,anerkannt:an("sAnerkannt")}});
@@ -1639,7 +1648,7 @@ function schritte(){const el=$("schritte");if(!el)return;
   el.innerHTML='<div class="sKopf"><div><b>'+esc(v.nr)+"  "+esc(v.name)+'</b><i>'+esc(v.auto)+", "+de(v.vonD)+" bis "+de(v.bisD)+(v.status==="zurück"?", zurückgegeben":"")+'</i></div>'+
     (WAHL_OFFEN?'<a href="#" id="sAlle">zu</a>':'<span class="fNav"><a href="#" class="teilen" id="sTeilen">Teilen</a><a href="#" class="mz" id="sMappe">‹ Mappe</a><a href="#" class="fX" id="sX" title="Schließen">✕</a></span>')+'</div>'+
     '<div style="margin-top:12px">'+wegHTML(v,st)+'</div><div class="sInfo"><span class="li" id="sLi"></span><span class="gs" id="sGs"></span></div><div class="sHaken" id="sHaken"></div>'+
-    (()=>{const f=fehlendeUnterschriften(v);return f.length?'<div class="kundeU" id="sKunde"><b>Kunde unterschreibt jetzt</b><small>'+esc(f.map(x=>x[1]).join(", "))+'</small></div>':""})()+
+    (()=>{const f=fehlendeUnterschriften(v);return f.length?'<div class="kundeU" id="sKunde"><b>'+(SICHT==="uebergabe"?"Kunde unterschreibt und Auto übergeben":SICHT==="rueckgabe"?"Kunde unterschreibt und Auto zurück":"Kunde unterschreibt jetzt")+'</b><small>'+esc(f.map(x=>x[1]).join(", "))+'</small></div>':""})()+
     (SICHT==="vertrag"?'<div id="ungesp" class="versteckt" style="margin-top:8px;color:var(--rot);font-size:13px;font-weight:800">Geändert. Unten auf „Fertig ✓“ tippen, dann gilt es.</div>'+
       '<a href="#" id="sNeu" class="hinweis" style="display:block;margin-top:8px">Das ist Mietvertrag '+esc(v.nr)+'. Einen anderen, neuen Mietvertrag anfangen?</a>':"");
   const te=$("sTeilen");if(te)te.onclick=e=>{e.preventDefault();teilenBlatt(v)};const ku=$("sKunde");if(ku)ku.onclick=kundeUnterschreibt;
@@ -1861,6 +1870,13 @@ $("mLoesch").onclick=e=>{e.preventDefault();const v=aktuell();if(!v)return;
 /* ---------- Nach dem Speichern: was jetzt? (ein Blatt von unten, nichts springt mehr von selbst) ---------- */
 // Nach dem Speichern zur Mappe: bei Übergabe, Rückgabe usw. immer, beim Mietvertrag sobald er gespeichert ist
 const zurMappe=()=>!!aktuell()&&(SICHT!=="vertrag"||!NEU);
+// Kaution mit einem Tipp komplett zurück (1.11.2026), gleiche Speicherung wie unter Heute
+function kautVoll(nr){const l=vorgaenge(),x=l.find(y=>y.nr===nr);if(!x)return;const k=zahl(((x.zahlung||{}).kaut||{}).betrag)||0;
+  if(!confirm("Kaution "+eur(k)+" € komplett an "+x.name+" zurückgegeben?"))return;x.kautionRueck={betrag:k,einbehalt:0,grund:"",am:iso(new Date())};schreib("mietixVorgaenge",l);meldung("✓ Kaution "+eur(k)+" € zurück")}
+// Tagesstand für den Erfolgsmoment: heute erledigte Übergaben und Rückgaben gegen alles, was heute ansteht
+function tagesStand(){const h=iso(new Date()),V=vorgaenge(),erl=V.filter(v=>v.ueb&&String(v.ueb.datum||"").slice(0,10)===h).length+V.filter(v=>v.rueck&&String(v.rueck.datum||"").slice(0,10)===h).length,
+  offen=V.filter(v=>v.ueb&&v.status!=="zurück"&&v.bisD&&v.bisD<=h).length+V.filter(v=>!v.ueb&&v.vonD&&v.vonD<=h&&v.status!=="zurück").length;
+  return offen?"Heute schon "+erl+" erledigt, noch "+offen+".":"Heute alles erledigt ✓"}
 function nachSheet(titel,unter,aktionen){$("nach").innerHTML='<h3>'+esc(titel)+'</h3><div class="unter">'+esc(unter)+'</div>'+
     aktionen.map((a,i)=>'<div class="knopf'+(a.voll?" voll":"")+(a.wa?" wa":"")+'" data-i="'+i+'">'+esc(a.t)+'</div>').join("")+'<a href="#" class="zu" id="nachZu">'+(zurMappe()?"Fertig, zur Mappe":"Schließen")+'</a>'+(zurMappe()?'<div class="unter" style="text-align:center;margin-top:4px">Einzelne Blätter druckst du jederzeit in der Mappe.</div>':"");
   $("nach").classList.remove("versteckt");$("nachBg").classList.remove("versteckt");
@@ -1922,7 +1938,7 @@ function zeichneHeute(){const h=iso(new Date()),m=plusTage(h,1),l=vorgaenge().fi
     .sort((a,b)=>(a.d+" "+(a.u||"99"))<(b.d+" "+(b.u||"99"))?-1:1);
   const zeile=z=>{const v=z.v,spaet=z.d<h,ueb=z.art==="ueb",erin=ueb&&z.d===m&&!v.erinnert;
     // Übergabe immer grün, Rückgabe immer rot, auch bei Morgen (31.10.2026, Baran: „überall gleichmäßig“)
-    if(z.anf)return'<div class="hz" data-anf="'+esc(z.anf.id)+'"><span class="uhr">'+(z.u||"&nbsp;")+'</span><span class="t"><b>'+esc(v.name)+'</b><i>'+esc([v.auto,"gebucht, noch kein Mietvertrag"].filter(Boolean).join(", "))+'</i></span>'+
+    if(z.anf)return'<div class="hz" data-anf="'+esc(z.anf.id)+'"><span class="uhr">'+(z.u||"&nbsp;")+'</span><span class="t"><b>'+esc(v.name)+'</b><i>'+esc([v.auto,"gebucht, Mietvertrag vorbereitet"].filter(Boolean).join(", "))+'</i><u data-bereit="1">Unterschreiben lassen ›</u></span>'+
       '<span class="schild gruen">Übergabe</span><span class="hPf">›</span></div>';
     return'<div class="hz" data-nr="'+esc(v.nr)+'" data-art="'+z.art+'"><span class="uhr">'+(z.u||"&nbsp;")+'</span><span class="t"><b>'+esc(v.name)+'</b><i>'+esc([v.auto,(ueb?"Übergabe":"Rückgabe")+(z.d===h?" heute":"")].filter(Boolean).join(", "))+'</i>'+
       (spaet?'<i class="spaet">überfällig seit '+de(z.d).slice(0,6)+'</i>':'')+(ueb&&!v.unterschrift?'<i class="spaet">Mietvertrag noch nicht unterschrieben</i>':'')+(erin?'<u data-erin="1">Erinnerung senden</u>':'')+(!ueb?'<u data-verl="1">Verlängert ›</u>':'')+'</span>'+
@@ -1931,10 +1947,13 @@ function zeichneHeute(){const h=iso(new Date()),m=plusTage(h,1),l=vorgaenge().fi
   $("hHeuteT").textContent=kopf("Heute",h);$("hMorgenT").textContent=kopf("Morgen",m);
   // Fortschritt: heute erledigte Übergaben und Rückgaben gegen alles, was heute noch ansteht
   const erl=alleV.filter(v=>v.ueb&&String(v.ueb.datum||"").slice(0,10)===h).length+alleV.filter(v=>v.rueck&&String(v.rueck.datum||"").slice(0,10)===h).length,ges=erl+hz.length;
-  const fort=ges?'<div id="hFort"><div class="bal"><i style="width:'+Math.round(erl/ges*100)+'%"></i></div><span>'+erl+' von '+ges+' erledigt</span></div>':"";
+  const fort=ges?'<div id="hFort"><div class="bal"><i style="width:'+Math.round(erl/ges*100)+'%"></i></div><span>'+erl+' von '+ges+' erledigt'+(ges-erl?", noch "+(ges-erl):"")+'</span></div>':"";
   $("hHeute").innerHTML=fort+(hz.length?hz.map(zeile).join(""):erl?'<div class="fertig">Alles erledigt ✓</div>':'<div class="leer">Heute keine Übergabe und keine Rückgabe.</div>');
   $("hMorgen").innerHTML=mz.length?mz.map(zeile).join(""):'<div class="leer">Morgen keine Übergabe und keine Rückgabe.</div>';
-  document.querySelectorAll("#hHeute .hz[data-anf],#hMorgen .hz[data-anf]").forEach(e=>{const a=anfH.find(x=>x.id===e.dataset.anf);if(a)e.onclick=()=>{if(!NEU&&ungespeichert()&&!confirm("Deine Änderungen am offenen Mietvertrag gelten noch nicht. Trotzdem weiter?"))return;leeren();uebernehmeAnfrage(a);zeige("vertrag")}});
+  document.querySelectorAll("#hHeute .hz[data-anf],#hMorgen .hz[data-anf]").forEach(e=>{const a=anfH.find(x=>x.id===e.dataset.anf);if(a)e.onclick=()=>{if(!NEU&&ungespeichert()&&!confirm("Deine Änderungen am offenen Mietvertrag gelten noch nicht. Trotzdem weiter?"))return;leeren();uebernehmeAnfrage(a);zeige("vertrag")};
+    // Unterschreiben lassen (1.11.2026): Mietvertrag aus der Anfrage, fehlt nichts, geht gleich das Unterschriftsfeld auf
+    const ub=e.querySelector("[data-bereit]");if(a&&ub)ub.onclick=ev=>{ev.stopPropagation();if(!NEU&&ungespeichert()&&!confirm("Deine Änderungen am offenen Mietvertrag gelten noch nicht. Trotzdem weiter?"))return;
+      leeren();uebernehmeAnfrage(a);zeige("vertrag");setTimeout(()=>{const f=fehltNoch();if(f.length){gesperrtMeldung(f);return}kundeUnterschreibt()},400)}});
   document.querySelectorAll("#hHeute .hz,#hMorgen .hz").forEach(e=>{const v=l.find(x=>x.nr===e.dataset.nr);if(!v)return;
     e.onclick=()=>{NEU_FREI=true;WAHL=v.nr;zeige(e.dataset.art==="ueb"?"uebergabe":"rueckgabe")};
     // Erinnerung am Vortag: öffnet WhatsApp mit dem Text
