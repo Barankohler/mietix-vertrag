@@ -120,7 +120,7 @@ details summary{cursor:pointer;font-weight:800;color:var(--grau);font-size:14px}
 .sInfo{display:flex;justify-content:space-between;align-items:center;gap:10px;border-top:1px solid #EFEFF2;margin-top:12px;padding-top:9px;font-size:13px;font-weight:700;color:#6E6E73}
 .sInfo .gs{color:var(--gruen);white-space:nowrap}.sInfo .li{min-width:0}
 .sHaken{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.sHaken span{font-size:13px;font-weight:800;border-radius:999px;padding:6px 10px;background:#F2F2F4;color:#8A8A8E}.sHaken span.ok{background:#E3F4EA;color:var(--gruen)}
-@media(max-width:560px){.weg{align-items:start}.weg .s{flex-direction:column;gap:5px;text-align:center}.weg .k{width:28px;height:28px;font-size:13px}.weg .s span:not(.k){width:100%}.weg .s b{font-size:13px}.weg .s i{font-size:11px}.weg .l{margin-top:13px}.weg{grid-template-columns:minmax(0,1fr) 14px minmax(0,1fr) 14px minmax(0,1fr)}}
+@media(max-width:560px){.weg{align-items:start}.weg .s{flex-direction:column;gap:5px;text-align:center}.weg .k{width:28px;height:28px;font-size:13px}.weg .s span:not(.k){width:100%}.weg .s b{font-size:13px;white-space:normal;line-height:1.2}.weg .s i{font-size:11px}.weg .l{margin-top:13px}.weg{grid-template-columns:minmax(0,1fr) 14px minmax(0,1fr) 14px minmax(0,1fr)}}
 .schritt div{flex:1;text-align:center;padding:9px 6px;border-radius:12px;background:var(--bg);font-weight:800;font-size:13px;color:var(--grau);cursor:pointer;white-space:nowrap}
 .schritt div.ok{background:#E8F6EE;color:var(--gruen)}.schritt div.fehlt{background:#FDECEC;color:var(--rot)}
 .kundeU{display:block;margin-top:12px;background:var(--gruen);color:#fff;border-radius:14px;padding:14px 12px;text-align:center;cursor:pointer}
@@ -492,7 +492,8 @@ h2.hT{margin:18px 4px 8px}#s_heute h2.hT:first-of-type{margin-top:6px}
     <label>Neue Beschädigungen, Gerüche (z. B. Rauch) oder Auffälligkeiten festgestellt</label><div class="chips" data-gruppe="r_auff"><div class="chip" data-v="ja">ja</div><div class="chip an" data-v="nein">nein</div></div></div>
   <div id="schadenSlot" class="versteckt"></div>   <!-- Schadensanerkennung: erscheint, sobald Auffälligkeiten "ja" -->
   <div class="karte"><h2>Bemerkungen</h2><textarea id="rBem"></textarea></div>
-  <div class="karte"><h2>Unterschrift</h2><label>Unterschrift Mieter (Rückgabe)</label><div class="pad" id="padR"><canvas width="900" height="300"></canvas><div class="tipp">Antippen, dann groß unterschreiben</div><div class="weg">Löschen</div><div class="gross">Antippen für Vollbild</div></div></div>
+  <div class="karte"><h2>Unterschrift</h2><label>Unterschrift Mieter (Rückgabe)</label><div class="pad" id="padR"><canvas width="900" height="300"></canvas><div class="tipp">Antippen, dann groß unterschreiben</div><div class="weg">Löschen</div><div class="gross">Antippen für Vollbild</div></div>
+    <div class="chips" style="margin-top:8px"><div class="chip" id="rVerw">Kunde verweigert Unterschrift</div></div></div>
 </section>
 
 <!-- ================= SCHADENSANERKENNUNG ================= -->
@@ -513,11 +514,11 @@ h2.hT{margin:18px 4px 8px}#s_heute h2.hT:first-of-type{margin-top:6px}
     <label>Vereinbarte Selbstbeteiligung €</label><input id="sSb" inputmode="decimal">
     <label>Weiteres Vorgehen</label><div class="chips" data-gruppe="s_weiter"><div class="chip" data-v="gutachter">Sachverständigengutachten wird beauftragt</div><div class="chip" data-v="kv">Kostenvoranschlag folgt</div></div>
     <label>Einbehaltene Kaution</label><div class="chips" data-gruppe="s_kaution"><div class="chip an" data-v="geld">Geldkaution</div><div class="chip" data-v="fahrzeug">Fahrzeug des Mieters (gemäß Sicherungsvertrag)</div><div class="chip" data-v="beides">Fahrzeug und Geldkaution</div></div>
-    <label>Geldkaution in Höhe von €</label><input id="sKaution" inputmode="decimal">
+    <div id="sKautW"><label>Geldkaution in Höhe von €</label><input id="sKaution" inputmode="decimal"></div>
     <div class="hinweis">Das Kästchen „Mit der Unterschrift erkennt der Mieter …“ wird nur angekreuzt, wenn unten „Mieter erkennt den Schaden an“ angetippt ist. Das entscheidet der Mieter selbst.</div>
   </div>
   <div class="karte"><h2>Unterschrift</h2><label>Unterschrift Mieter (Schadensanerkennung)</label><div class="pad" id="padS"><canvas width="900" height="300"></canvas><div class="tipp">Antippen, dann groß unterschreiben</div><div class="weg">Löschen</div><div class="gross">Antippen für Vollbild</div></div>
-    <div class="chips" style="margin-top:8px"><div class="chip" id="sAnerkannt">Mieter erkennt den Schaden an</div></div></div>
+    <div class="chips" style="margin-top:8px"><div class="chip" id="sAnerkannt">Mieter erkennt den Schaden an</div><div class="chip" id="sVerw">Kunde verweigert Unterschrift</div></div></div>
 </section>
 
 <!-- ================= ÜBERLASSUNGSERKLÄRUNG ================= -->
@@ -529,7 +530,7 @@ h2.hT{margin:18px 4px 8px}#s_heute h2.hT:first-of-type{margin-top:6px}
     <label>Marke, Modell</label><input id="vModell">
     <label>Kennzeichen</label><input id="vKz">
     <label>Fahrgestellnummer (FIN)</label><input id="vFin">
-    <label>Geschätzter Wert € (mindestens 2.500)</label><input id="vWert" inputmode="decimal">
+    <label>Geschätzter Wert € (mindestens 2.500)</label><input id="vWert" inputmode="decimal"><div class="hinweis versteckt" id="vWertHinweis" style="color:var(--rot);font-weight:800">Unter dem Mindestwert von 2.500 €</div>
     <label>Zugleich übergeben</label>
     <div class="chips"><div class="chip" id="vSchein">Fahrzeugschein (ZB I)</div><div class="chip" id="vBrief">Fahrzeugbrief (ZB II)</div></div>
     <label>Schlüssel (Stück)</label><input id="vSchluessel" inputmode="numeric">
@@ -691,7 +692,7 @@ function fehlendeUnterschriften(v){const l=[];if(!v)return l;const p=k=>PAD[k]&&
   if(SICHT==="vertrag"){if(!p("padV"))l.push(["padV","Mietvertrag"]);return l}
   if(!v.unterschrift&&!v.ueb)l.push(["vertragDirekt","Mietvertrag"]);
   if(SICHT==="uebergabe"&&!v.ueb){if(mitFz(v.kautionArt)&&!p("padSV"))l.push(["padSV","Überlassungserklärung"]);if(!p("padU"))l.push(["padU","Übergabe"])}
-  if(SICHT==="rueckgabe"&&v.status!=="zurück"){if(!p("padR"))l.push(["padR","Rückgabe"]);if(gw("r_auff")==="ja"&&!p("padS"))l.push(["padS","Schadensanerkennung"])}
+  if(SICHT==="rueckgabe"&&v.status!=="zurück"){if(!p("padR")&&!VERW.padR)l.push(["padR","Rückgabe"]);if(gw("r_auff")==="ja"&&!p("padS")&&!VERW.padS)l.push(["padS","Schadensanerkennung"])}
   return l}
 function kundeUnterschreibt(){const v=aktuell(),l=fehlendeUnterschriften(v);if(!l.length)return;FOLGE={nr:v.nr,liste:l,i:0,fertig:[]};folgeWeiter()}
 function folgeWeiter(){const f=FOLGE;if(!f)return;if(f.i>=f.liste.length){FOLGE=null;folgeEnde(f);return}
@@ -736,7 +737,11 @@ function zuschneiden(png){if(ZUGESCHNITTEN[png])return Promise.resolve(ZUGESCHNI
     if(x1<0)return ok(png);const r=4;x0=Math.max(0,x0-r);y0=Math.max(0,y0-r);x1=Math.min(c.width-1,x1+r);y1=Math.min(c.height-1,y1+r);
     const z=document.createElement("canvas");z.width=x1-x0+1;z.height=y1-y0+1;z.getContext("2d").drawImage(c,x0,y0,z.width,z.height,0,0,z.width,z.height);
     ok(ZUGESCHNITTEN[png]=z.toDataURL("image/png"))}catch(e){ok(png)}};im.onerror=()=>ok(png);im.src=png})}
-async function stempel(doc,seite,yLinie,mieterPng,vermieterPng){const p=doc.getPages()[seite];
+async function stempel(doc,seite,yLinie,mieterPng,vermieterPng,verweigert){const p=doc.getPages()[seite];
+  // Kunde verweigert: Vermerk über der Linie des Mieters (Spalte ab x 440, 112 pt breit), Vorlage bleibt unverändert
+  if(!mieterPng&&verweigert&&verweigert.am&&FONT){const t=verwText(verweigert.am),i=t.indexOf(", "),z=[t.slice(0,i),t.slice(i+2)],g=(PLATZ[yLinie]||[20,20])[1];
+    let gr=8;while(gr>5&&(Math.max(...z.map(x=>FONT.widthOfTextAtSize(x,gr)))>110||2*(gr+1.2)+3>g))gr-=0.25;   // passt in Breite und Höhe über der Linie
+    z.forEach((x,j)=>{const w=FONT.widthOfTextAtSize(x,gr);p.drawText(x,{x:440+(112-w)/2,y:yLinie+2+(z.length-1-j)*(gr+1.2)+Math.max(0,Math.min(g-2*(gr+1.2)-3,4)),size:gr,font:FONT,color:PDFLib.rgb(0.1,0.1,0.1)})})}
   for(const[png,x]of[[mieterPng,440],[vermieterPng,283]]){if(!png)continue;
     const echt=await bildEcht(png);if(!echt){alert("Eine Unterschrift fehlt auf diesem Gerät und kommt nicht ins PDF.\n\nBitte mit Internet die Seite neu öffnen und noch einmal drucken.");continue}
     // bis 40 pt hoch, wo die Vorlage Platz hat (31.10.2026, Baran: Unterschrift gut erkennbar, nicht zu klein)
@@ -1020,7 +1025,7 @@ async function fuelleRueckgabe(v){
   ["vl","vr","hl","hr"].forEach(k=>T(f,"r_profil_"+k,(r.profil||{})[k]));
   X(f,"r_fotos_ja",r.fotos==="ja");X(f,"r_fotos_nein",r.fotos==="nein");X(f,"r_auffaellig_ja",r.auff==="ja");X(f,"r_auffaellig_nein",r.auff==="nein");
   const rOrtA=ortAnders(r.ort);T(f,"r_bemerkung",r.bem);T(f,"r_ort_datum",rOrtA?"":r.ortDatum||heuteDe());
-  f.flatten();if(rOrtA)ortStempeln(doc,ORT_STELLE.rueck,rOrtA,[r.ortDatum||heuteDe()]);await stempel(doc,0,LINIE.rueck,r.unterschrift,r.unterschriftVermieter||vermieterUnterschrift());return doc.save()}
+  f.flatten();if(rOrtA)ortStempeln(doc,ORT_STELLE.rueck,rOrtA,[r.ortDatum||heuteDe()]);await stempel(doc,0,LINIE.rueck,r.unterschrift,r.unterschriftVermieter||vermieterUnterschrift(),r.verweigert);return doc.save()}
 async function fuelleSchaden(v){
   const doc=await lade(V_SCHADEN),f=doc.getForm(),s=v.schaden||{};
   T(f,"sa_vertrag_nr",v.nr);T(f,"sa_mieter_name",v.name);T(f,"sa_mieter_telefon",v.telefon);T(f,"sa_mieter_anschrift",v.anschrift);
@@ -1031,7 +1036,7 @@ async function fuelleSchaden(v){
   T(f,"sa_sb",s.sb);X(f,"sa_gutachter",s.weiter==="gutachter");X(f,"sa_kv",s.weiter==="kv");
   if(mitFz(s.kaution))X(f,"sa_kaution_fahrzeug",true);if(s.kaution==="geld"||s.kaution==="beides"){X(f,"sa_kaution_geld",true);T(f,"sa_kaution_betrag",s.betrag)}
   T(f,"sa_ort_datum",s.ortDatum||heuteDe());X(f,"sa_anerkannt",!!s.anerkannt);
-  f.flatten();await stempel(doc,0,LINIE.schaden,s.unterschrift,s.unterschriftVermieter||vermieterUnterschrift());return doc.save()}
+  f.flatten();await stempel(doc,0,LINIE.schaden,s.unterschrift,s.unterschriftVermieter||vermieterUnterschrift(),s.verweigert);return doc.save()}
 async function fuelleUeberlassung(v){
   const doc=await lade(V_SV),f=doc.getForm(),s=v.sv||{};
   T(f,"sv_vertrag_nr",v.nr);T(f,"sv_mieter_name",v.name);T(f,"sv_mieter_geb",de(v.geb));T(f,"sv_mieter_anschrift",v.anschrift);
@@ -1152,7 +1157,7 @@ function formularLaden(erzwingen){const v=aktuell();if(!v)return;
     $("rD").value=r.datum||iso(new Date());$("rU").value=r.uhr||jetztUhr();$("rOrt").value=r.ort||ORT;
     protokollSetzen("r",Object.assign({aussen:"sauber",innen:"sauber",tank:"voll",gegen:"ja",fotos:"ja",
       reifen:u.reifen,felgen:u.felgen,reserve:u.reserve,marke:u.marke,profil:u.profil},v.rueck||{}));
-    gs("r_auff",r.auff||"nein");$("rBem").value=r.bem||"";PAD.padR.setzen(r.unterschrift||"");
+    gs("r_auff",r.auff||"nein");$("rBem").value=r.bem||"";PAD.padR.setzen(r.unterschrift||"");verwSetzen("padR",(r.verweigert||{}).am||"");
     const ea=v.endabrechnung||{};$("eSatz").value=ea.satz!=null?eur(ea.satz):(v.mehrkm||"1,99");
     $("eAuf").value=ea.aufWahl!=null?ea.aufWahl:"";$("eAufFrei").value=ea.aufWahl==="frei"&&ea.auf?eur(ea.auf):"";eExtraSetzen(ea.extra);
     rRechne(false)}
@@ -1162,7 +1167,7 @@ function formularLaden(erzwingen){const v=aktuell();if(!v)return;
     $("sBesch").value=s.besch||(v.rueck&&v.rueck.auff==="ja"?v.rueck.bem||"":"");   // aus der Rückgabe übernommen
     $("sSb").value=s.sb||v.sb||"";gs("s_fotos",s.fotos||"ja");gs("s_besichtigt",s.besichtigt||"ja");gs("s_weiter",s.weiter||"");
     gs("s_kaution",s.kaution||v.kautionArt||"geld");
-    $("sKaution").value=s.betrag||((v.zahlung||{}).kaut||{}).betrag||"";PAD.padS.setzen(s.unterschrift||"");setzeAn("sAnerkannt",s.anerkannt);
+    $("sKaution").value=s.betrag||((v.zahlung||{}).kaut||{}).betrag||"";PAD.padS.setzen(s.unterschrift||"");setzeAn("sAnerkannt",s.anerkannt);verwSetzen("padS",(s.verweigert||{}).am||"");S_HAND={};sKautZeigen();
 }
   if(SICHT==="ueberlassung"){const s=v.sv||{};$("vInfo").innerHTML="Mieter: "+v.name+"<br>geb. am: "+de(v.geb)+"<br>Anschrift: "+(v.anschrift||"");
     const kf=String(v.kfz||"").split(",").map(x=>x.trim()).filter(Boolean),einTeil=kf.length===1?kf[0]:"",istKz=/^[A-ZÄÖÜ]{1,3}[ -]+[A-Z]{1,2}[ -]*\d{1,4}[EH]?$/i.test(einTeil);
@@ -1233,12 +1238,24 @@ function fehltNoch(){const f=[],w=i=>!!String($(i).value||"").trim();if(!w("name
 function hinZu(id){let el=$(id);if(!el)return;if(el.offsetParent===null&&el.nextElementSibling)el=el.nextElementSibling.querySelector("input")||el.nextElementSibling;
   try{el.scrollIntoView({block:"center",behavior:"smooth"});if(el.focus&&el.tagName==="INPUT")el.focus()}catch(x){}}
 // Übergabe und Rückgabe erst, wenn alles da und unterschrieben ist. Getipptes bleibt als Entwurf gesichert, auch für das andere Gerät.
+/* Kunde verweigert Unterschrift (1.11.2026, Baran mit Anwalt): nur Rückgabe und Schadensanerkennung, nie Mietvertrag oder Übergabe.
+   Ein Tipp fragt nach und vermerkt Datum und Uhrzeit, Rückgabe geht dann weiter, im PDF steht der Vermerk statt der Unterschrift. */
+var S_HAND={};   // Felder der Schadensanerkennung, die jemand selbst getippt hat
+const VERW={padR:"",padS:""},VERW_CHIP={padR:"rVerw",padS:"sVerw"};
+const verwText=am=>{const d=new Date(am);return "Kunde verweigert Unterschrift, "+String(d.getDate()).padStart(2,"0")+"."+String(d.getMonth()+1).padStart(2,"0")+"."+d.getFullYear()+" "+String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0")+" Uhr"};
+function verwSetzen(k,am){VERW[k]=am||"";const c=$(VERW_CHIP[k]);if(!c)return;c.classList.toggle("an",!!VERW[k]);c.textContent=VERW[k]?verwText(VERW[k]):"Kunde verweigert Unterschrift"}
+const verwOk=k=>!!VERW[k]&&!(PAD[k]&&PAD[k].wert());
+["padR","padS"].forEach(k=>{const c=$(VERW_CHIP[k]);if(!c)return;c.onclick=()=>{
+  if(VERW[k]){verwSetzen(k,"");}else{if(PAD[k]&&PAD[k].wert()){meldung("Der Kunde hat schon unterschrieben");return}
+    if(!confirm("Kunde verweigert die Unterschrift? Wird mit Datum und Uhrzeit vermerkt."))return;verwSetzen(k,new Date().toISOString())}
+  try{protMerken()}catch(e){}schritte();hauptText()};
+  const P=PAD[k];if(P){const alt=P.setzen;P.setzen=function(d){const r=alt.apply(P,arguments);if(d&&VERW[k])verwSetzen(k,"");return r}}});
 function fehltProtokoll(){const v=aktuell(),f=[];if(!v)return f;const pad=k=>!!(PAD[k]&&PAD[k].wert()),w=i=>!!($(i)&&String($(i).value||"").trim());
   if(SICHT==="uebergabe"&&!v.ueb){if(!v.unterschrift)f.push(["schritte","Unterschrift Mietvertrag"]);if(!w("uKm"))f.push(["uKm","Kilometerstand"]);
     if(!$("svSlot").classList.contains("versteckt")){if(!w("vModell")||!w("vKz"))f.push(["vModell","Sicherungsfahrzeug"]);if(!pad("padSV"))f.push(["padSV","Unterschrift Überlassungserklärung"])}
     if(!pad("padU"))f.push(["padU","Unterschrift Übergabe"])}
-  if(SICHT==="rueckgabe"&&v.status!=="zurück"){if(!w("rKm"))f.push(["rKm","Kilometerstand"]);if(!pad("padR"))f.push(["padR","Unterschrift Rückgabe"]);
-    if(gw("r_auff")==="ja"){if(!w("sBesch"))f.push(["sBesch","Schadensbeschreibung"]);if(!pad("padS"))f.push(["padS","Unterschrift Schadensanerkennung"])}}
+  if(SICHT==="rueckgabe"&&v.status!=="zurück"){if(!w("rKm"))f.push(["rKm","Kilometerstand"]);if(!pad("padR")&&!verwOk("padR"))f.push(["padR","Unterschrift Rückgabe"]);
+    if(gw("r_auff")==="ja"){if(!w("sBesch"))f.push(["sBesch","Schadensbeschreibung"]);if(!pad("padS")&&!verwOk("padS"))f.push(["padS","Unterschrift Schadensanerkennung"])}}
   return f}
 function gesperrtMeldung(f){hinZu(f[0][0]);meldung("Noch fehlt: "+f.map(x=>x[1]).join(", "))}
 function padsAusEntwurf(){const d=protAlle()[WAHL+"|"+SICHT];if(d&&d.p)Object.entries(d.p).forEach(([k,x])=>{if(x&&PAD[k]&&!PAD[k].wert())PAD[k].setzen(x)})}
@@ -1311,7 +1328,7 @@ $("haupt").onclick=()=>{
   if(SICHT==="rueckgabe"){if(!$("rKm").value.trim()){gesperrtMeldung([["rKm","Kilometerstand"]]);return}
     if(gw("r_auff")==="ja")schadenSpeichern();
     const v=aendere(v=>{v.rueck=Object.assign(protokollLesen("r"),{km:$("rKm").value.trim(),gefahren:$("rGef").value.trim(),mehrkm:$("rMehr").value.trim(),
-      datum:$("rD").value,uhr:$("rU").value,ort:$("rOrt").value.trim(),auff:gw("r_auff"),bem:$("rBem").value.trim(),ortDatum:heuteDe(),unterschrift:PAD.padR.wert(),unterschriftVermieter:PAD.padR.wert()?vermieterUnterschrift():""});
+      datum:$("rD").value,uhr:$("rU").value,ort:$("rOrt").value.trim(),auff:gw("r_auff"),bem:$("rBem").value.trim(),ortDatum:heuteDe(),unterschrift:PAD.padR.wert(),unterschriftVermieter:(PAD.padR.wert()||verwOk("padR"))?vermieterUnterschrift():"",verweigert:verwOk("padR")?{am:VERW.padR}:null});
       if($("rKmAb").value.trim()){v.ueb=v.ueb||{};v.ueb.km=$("rKmAb").value.trim()}v.status="zurück";
       const e=eWerte();v.endabrechnung={mehrkm:e.mehr,satz:e.satz,aufWahl:$("eAuf").value,auf:e.auf,liter:e.liter,tank:e.tank,versp:e.versp,extra:e.extra,summe:e.summe}});
     lerneAuto(v.auto,{km:v.rueck.km,reifen:v.rueck.reifen,felgen:v.rueck.felgen,marke:v.rueck.marke,profil:v.rueck.profil});
@@ -1323,7 +1340,7 @@ $("haupt").onclick=()=>{
     else erfolg("Auto zurück, alles erledigt!",kautZurueck?"Jetzt noch die Kaution zurückgeben.":"Nichts nachzuberechnen.");return}
   if(SICHT==="schaden"){const v=aendere(v=>{v.schaden={km:$("sKm").value.trim(),datum:$("sD").value,uhr:$("sU").value,ort:$("sOrt").value.trim(),
       ortFz:$("sOrtFz").value.trim(),art:$("sArt").value.trim(),besch:$("sBesch").value.trim(),fotos:gw("s_fotos"),besichtigt:gw("s_besichtigt"),
-      sb:betrag("sSb"),weiter:gw("s_weiter"),kaution:gw("s_kaution"),betrag:betrag("sKaution"),ortDatum:heuteDe(),unterschrift:PAD.padS.wert(),unterschriftVermieter:PAD.padS.wert()?vermieterUnterschrift():"",anerkannt:an("sAnerkannt")}});
+      sb:betrag("sSb"),weiter:gw("s_weiter"),kaution:gw("s_kaution"),betrag:betrag("sKaution"),ortDatum:heuteDe(),unterschrift:PAD.padS.wert(),unterschriftVermieter:(PAD.padS.wert()||verwOk("padS"))?vermieterUnterschrift():"",verweigert:verwOk("padS")?{am:VERW.padS}:null,anerkannt:an("sAnerkannt")}});
     GELADEN={};zeige("mappe");meldung("✓ Schaden festgehalten"+(v.schaden.anerkannt?", vom Mieter anerkannt":", noch nicht vom Mieter bestätigt"));return}
   if(SICHT==="ueberlassung"){const v=aendere(v=>{v.sv={modell:$("vModell").value.trim(),kz:$("vKz").value.trim(),fin:$("vFin").value.trim(),
       wert:betrag("vWert"),schein:an("vSchein"),brief:an("vBrief"),schluessel:$("vSchluessel").value.trim(),ortDatum:heuteDe(),unterschrift:PAD.padSV.wert(),unterschriftVermieter:PAD.padSV.wert()?vermieterUnterschrift():"",bestaetigt:an("svBestaetigt")||!!PAD.padSV.wert()};
@@ -1430,7 +1447,7 @@ window.mxZurueck=function(){if(["uebergabe","rueckgabe","schaden","ueberlassung"
 // Schrittleiste: 1 Mietvertrag, 2 Übergabe, 3 Rückgabe. Erledigt grün mit Haken, aktueller Schritt rot (1.11.2026, Baran, Beispielbild freigegeben)
 function wegHTML(v,st){const unter={vertrag:["unterschrieben","Unterschrift fehlt"],uebergabe:["erledigt","danach"],rueckgabe:["zurück","am Ende"]};
   return '<div class="weg">'+st.map(([x,t,ok],i)=>{const jetzt=SICHT===x;const kl=ok&&!jetzt?"ok":jetzt?"jetzt":ok?"ok":(x==="vertrag"&&v?"fehlt":"");
-    const u=jetzt?(ok?"erledigt, jetzt offen":"jetzt"):ok?unter[x][0]:(x==="vertrag"&&v?unter.vertrag[1]:x==="rueckgabe"&&v&&v.bisD?wt2(v.bisD):unter[x][1]);
+    const u=jetzt?(ok?"erledigt, jetzt offen":"jetzt"):ok?(x==="rueckgabe"&&v&&((v.rueck||{}).verweigert||(v.schaden||{}).verweigert)?"Unterschrift verweigert":unter[x][0]):(x==="vertrag"&&v?unter.vertrag[1]:x==="rueckgabe"&&v&&v.bisD?wt2(v.bisD):unter[x][1]);
     return (i?'<div class="l'+(st[i-1][2]?" ok":"")+'"></div>':"")+'<div class="s '+kl+'" data-s="'+x+'"><span class="k">'+(ok&&!jetzt?"✓":i+1)+'</span><span><b>'+t+'</b><i>'+u+'</i></span></div>'}).join("")+'</div>'}
 function wt2(d){const x=new Date(d+"T12:00");return ["So","Mo","Di","Mi","Do","Fr","Sa"][x.getDay()]+" "+d.slice(8,10)+"."+d.slice(5,7)+"."}
 let GESP_ZEIT="";
@@ -1463,7 +1480,8 @@ function schritte(){const el=$("schritte");if(!el)return;
   if(!v){miniStand(null,null);if(SICHT!=="vertrag"){el.innerHTML="";$("wahlKarte").classList.add("versteckt");return}
     el.innerHTML=wegHTML(null,[["vertrag","Mietvertrag",false],["uebergabe","Übergabe",false],["rueckgabe","Rückgabe",false]])+'<div class="sInfo"><span class="li" id="sLi"></span><span class="gs" id="sGs"></span></div><div class="sHaken" id="sHaken"></div>';
     schritteStand();return}
-  const st=[["vertrag","Mietvertrag",!!v.unterschrift||!!v.ueb],["uebergabe","Übergabe",!!v.ueb],["rueckgabe","Rückgabe",v.status==="zurück"]];
+  const st=mappeSchritte(v).map(([x,t,ok])=>[x,t.replace("Überlassungserklärung","Überlassung"),ok]);   // Übergabe + Überlassung, Rückgabe + Schaden (1.11.2026)
+  if(SICHT==="rueckgabe"&&v.status!=="zurück"&&gw("r_auff")==="ja")st[2][1]="Rückgabe + Schaden";
   el.innerHTML='<div class="sKopf"><div><b>'+esc(v.nr)+"  "+esc(v.name)+'</b><i>'+esc(v.auto)+", "+de(v.vonD)+" bis "+de(v.bisD)+(v.status==="zurück"?", zurückgegeben":"")+'</i></div>'+
     (WAHL_OFFEN?'<a href="#" id="sAlle">zu</a>':'<span class="fNav"><a href="#" class="teilen" id="sTeilen">Teilen</a><a href="#" class="mz" id="sMappe">‹ Mappe</a><a href="#" class="fX" id="sX" title="Schließen">✕</a></span>')+'</div>'+
     '<div style="margin-top:12px">'+wegHTML(v,st)+'</div><div class="sInfo"><span class="li" id="sLi"></span><span class="gs" id="sGs"></span></div><div class="sHaken" id="sHaken"></div>'+
@@ -1473,7 +1491,7 @@ function schritte(){const el=$("schritte");if(!el)return;
   const te=$("sTeilen");if(te)te.onclick=e=>{e.preventDefault();teilenBlatt(v)};const ku=$("sKunde");if(ku)ku.onclick=kundeUnterschreibt;
   [...el.querySelectorAll("[data-s]")].forEach(c=>c.onclick=()=>{if(c.dataset.s==="vertrag"){if(bearbeitet())return;vertragLaden(v)}zeige(c.dataset.s)});
   const n=$("sNeu");if(n)n.onclick=e=>{e.preventDefault();if(ungespeichert()&&!confirm("Deine Änderungen an Mietvertrag "+v.nr+" gelten noch nicht. Trotzdem einen neuen Mietvertrag anfangen?"))return;leeren();schritte();meldung("Neuer Mietvertrag, leeres Formular")};
-  ungespeichertZeigen();miniStand(v,st);schritteStand()
+  ungespeichertZeigen();miniStand(v,st.map(([x,t,ok])=>[x,t.split(" + ")[0],ok]));schritteStand()
   const a=$("sAlle");if(a)a.onclick=e=>{e.preventDefault();WAHL_OFFEN=!WAHL_OFFEN;schritte()};
   const weg=ziel=>e=>{e.preventDefault();if(SICHT==="vertrag"&&ungespeichert()&&!confirm("Deine Änderungen an Mietvertrag "+v.nr+" gelten noch nicht. Trotzdem schließen?"))return;zeige(ziel)};
   const sm=$("sMappe");if(sm)sm.onclick=weg("mappe");const sx=$("sX");if(sx)sx.onclick=weg("vertraege")}
@@ -1485,7 +1503,7 @@ function svSpeichern(){aendere(v=>{v.sv={modell:$("vModell").value.trim(),kz:$("
 function schadenSpeichern(){if(!$("sKm").value.trim())$("sKm").value=$("rKm").value;
   aendere(v=>{v.schaden={km:$("sKm").value.trim()||$("rKm").value.trim(),datum:$("sD").value,uhr:$("sU").value,ort:$("sOrt").value.trim(),
     ortFz:$("sOrtFz").value.trim(),art:$("sArt").value.trim(),besch:$("sBesch").value.trim(),fotos:gw("s_fotos"),besichtigt:gw("s_besichtigt"),
-    sb:betrag("sSb"),weiter:gw("s_weiter"),kaution:gw("s_kaution"),betrag:betrag("sKaution"),ortDatum:heuteDe(),unterschrift:PAD.padS.wert(),unterschriftVermieter:PAD.padS.wert()?vermieterUnterschrift():"",anerkannt:an("sAnerkannt")}});
+    sb:betrag("sSb"),weiter:gw("s_weiter"),kaution:gw("s_kaution"),betrag:betrag("sKaution"),ortDatum:heuteDe(),unterschrift:PAD.padS.wert(),unterschriftVermieter:(PAD.padS.wert()||verwOk("padS"))?vermieterUnterschrift():"",verweigert:verwOk("padS")?{am:VERW.padS}:null,anerkannt:an("sAnerkannt")}});
   // auf der Startseite unter Schäden sichtbar (30.10.2026)
   const v=aktuell(),hoehe=v&&v.schaden?(zahl(v.schaden.sb)||zahl(v.schaden.betrag)||0):0;
   if(v&&hoehe){const k=kunden(),nm=window.mietixKunden&&window.mietixKunden.norm,s=(nm&&Object.keys(k).find(n=>nm(n)===nm(v.name)))||v.name;
@@ -1656,14 +1674,14 @@ let MAPPE_NX=null;
 function mappeSchritte(v){const fz=mitFz(v.kautionArt),sch=!!v.schaden||(v.rueck&&v.rueck.auff==="ja");
   return [["vertrag","Mietvertrag",!!v.unterschrift||!!v.ueb,!v.unterschrift],["uebergabe",fz?"Übergabe + Überlassungserklärung":"Übergabe",!!v.ueb&&(!fz||!!v.sv),
       !!v.ueb&&(!v.ueb.unterschrift||(fz&&!(v.sv&&v.sv.unterschrift)))],
-    ["rueckgabe",sch?"Rückgabe + Schaden":"Rückgabe",v.status==="zurück"&&(!sch||!!v.schaden),v.status==="zurück"&&(!(v.rueck&&v.rueck.unterschrift)||(sch&&!(v.schaden&&v.schaden.unterschrift)))]]}   // 4. Wert: erledigt, aber Unterschrift fehlt (1.11.2026)
+    ["rueckgabe",sch?"Rückgabe + Schaden":"Rückgabe",v.status==="zurück"&&(!sch||!!v.schaden),v.status==="zurück"&&(!(v.rueck&&(v.rueck.unterschrift||v.rueck.verweigert))||(sch&&!(v.schaden&&(v.schaden.unterschrift||v.schaden.verweigert))))]]}   // 4. Wert: erledigt, aber Unterschrift fehlt (1.11.2026)
 function mappeOeffnen(nr){NEU_FREI=true;WAHL=nr;WAHL_OFFEN=false;GELADEN={};zeige("mappe")}
 function zeichneMappe(){const v=aktuell();if(!v){zeige("vertraege");return}
   const st=mappeSchritte(v),nx=st.find(x=>!x[2]);MAPPE_NX=nx?nx[0]:null;
   $("mName").textContent=v.nr+"  "+v.name;
   $("mInfo").textContent=v.auto+(v.kz?" ("+v.kz+")":"")+", "+de(v.vonD)+" "+(v.vonU||"")+" bis "+de(v.bisD)+" "+(v.bisU||"")+(v.status==="zurück"?", zurückgegeben":"");
   $("mSchritte").innerHTML=st.map(([x,t,ok,uf],i)=>'<div class="mSchritt'+(ok&&!uf?" ok":"")+(ok&&uf?" luecke":"")+(nx&&nx[0]===x?" weiter":"")+'" data-m="'+x+'"><span class="nr">'+(ok&&!uf?"✓":ok?"!":(i+1))+'</span><b>'+t+'</b><i>'+
-    (ok&&uf?"Unterschrift fehlt":ok?"erledigt, ansehen":x==="vertrag"?"Unterschrift fehlt":(nx&&nx[0]===x?"als Nächstes":"noch offen"))+'</i></div>').join("");
+    (ok&&uf?"Unterschrift fehlt":ok&&x==="rueckgabe"&&((v.rueck||{}).verweigert||(v.schaden||{}).verweigert)?"Unterschrift verweigert":ok?"erledigt, ansehen":x==="vertrag"?"Unterschrift fehlt":(nx&&nx[0]===x?"als Nächstes":"noch offen"))+'</i></div>').join("");
   [...$("mSchritte").children].forEach(c=>c.onclick=()=>{const x=c.dataset.m;if(x==="vertrag")vertragLaden(v);zeige(x)});
   $("mDruck").innerHTML=druckReihe(v)+'<a href="#" class="mWa" id="mWa">Mietvertrag per WhatsApp an den Kunden senden</a>'+(v.status==="zurück"?'<a href="#" class="mWa" id="mDanke">Danke-Nachricht per WhatsApp</a>':'')+(werText(v)?'<div class="hinweis" style="text-align:center;margin-top:10px">'+esc(werText(v))+'</div>':'');
   const md=$("mDanke");if(md)md.onclick=e=>{e.preventDefault();waOeffnen(v,DANKE(v));aendere(x=>{x.bedankt=iso(new Date())});meldung("WhatsApp mit dem Danke geöffnet")};
@@ -1833,6 +1851,17 @@ $("uSvOeffnen").onclick=()=>zeige("ueberlassung");$("svZurueck").onclick=()=>zei
 [...$("kautWahl").children].forEach(c=>c.onclick=()=>kautSetzen(c.dataset.ka));
 gruppe("r_auff").addEventListener("wahl",()=>{if(gw("r_auff")==="ja"&&!$("sKm").value.trim())$("sKm").value=$("rKm").value;setTimeout(schritte,0)});
 $("rKm").addEventListener("input",()=>{if(gw("r_auff")==="ja")$("sKm").value=$("rKm").value});
+// Schadensanerkennung folgt der Rückgabe: km, Datum, Uhrzeit, Ort, bis dort selbst etwas getippt wird (1.11.2026)
+["sKm","sD","sU","sOrt"].forEach(i=>$(i).addEventListener("input",()=>S_HAND[i]=true));
+function schadenAusRueckgabe(){if(gw("r_auff")!=="ja")return;[["sKm","rKm"],["sD","rD"],["sU","rU"],["sOrt","rOrt"]].forEach(([a,b])=>{if(!S_HAND[a]&&$(b)&&String($(b).value||"").trim())$(a).value=$(b).value})}
+["rKm","rD","rU","rOrt"].forEach(i=>{if($(i)){$(i).addEventListener("input",schadenAusRueckgabe);$(i).addEventListener("change",schadenAusRueckgabe)}});
+gruppe("r_auff").addEventListener("wahl",schadenAusRueckgabe);
+// Kaution nur Fahrzeug: kein Geldbetrag in der Schadensanerkennung
+function sKautZeigen(){$("sKautW").classList.toggle("versteckt",gw("s_kaution")==="fahrzeug")}
+gruppe("s_kaution").addEventListener("wahl",sKautZeigen);
+// Sicherungsfahrzeug: Hinweis unter 2.500 € (AVB), sperrt nicht
+function vWertPruefen(){const x=parseFloat(String($("vWert").value||"").replace(/[^\d,]/g,"").replace(",","."));$("vWertHinweis").classList.toggle("versteckt",!(x>0&&x<2500))}
+$("vWert").addEventListener("input",vWertPruefen);
 gruppe("k_art").addEventListener("wahl",()=>{if(!gw("k_art"))gs("k_art","geld");kautSetzen(gw("k_art"))});
 $("kfz2").addEventListener("input",()=>{$("kfz").value=$("kfz2").value;$("kfz").dispatchEvent(new Event("input",{bubbles:true}))});
 $("kfz").addEventListener("input",()=>{if(document.activeElement!==$("kfz2"))$("kfz2").value=$("kfz").value});
