@@ -276,7 +276,7 @@ input,select,textarea{border:1.5px solid #E4E4E7;border-radius:12px;font-size:16
 .buWeg{display:flex;flex-wrap:wrap;gap:6px;flex:1 0 100%;margin-top:-2px}
 .buWeg .bwS{display:inline-block;position:static;width:auto;height:auto;min-width:0;text-decoration:none;font-size:12px;font-weight:600;line-height:1.3;color:#6E6E73;background:#F2F2F7;border:0;border-radius:999px;padding:3px 9px;margin:0;white-space:nowrap}
 .buWeg .bwS:before,.buWeg .bwS:after{content:none;display:none}
-.buWeg .bwS.ok{background:#E3F4EA;color:#1E8E4E}.buWeg .bwS.jetzt{background:#1C1C1E;color:#fff}
+.buWeg .bwS.ok{background:#E3F4EA;color:#1E8E4E}.buWeg .bwS.offen{background:#FDE8E8;color:#C4161C}
 .buGross{display:block;flex:1 0 100%;width:100%;border:0;border-radius:12px;padding:13px;font-size:17px;font-weight:700;font-family:inherit;color:#fff;background:#1E8E4E;text-align:center;cursor:pointer;margin:2px 0 2px;-webkit-tap-highlight-color:transparent}
 .buGross.rot{background:#C4161C}.buGross.hell{background:#F2F2F7;color:#1C1C1E;font-size:15px;padding:10px;margin-top:-4px}
 .buSt{flex:0 0 auto;font-size:13px;font-weight:600;border-radius:6px;padding:3px 8px;white-space:nowrap}.buSt.g{background:#E3F4EA;color:#1E8E4E}.buSt.r{background:#FDE8E8;color:#C4161C}.buSt.o{background:#FFF1DC;color:#9A6400}
@@ -2372,8 +2372,8 @@ function buBereitAnfrage(x){if(!buFormFrei())return;leeren();uebernehmeAnfrage(x
 function buBereitVorgang(v){if(!(WAHL===v.nr&&!NEU)&&!buFormFrei())return;WAHL=v.nr;NEU_FREI=true;vertragLaden(v);zeige("vertrag");buUnterschreiben()}
 
 /* ---------- Kommend und Unterwegs ---------- */
-// Leiste 1 Mietvertrag, 2 Übergabe, 3 Rückgabe: n = jetziger Schritt (01.11.2026)
-function buWeg(n){return'<span class="buWeg">'+["Mietvertrag","Übergabe","Rückgabe"].map((t,i)=>i+1<n?'<span class="bwS ok">✓ '+t+'</span>':'<span class="bwS'+(i+1===n?" jetzt":"")+'">'+(i+1)+" "+t+'</span>').join("")+'</span>'}
+// Leiste Mietvertrag, Übergabe, Rückgabe: erledigt grün mit ✓, offen rot mit ✕ (01.11.2026, Baran: „Rückgabe einfach auf rot und dann mit einem X“). n = jetziger Schritt
+function buWeg(n){return'<span class="buWeg">'+["Mietvertrag","Übergabe","Rückgabe"].map((t,i)=>i+1<n?'<span class="bwS ok">✓ '+t+'</span>':'<span class="bwS offen">✕ '+t+'</span>').join("")+'</span>'}
 // Übergabe oder Rückgabe eines Mietvertrags direkt aus der Liste öffnen
 function buSchritt(v,s){if(!(WAHL===v.nr&&!NEU)&&!buFormFrei())return;NEU_FREI=true;WAHL=v.nr;WAHL_OFFEN=false;GELADEN={};zeige(s)}
 function buStarten(x){if(!buFormFrei())return;leeren();uebernehmeAnfrage(x);zeige("vertrag")}
