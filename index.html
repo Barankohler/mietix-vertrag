@@ -378,15 +378,16 @@ input.fehlt,select.fehlt,textarea.fehlt,.fehlt>input,input.rotRand{background-co
 .reiter,.schnell,.chips,.tChips{background:#E3E3E8!important;border-radius:10px!important;padding:2px!important;gap:2px!important;display:flex!important;flex-wrap:wrap}
 .reiter{margin-left:0!important;margin-right:0!important;flex-wrap:nowrap!important}
 .reiter div,.schnell .c,.chips .c,.chips .chip,.tChips .chip{flex:1 1 auto!important;background:transparent!important;border:0!important;border-radius:8px!important;color:#1C1C1E!important;font-weight:600!important;font-size:14px!important;padding:8px 10px!important;text-align:center;min-height:0!important;line-height:1.25}
-.reiter div.an,.schnell .c.an,.chips .c.an,.chips .chip.an,.tChips .chip.an{background:#fff!important;color:#1C1C1E!important;outline:.5px solid rgba(0,0,0,.08)}
+/* Gewählt immer deutlich: dunkel mit weißer Schrift (Baran 01.11.2026: „muss immer angezeigt werden, bei jedem Knopf“) */
+.reiter div.an,.schnell .c.an,.chips .c.an,.chips .chip.an,.tChips .chip.an,.chip.an,.c.an,.wahlK.an{background:#1C1C1E!important;color:#fff!important;outline:0!important;font-weight:700!important}
 .chip b,.chip em{color:inherit}
 .filter,.tage{background:#E3E3E8!important;border-radius:10px!important;padding:2px!important;gap:2px!important;display:flex!important}
 .filter span,.tage .tag{flex:1 0 auto!important;background:transparent!important;border:0!important;border-radius:8px!important;color:#1C1C1E!important;font-weight:600!important;font-size:14px!important;padding:8px 10px!important;text-align:center;box-shadow:none!important}
-.filter span.an,.tage .tag.an{background:#fff!important;color:#1C1C1E!important;outline:.5px solid rgba(0,0,0,.08)}
-.filter span.an b{color:#C4161C!important}
+.filter span.an,.tage .tag.an{background:#1C1C1E!important;color:#fff!important;outline:0!important;font-weight:700!important}
+.filter span.an b{color:#FF8A8F!important}
 .ereihe:has(.minik[data-s]){background:#E3E3E8;border-radius:10px;padding:2px;gap:2px!important}
 .ereihe .minik[data-s]{background:transparent!important;border:0!important;border-radius:8px!important;color:#1C1C1E!important;font-weight:600!important;padding:9px 3px!important}
-.ereihe .minik[data-s].an{background:#fff!important;outline:.5px solid rgba(0,0,0,.08)}
+.ereihe .minik[data-s].an{background:#1C1C1E!important;color:#fff!important;outline:0!important;font-weight:700!important}
 /* Löschen = rote Schrift ohne Kasten, Nebenaktion = roter Rand */
 .minik.weg{background:transparent!important;border-color:transparent!important;color:#FF3B30!important;font-weight:600!important}
 .minik.angebot,.minik.wa,.minik.vertragk{text-decoration:none!important}
@@ -715,6 +716,7 @@ input[type=date],input[type=time]{min-width:0;max-width:100%}
 
 <!-- ================= RÜCKGABEPROTOKOLL ================= -->
 <section id="s_rueckgabe" class="versteckt">
+  <div class="karte versteckt" id="rOffen"></div>   <!-- Noch abkassieren (1.11.2026, Baran: Restmiete und Verlängerung direkt sehen) -->
   <div class="karte"><h2>Fahrzeug und Rückgabe</h2>
     <div class="info" id="rFz"></div>
     <div><label>Kilometerstand jetzt (km) *</label><input id="rKm" inputmode="numeric"></div>
@@ -1070,7 +1072,7 @@ function autoPreis(name){return D&&D.cars?D.cars.find(x=>(x.anzeige||x.n)===name
 // Preis und Freikilometer stehen sofort drin (wie Preisrechner, 150 km pro Tag). Tippst du selbst etwas ein, bleibt das.
 let preisAuto=true,kmAuto=true,ABGEMACHT=null;   // ABGEMACHT: Preis und km aus dem Kalender-Angebot der Anfrage
 $("preis1").addEventListener("input",()=>preisAuto=false);$("freikm").addEventListener("input",()=>kmAuto=false);
-function tipps(){
+function tipps(){zeitraumMarken();   // Auswahl sichtbar (1.11.2026): passender Zeitraum-Knopf bleibt markiert
   const t=tage(),p=autoPreis($("modell").value.trim());
   $("preisTipp").innerHTML="";$("kmTipp").innerHTML="";
   if(p&&t&&$("vonD").value){const start=(new Date($("vonD").value).getDay()+6)%7;
@@ -1104,12 +1106,15 @@ const plusTage=(isoS,n)=>{const d=new Date(isoS+"T12:00");d.setDate(d.getDate()+
   if(c.dataset.t==="fr"){const w=new Date().getDay();v=plusTage(h,(5-w+7)%7)}
   const dauer=$("vonD").value&&$("bisD").value?tage():1;$("vonD").value=v;$("bisD").value=plusTage(v,dauer);tipps()});
 // Tage zählen immer ab heute; Wochenend-Fenster nehmen den nächsten passenden Tag (heute zählt mit)
-function zeitraumMarken(){[...document.querySelectorAll("#schnellDauer .chip,#schnellWe .chip")].forEach(c=>c.classList.toggle("an",c.dataset.von===$("vonD").value&&c.dataset.bis===$("bisD").value))}
+// Markierung aus den Daten selbst, nicht nur nach dem Tippen: so stimmt sie auch beim Laden und nach Datum von Hand
+function zeitraumMarken(){const v=$("vonD").value,b=$("bisD").value,h=iso(new Date()),w=new Date().getDay();const plusTage=(x,n)=>{const d=new Date(x+"T12:00");d.setDate(d.getDate()+n);return iso(d)};
+  [...$("schnellDauer").children].forEach(c=>c.classList.toggle("an",!!v&&v===h&&b===plusTage(h,+c.dataset.d)));
+  [...$("schnellWe").children].forEach(c=>{const[wd,n]=c.dataset.we.split(",").map(Number),a=plusTage(h,(wd-w+7)%7);c.classList.toggle("an",!!v&&v===a&&b===plusTage(a,n))})}
 [...$("schnellDauer").children].forEach(c=>c.onclick=()=>{const h=iso(new Date());$("vonD").value=h;$("bisD").value=plusTage(h,+c.dataset.d);
   c.dataset.von=$("vonD").value;c.dataset.bis=$("bisD").value;tipps();zeitraumMarken()});
 [...$("schnellWe").children].forEach(c=>c.onclick=()=>{const [wd,n]=c.dataset.we.split(",").map(Number),h=iso(new Date()),w=new Date().getDay();
   const v=plusTage(h,(wd-w+7)%7);$("vonD").value=v;$("bisD").value=plusTage(v,n);c.dataset.von=v;c.dataset.bis=$("bisD").value;tipps();zeitraumMarken()});
-["vonD","bisD"].forEach(i=>$(i).addEventListener("change",zeitraumMarken));
+["vonD","bisD"].forEach(i=>{$(i).addEventListener("change",zeitraumMarken);$(i).addEventListener("input",zeitraumMarken)});
 // „Alles heute bezahlt mit“ am 28.10.2026 auf Barans Wunsch entfernt
 function gesamt(){return (zahl($("preis1").value)||0)+(zahl($("preis2").value)||0)+(zahl($("paketPreis").value)||0)}
 $("restB").addEventListener("input",()=>restVonHand=true);
@@ -1853,7 +1858,14 @@ function schadenZeigen(){$("schadenSlot").classList.toggle("versteckt",gw("r_auf
   if(keep==="uebergabe"){const an=mitFz(v.kautionArt);$("svSlot").classList.toggle("versteckt",!an);if(an&&neu){SICHT="ueberlassung";_fl(true);SICHT=keep}}
   if(keep==="rueckgabe"){if(neu){SICHT="schaden";_fl(true);SICHT=keep}schadenZeigen()}
   if(neu){protHolen();kurzZu()}else kurzAlle();
-  if(keep==="rueckgabe"){verspZeigen();eRechne()}}}
+  if(keep==="rueckgabe"){verspZeigen();eRechne();rOffenZeigen()}}}
+// Noch abkassieren bei der Rückgabe: offene Restmiete (mit Verlängerung, wenn sie im Rest steckt) und offener Aufpreis der Verlängerung
+function rOffenZeigen(){const k=$("rOffen"),v=aktuell();if(!k)return;if(!v||v.status==="zurück"){k.classList.add("versteckt");return}
+  const z=v.zahlung||{},r=z.rest||{},a=z.anz||{},vl=v.verlaengerungen||[];const rest=!r.am?(zahl(r.betrag)||0):0,imRest=vl.filter(x=>x.imRest&&!r.am).reduce((s,x)=>s+(x.aufpreis||0),0),verl=verlOffen(v),sum=rest+verl;
+  const z1=(t,b,fett)=>'<div style="display:flex;justify-content:space-between;gap:10px;padding:5px 0;'+(fett?'font-weight:900;font-size:19px;border-top:1px solid #E8D9B5;margin-top:6px;padding-top:9px':'font-weight:700')+'"><span>'+t+'</span><span style="white-space:nowrap">'+eur(b)+' €</span></div>';
+  if(sum<=0){k.innerHTML='<div style="font-weight:800;color:#1E8E4E">✓ Miete komplett bezahlt'+(zahl(a.betrag)&&a.am?", Anzahlung "+eur(zahl(a.betrag))+" € erhalten":"")+'</div>';k.style.background="";k.classList.remove("versteckt");return}
+  k.style.background="#FFF4DB";k.innerHTML='<h2 style="margin-bottom:6px">Noch abkassieren</h2>'+(zahl(a.betrag)&&a.am?'<div style="color:#6E6E73;font-weight:600;font-size:14px;margin-bottom:4px">Anzahlung '+eur(zahl(a.betrag))+' € schon erhalten</div>':"")+
+    (rest-imRest>0?z1("Restmiete",rest-imRest):"")+(imRest+verl>0?z1("Verlängerung bis "+de(v.bisD),imRest+verl):"")+z1("Gesamt offen",sum,true);k.classList.remove("versteckt")}
 
 /* ---------- Entwurf Übergabe/Rückgabe: Getipptes bleibt beim Neuladen oder Schließen (30.10.2026) ---------- */
 const PROT_EW="mietixEntwurfProtokolle",PROT_PADS={uebergabe:["padU","padSV"],rueckgabe:["padR","padS"]},PROT_AN=["uReserve","rReserve","vSchein","vBrief","sAnerkannt","svBestaetigt"];
@@ -1894,6 +1906,8 @@ function listenpreis(v,bis){const p=autoPreis(v.auto);if(!p||!D)return null;cons
 // Zusatzfahrer läuft bei der Verlängerung mit: Preis je Tag wie bisher mal neue Tage (31.10.2026, Prüfbericht)
 function zfAufpreis(v,neu){const p2=zahl(v.preis2)||0;if(!v.zf||!p2||!neu||neu<=v.bisD)return 0;return Math.round(p2/tageZw(v.vonD,v.bisD)*(tageZw(v.vonD,neu)-tageZw(v.vonD,v.bisD))*100)/100}
 function verlRechnen(handPreis){const v=aktuell();if(!v)return;const neu=$("verlBis").value;
+  // Auswahl sichtbar (1.11.2026, Baran): der Knopf, der zum neuen Rückgabedatum passt, ist markiert
+  [...document.querySelectorAll("#verlKarte [data-plus]")].forEach(c=>c.classList.toggle("an",!!neu&&neu===plusTag(v.bisD,+c.dataset.plus)));
   if(!neu||neu<=v.bisD){$("verlInfo").textContent="Das neue Datum muss nach dem "+de(v.bisD)+" liegen.";return}
   const tAlt=tageZw(v.vonD,v.bisD),tNeu=tageZw(v.vonD,neu),plus=tNeu-tAlt,la=listenpreis(v,v.bisD),ln=listenpreis(v,neu);
   if(!handPreis){$("verlAuf").value=(la!=null&&ln!=null)?eur(Math.round(ln-la)):"";$("verlKm").value=kmText(((D&&D.freiKm)||150)*plus)}
@@ -2147,7 +2161,8 @@ function zeichneHeute(){const h=iso(new Date()),m=plusTage(h,1),l=vorgaenge().fi
       '<div class="kautform versteckt" data-form="'+i+'"><input placeholder="Einbehalt €" inputmode="decimal" class="kEin" value="'+(vor?eur(vor):'')+'"><input placeholder="Grund" class="kGrund">'+
       '<div class="chip tipp" data-k="'+i+'" data-art="rest" style="margin-top:8px">Rest zurückgeben</div></div></div>'}).join("");
   [...$("hKaut").querySelectorAll("[data-art]")].forEach(c=>c.onclick=()=>{const v=kaut[+c.dataset.k],k=zahl(v.zahlung.kaut.betrag)||0;
-    if(c.dataset.art==="teil"){$("hKaut").querySelector('[data-form="'+c.dataset.k+'"]').classList.toggle("versteckt");return}
+    if(c.dataset.art==="teil"){const f=$("hKaut").querySelector('[data-form="'+c.dataset.k+'"]');f.classList.toggle("versteckt");
+      const auf=!f.classList.contains("versteckt");c.classList.toggle("an",auf);const vo=c.parentNode.querySelector('[data-art="voll"]');if(vo)vo.classList.toggle("an",!auf);return}   // Auswahl sichtbar: Einbehalt gewählt
     let ein=0,grund="";
     if(c.dataset.art==="voll"&&!confirm("Kaution "+eur(k)+" € komplett an "+v.name+" zurückgegeben?"))return;   // zwei Tipps, nicht umkehrbar (Sicherheitsnetz)
     if(c.dataset.art==="rest"){const f=$("hKaut").querySelector('[data-form="'+c.dataset.k+'"]');ein=zahl(f.querySelector(".kEin").value)||0;grund=f.querySelector(".kGrund").value.trim();
