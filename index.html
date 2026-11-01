@@ -176,6 +176,7 @@ h2.hT{margin:18px 4px 8px}#s_heute h2.hT:first-of-type{margin-top:6px}
 #nach h3{font-size:17px;font-weight:900;margin-bottom:4px}#nach .unter{font-size:13px;color:var(--grau);margin-bottom:10px}
 #nach .knopf{margin-top:8px}#nach .knopf.voll{background:var(--rot);color:#fff}#nach .knopf.wa{background:#25D366;border-color:#25D366;color:#fff}
 #nach .zu{display:block;text-align:center;font-size:13px;color:var(--grau);margin-top:12px;font-weight:700}
+.meldung.rot{background:var(--rot)!important;color:#fff;font-weight:800}
 .meldung{position:fixed;left:16px;right:16px;bottom:96px;background:var(--gruen);color:#fff;border-radius:14px;
   padding:14px;font-weight:800;text-align:center;z-index:9;display:none}
 .doks h2{margin-bottom:12px}
@@ -394,7 +395,7 @@ h2.hT{margin:18px 4px 8px}#s_heute h2.hT:first-of-type{margin-top:6px}
       <label>Zahlart</label><div class="chips" data-gruppe="z_kaut"><div class="chip" data-v="bar">Bar</div><div class="chip" data-v="ec">EC-Karte</div><div class="chip" data-v="kredit">Kreditkarte</div><div class="chip" data-v="ueberweisung">Überweisung</div></div></div>
       <div id="kautFz" class="versteckt">
         <label>Fahrzeug des Kunden (Modell, Kennzeichen)</label><input id="kfz2">
-        <div class="hinweis">Mindestwert 2.500 €. Fahrzeugschein, Fahrzeugbrief und Schlüssel bleiben bei uns. Bei der Übergabe füllst du die Überlassungserklärung aus, alles Getippte steht dort schon drin.</div>
+        <div class="hinweis">Fahrzeugschein, Fahrzeugbrief und Schlüssel bleiben bei uns. Bei der Übergabe füllst du die Überlassungserklärung aus, alles Getippte steht dort schon drin.</div>
         <div class="chips" style="margin-top:8px"><div class="chip an" id="kautZurSv">Zur Übergabe, dort unterschreibt der Kunde</div></div>
       </div></div>
   </div>
@@ -530,7 +531,7 @@ h2.hT{margin:18px 4px 8px}#s_heute h2.hT:first-of-type{margin-top:6px}
     <label>Marke, Modell</label><input id="vModell">
     <label>Kennzeichen</label><input id="vKz">
     <label>Fahrgestellnummer (FIN) *</label><input id="vFin">
-    <label>Geschätzter Wert € (mindestens 2.500) *</label><input id="vWert" inputmode="decimal"><div class="hinweis versteckt" id="vWertHinweis" style="color:var(--rot);font-weight:800">Unter dem Mindestwert von 2.500 €</div>
+    <input id="vWert" type="hidden"><div class="hinweis versteckt" id="vWertHinweis" style="color:var(--rot);font-weight:800">Unter dem Mindestwert von 2.500 €</div>
     <label>Zugleich übergeben</label>
     <div class="chips"><div class="chip" id="vSchein">Fahrzeugschein (ZB I)</div><div class="chip" id="vBrief">Fahrzeugbrief (ZB II)</div></div>
     <label>Schlüssel (Stück)</label><input id="vSchluessel" inputmode="numeric">
@@ -599,7 +600,9 @@ const heuteDe=()=>{const d=new Date();return pad(d.getDate())+"."+pad(d.getMonth
 function erfolg(titel,unter){let e=$("erfolgBox");if(!e){e=document.createElement("div");e.id="erfolgBox";document.body.appendChild(e);
     const st=document.createElement("style");st.textContent="#erfolgBox{position:fixed;left:50%;top:38%;transform:translate(-50%,-50%) scale(.9);z-index:200;background:#fff;border-radius:24px;padding:26px 28px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.25);opacity:0;pointer-events:none;transition:all .25s ease;width:min(320px,86vw)}#erfolgBox.auf{opacity:1;transform:translate(-50%,-50%) scale(1)}#erfolgBox .h{width:64px;height:64px;border-radius:50%;background:#1B8A4B;color:#fff;font-size:36px;font-weight:900;line-height:64px;margin:0 auto 12px}#erfolgBox b{display:block;font-size:19px;font-weight:900;color:#1C1C1E}#erfolgBox i{display:block;font-style:normal;font-size:15px;color:#6F6F72;margin-top:6px;font-weight:600}";document.head.appendChild(st)}
   e.innerHTML='<div class="h">✓</div><b>'+esc(titel)+'</b>'+(unter?'<i>'+esc(unter)+'</i>':'');e.classList.add("auf");clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove("auf"),2600)}
-function meldung(t){const m=$("meldung");m.textContent=t;m.style.display="block";setTimeout(()=>m.style.display="none",2600)}
+let MELD_T=null;function meldung(t){const m=$("meldung");clearTimeout(MELD_T);m.classList.remove("rot");m.textContent=t;m.style.display="block";MELD_T=setTimeout(()=>m.style.display="none",2600)}
+// Roter Hinweis, wenn es nicht weitergeht (1.11.2026, Baran: Regel für die ganze Zentrale), bleibt länger, Tippen schließt
+function meldungRot(t){const m=$("meldung");clearTimeout(MELD_T);m.classList.add("rot");m.textContent=t;m.style.display="block";MELD_T=setTimeout(()=>{m.style.display="none";m.classList.remove("rot")},6000);m.onclick=()=>{m.style.display="none";m.classList.remove("rot")}}
 
 /* ---------- Unterschrift mit dem Finger ---------- */
 function padMachen(id){const el=$(id),c=el.querySelector("canvas"),ctx=c.getContext("2d");let malt=false,hat=false;
@@ -1258,21 +1261,22 @@ const verwOk=k=>!!VERW[k]&&!(PAD[k]&&PAD[k].wert());
   const P=PAD[k];if(P){const alt=P.setzen;P.setzen=function(d){const r=alt.apply(P,arguments);if(d&&VERW[k])verwSetzen(k,"");return r}}});
 function fehltProtokoll(){const v=aktuell(),f=[];if(!v)return f;const pad=k=>!!(PAD[k]&&PAD[k].wert()),w=i=>!!($(i)&&String($(i).value||"").trim());
   if(SICHT==="uebergabe"&&!v.ueb){if(!v.unterschrift)f.push(["schritte","Unterschrift Mietvertrag"]);if(!w("uKm"))f.push(["uKm","Kilometerstand"]);
-    if(!$("svSlot").classList.contains("versteckt")){if(!w("vModell")||!w("vKz"))f.push(["vModell","Sicherungsfahrzeug"]);if(!w("vFin"))f.push(["vFin","Fahrgestellnummer"]);   // 1.11.2026 Baran: FIN und Wert ab 2.500 € Pflicht
-      {const x=parseFloat(String($("vWert").value||"").replace(/[^\d,]/g,"").replace(",","."));if(!(x>=2500))f.push(["vWert",x>0?"Wert mindestens 2.500 €":"Wert Sicherungsfahrzeug"])}if(!pad("padSV"))f.push(["padSV","Unterschrift Überlassungserklärung"])}
+    if(!$("svSlot").classList.contains("versteckt")){if(!w("vModell")||!w("vKz"))f.push(["vModell","Sicherungsfahrzeug"]);if(!w("vFin"))f.push(["vFin","Fahrgestellnummer"]);   // 1.11.2026 Baran: FIN Pflicht, Fahrzeugwert unnötig (raus)
+if(!pad("padSV"))f.push(["padSV","Unterschrift Überlassungserklärung"])}
     if(!pad("padU"))f.push(["padU","Unterschrift Übergabe"])}
   if(SICHT==="rueckgabe"&&v.status!=="zurück"){if(!w("rKm"))f.push(["rKm","Kilometerstand"]);if(!pad("padR")&&!verwOk("padR"))f.push(["padR","Unterschrift Rückgabe"]);
     if(gw("r_auff")==="ja"){if(!w("sBesch"))f.push(["sBesch","Schadensbeschreibung"]);if(!pad("padS")&&!verwOk("padS"))f.push(["padS","Unterschrift Schadensanerkennung"])}}
   return f}
-function gesperrtMeldung(f){hinZu(f[0][0]);meldung("Noch fehlt: "+f.map(x=>x[1]).join(", "))}
+function gesperrtMeldung(f){hinZu(f[0][0]);meldungRot("Noch fehlt: "+f.map(x=>x[1]).join(", "))}
 function padsAusEntwurf(){const d=protAlle()[WAHL+"|"+SICHT];if(d&&d.p)Object.entries(d.p).forEach(([k,x])=>{if(x&&PAD[k]&&!PAD[k].wert())PAD[k].setzen(x)})}
 function hauptText(){const k=$("haupt");k.classList.remove("aus");if(gesperrt(SICHT))return;
-  if(SICHT==="vertrag"){const f=fehltNoch();if(f.length){k.textContent="Noch fehlt: "+f.map(x=>x[1]).join(", ");k.classList.add("aus");return}
+  if(SICHT==="vertrag"){   // 1.11.2026 Baran: keine Dauer-Anzeige „Noch fehlt“, erst beim Tippen roter Hinweis
     const v=bearbeitet()?aktuell():null;
+    if(fehltNoch().length){k.textContent=v?"Fertig ✓":$("vonD").value>iso(new Date())?"Mietvertrag anlegen ✓":"Weiter zur Übergabe ›";return}   // was fehlt, sagt der rote Hinweis beim Tippen
     if(!PAD.padV.wert()&&!(v&&v.unterschrift)){k.textContent="Vorbereitet speichern (Unterschrift fehlt)";return}   // am Mac vorbereiten, am iPad unterschreiben
     k.textContent=v&&v.ueb?"Fertig ✓":$("vonD").value>iso(new Date())?(v?"Fertig ✓":"Mietvertrag anlegen ✓"):"Weiter zur Übergabe ›";return}
   const v=aktuell();if(!v)return;
-  if(["uebergabe","rueckgabe"].includes(SICHT)){const f=fehltProtokoll();if(f.length){k.textContent="Noch fehlt: "+f.map(x=>x[1]).join(", ");k.classList.add("aus");return}k.textContent=KNOPF[SICHT]}
+  if(["uebergabe","rueckgabe"].includes(SICHT))k.textContent=KNOPF[SICHT];
   if(SICHT==="uebergabe"&&v.ueb)k.textContent="Fertig ✓";
   if(SICHT==="rueckgabe"&&v.status==="zurück")k.textContent="Fertig ✓"}
 // Neue Mietverträge holen ihre Nummer beim Speichern aus dem gemeinsamen Speicher (keine doppelten Nummern auf zwei Geräten).
@@ -1460,10 +1464,10 @@ function wt2(d){const x=new Date(d+"T12:00");return ["So","Mo","Di","Mi","Do","F
 let GESP_ZEIT="";
 function schritteStand(){const li=$("sLi"),gsE=$("sGs"),hk=$("sHaken");if(!li)return;const v=SICHT==="vertrag"?(bearbeitet()?aktuell():null):aktuell();
   const pad=k=>!!(PAD[k]&&PAD[k].wert()),wert=i=>!!($(i)&&String($(i).value||"").trim());let l=[];
-  if(SICHT==="vertrag"){const f=fehltNoch();li.textContent=f.length?"Noch fehlt: "+f.map(x=>x[1]).join(", "):(v?"Mietvertrag "+v.nr:"Alles Nötige ist drin");
+  if(SICHT==="vertrag"){const f=fehltNoch();li.textContent=v?"Mietvertrag "+v.nr:"";
     l=[["Mieter",wert("name")],["Auto",wert("modell")],["Zeitraum",wert("vonD")&&wert("bisD")],["Preis",wert("preis1")],["Unterschrift",pad("padV")||!!(v&&v.unterschrift)]]}
   else if(v){const fp=typeof fehltProtokoll==="function"?fehltProtokoll():[];   // Übergabe/Rückgabe: was fehlt, sonst der Zeitraum (1.11.2026)
-    li.textContent=fp.length?"Noch fehlt: "+fp.map(x=>x[1]).join(", "):wt2(v.vonD)+(v.vonU?" "+v.vonU:"")+" bis "+wt2(v.bisD)+(v.bisU?" "+v.bisU:"");
+    li.textContent=wt2(v.vonD)+(v.vonU?" "+v.vonU:"")+" bis "+wt2(v.bisD)+(v.bisU?" "+v.bisU:"");
     if(SICHT==="uebergabe"){l=[["Mietvertrag",!!v.unterschrift],["Kilometer",wert("uKm")||!!(v.ueb&&v.ueb.km)]];
       if(mitFz(v.kautionArt))l.push(["Überlassungserklärung",pad("padSV")||!!(v.sv&&v.sv.unterschrift)]);
       if(mitGeld(v.kautionArt)&&v.kautionArt)l.push(["Kaution "+(((v.zahlung||{}).kaut||{}).betrag||"")+" €",!!(((v.zahlung||{}).kaut||{}).am)]);
