@@ -1208,7 +1208,8 @@ function eExtraSetzen(l){E_AN=new Set();$("eSonstT").value="";$("eSonstB").value
 function eWerte(){const mehr=zahl($("rMehr").value)||0,satz=zahl($("eSatz").value)||0,auf=eAufBetrag();
   const liter=JN.tankJn==="nein"?(zahl($("eLiter").value)||0):0,tank=liter?Math.round((liter*2.5+25)*100)/100:0,versp=VERSP_AN?verspaetung().betrag:0;
   const extra=eExtraListe(),ex=extra.reduce((s,x)=>s+x.betrag,0);
-  return{mehr,satz,auf,kmB:mehr*satz,liter,tank,versp,extra,summe:mehr*satz+auf+tank+versp+ex}}
+  const c=x=>Math.round(x*100)/100;   // auf Cent (1.11.2026, Test: 747.0000000000001 im Speicher)
+  return{mehr,satz,auf,kmB:c(mehr*satz),liter,tank,versp,extra,summe:c(mehr*satz+auf+tank+versp+ex)}}
 function eRechne(){const e=eWerte();
   $("eErgebnis").innerHTML="Endabrechnung:<br>"
     +(e.mehr?kmText(e.mehr)+" Mehrkilometer × "+eur(e.satz)+" € = "+eur(e.kmB)+" €<br>":"Keine Mehrkilometer.<br>")
@@ -1265,7 +1266,8 @@ function fehltProtokoll(){const v=aktuell(),f=[];if(!v)return f;const pad=k=>!!(
     if(!$("svSlot").classList.contains("versteckt")){if(!w("vModell")||!w("vKz"))f.push(["vModell","Sicherungsfahrzeug"]);if(!w("vFin"))f.push(["vFin","Fahrgestellnummer"]);   // 1.11.2026 Baran: FIN Pflicht, Fahrzeugwert unnötig (raus)
 if(!pad("padSV"))f.push(["padSV","Unterschrift Überlassungserklärung"])}
     if(!pad("padU"))f.push(["padU","Unterschrift Übergabe"])}
-  if(SICHT==="rueckgabe"&&v.status!=="zurück"){if(!w("rKm"))f.push(["rKm","Kilometerstand"]);if(!pad("padR")&&!verwOk("padR"))f.push(["padR","Unterschrift Rückgabe"]);
+  if(SICHT==="rueckgabe"&&v.status!=="zurück"){if(!v.ueb)f.push(["schritte","erst die Übergabe"]);if(!w("rKm"))f.push(["rKm","Kilometerstand"]);   // 1.11.2026 Test: Rückgabe ging ohne Übergabe
+    if(!pad("padR")&&!verwOk("padR"))f.push(["padR","Unterschrift Rückgabe"]);
     if(gw("r_auff")==="ja"){if(!w("sBesch"))f.push(["sBesch","Schadensbeschreibung"]);if(!pad("padS")&&!verwOk("padS"))f.push(["padS","Unterschrift Schadensanerkennung"])}}
   return f}
 function gesperrtMeldung(f){hinZu(f[0][0]);meldungRot("Noch fehlt: "+f.map(x=>x[1]).join(", "))}
@@ -1880,7 +1882,7 @@ $("vWert").addEventListener("input",vWertPruefen);
 gruppe("k_art").addEventListener("wahl",()=>{if(!gw("k_art"))gs("k_art","geld");kautSetzen(gw("k_art"))});
 $("kfz2").addEventListener("input",()=>{$("kfz").value=$("kfz2").value;$("kfz").dispatchEvent(new Event("input",{bubbles:true}))});
 $("kfz").addEventListener("input",()=>{if(document.activeElement!==$("kfz2"))$("kfz2").value=$("kfz").value});
-$("kautZurSv").onclick=()=>{if(aktuell()&&bearbeitet()){zeige("uebergabe")}else alert("Erst den Mietvertrag unten abschließen. Die Überlassungserklärung ist dann Teil der Übergabe, alles Getippte steht schon drin.")};
+$("kautZurSv").onclick=()=>{if(aktuell()&&bearbeitet()){zeige("uebergabe")}else meldungRot("Erst den Mietvertrag unten abschließen. Die Überlassungserklärung kommt dann in der Übergabe.")};
 {const _vl=vertragLaden;vertragLaden=function(v){_vl(v);kautAnzeigen();MEHR_HAND=true;ZF_HAND=!!v.preis2;delete JN.zfJn;delete JN.anzJn;kurzZu()};const _le=leeren;leeren=function(){_le();kautAnzeigen();ZF_HAND=false;delete JN.zfJn;delete JN.anzJn;kurzZu()};const _el=entwurfLaden;entwurfLaden=function(){_el();kautAnzeigen()}}
 einbetten();gruppe("r_auff").addEventListener("wahl",schadenZeigen);
 $("uSvKarte").remove();   // alte Hinweiskarte, Kaution-Auto steht jetzt direkt in der Übergabe
