@@ -1759,7 +1759,7 @@ function zeige(s){SICHT=s;["heute","vertraege","mappe","vertrag","uebergabe","ru
   else if(s==="mappe")zeichneMappe();
   else if(s==="vertrag"){if(!NEU&&!$("name").value.trim()&&aktuell())vertragLaden(aktuell());zeichneAnfragen();if(!$("name").value)$("nr").value=neueNr()}
   else{wahlFuellen();formularLaden()}
-  svKarte();schritte();hauptText();document.querySelector(".leiste").classList.toggle("versteckt",s==="vertraege");   // 01.11.2026, Baran: unnötig
+  svKarte();schritte();hauptText();document.querySelector(".leiste").classList.toggle("versteckt",s==="vertraege"||s==="heute");   // 01.11.2026, Baran: unnötig
   const sp=gesperrt(s);$("neuSperre").classList.toggle("versteckt",!sp);
   if(sp){$("s_"+s).classList.add("versteckt");$("wahlKarte").classList.add("versteckt");$("haupt").textContent="Zurück zum neuen Mietvertrag";
     $("neuSperreText").textContent="Du schreibst gerade einen neuen Mietvertrag für "+$("name").value.trim()+". Erst den Mietvertrag unten abschließen, dann geht es hier mit genau diesem Mietvertrag weiter."}
