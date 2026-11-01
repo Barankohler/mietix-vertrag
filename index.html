@@ -161,6 +161,7 @@ h2.hT{margin:18px 4px 8px}#s_heute h2.hT:first-of-type{margin-top:6px}
 .hz .uhr{min-width:48px;font-size:15px;font-weight:800;font-variant-numeric:tabular-nums;color:#1C1C1E}#hHeute .hz .uhr{color:var(--rot)}
 .hz .t{flex:1;min-width:0}.hz .t b{display:block;font-size:17px;font-weight:700}.hz .t i{display:block;font-style:normal;font-size:14px;color:var(--grau)}
 .hz .t i.spaet{color:var(--rot);font-weight:700}
+.hz .t u[data-verl]{color:#1C1C1E!important;background:#F2F2F4!important;margin-right:6px}
 .hz .t u{display:inline-block;white-space:nowrap;margin-top:6px;text-decoration:none;font-size:13px;font-weight:700;color:#128C4A;background:#E7F9EE;border-radius:999px;padding:5px 10px}
 .schild{flex:0 0 auto;padding:6px 9px;border-radius:6px;font-size:12px;font-weight:700;background:#F2F2F7;color:#3A3A3C;white-space:nowrap}
 .schild.gruen{background:#E6F4EA;color:#1B6B3A}.schild.rot{background:#FDECEC;color:#A31318}
@@ -1778,7 +1779,7 @@ function zeichneHeute(){const h=iso(new Date()),m=plusTage(h,1),l=vorgaenge().fi
     if(z.anf)return'<div class="hz" data-anf="'+esc(z.anf.id)+'"><span class="uhr">'+(z.u||"&nbsp;")+'</span><span class="t"><b>'+esc(v.name)+'</b><i>'+esc([v.auto,"gebucht, noch kein Mietvertrag"].filter(Boolean).join(", "))+'</i></span>'+
       '<span class="schild gruen">Übergabe</span></div>';
     return'<div class="hz" data-nr="'+esc(v.nr)+'" data-art="'+z.art+'"><span class="uhr">'+(z.u||"&nbsp;")+'</span><span class="t"><b>'+esc(v.name)+'</b><i>'+esc([v.auto,(ueb?"Übergabe":"Rückgabe")+(z.d===h?" heute":"")].filter(Boolean).join(", "))+'</i>'+
-      (spaet?'<i class="spaet">überfällig seit '+de(z.d).slice(0,6)+'</i>':'')+(ueb&&!v.unterschrift?'<i class="spaet">Mietvertrag noch nicht unterschrieben</i>':'')+(erin?'<u data-erin="1">Erinnerung senden</u>':'')+'</span>'+
+      (spaet?'<i class="spaet">überfällig seit '+de(z.d).slice(0,6)+'</i>':'')+(ueb&&!v.unterschrift?'<i class="spaet">Mietvertrag noch nicht unterschrieben</i>':'')+(erin?'<u data-erin="1">Erinnerung senden</u>':'')+(!ueb?'<u data-verl="1">Verlängert ›</u>':'')+'</span>'+
       '<span class="schild '+(ueb?"gruen":"rot")+'">'+(ueb?"Übergabe":"Rückgabe")+'</span></div>'};
   const hz=zeilen.filter(z=>z.d<=h),mz=zeilen.filter(z=>z.d===m);
   $("hHeuteT").textContent=kopf("Heute",h);$("hMorgenT").textContent=kopf("Morgen",m);
@@ -1791,6 +1792,9 @@ function zeichneHeute(){const h=iso(new Date()),m=plusTage(h,1),l=vorgaenge().fi
   document.querySelectorAll("#hHeute .hz,#hMorgen .hz").forEach(e=>{const v=l.find(x=>x.nr===e.dataset.nr);if(!v)return;
     e.onclick=()=>{NEU_FREI=true;WAHL=v.nr;zeige(e.dataset.art==="ueb"?"uebergabe":"rueckgabe")};
     // Erinnerung am Vortag: öffnet WhatsApp mit dem Text
+    // Kunde hat verlängert (1.11.2026, Baran): direkt aus Heute ins Verlängern-Fenster, neues Datum frühestens heute
+    const vl=e.querySelector("[data-verl]");if(vl)vl.onclick=ev=>{ev.stopPropagation();NEU_FREI=true;WAHL=v.nr;GELADEN={};zeige("mappe");verlOeffnen();
+      if($("verlBis").value<h){$("verlBis").value=h;verlRechnen(false)}};
     const k=e.querySelector("[data-erin]");if(k)k.onclick=ev=>{ev.stopPropagation();waOeffnen(v,ERINNERUNG(v));const ll=vorgaenge(),x=ll.find(y=>y.nr===v.nr);if(x){x.erinnert=h;schreib("mietixVorgaenge",ll)}meldung("Erinnerung geöffnet");setTimeout(zeichneHeute,800)}});
   // Miete noch offen: Abholung war schon, Rest nicht als bezahlt eingetragen
     const mahn=vorgaenge().filter(v=>v.vonD&&v.vonD<h&&offenBetrag(v)>0);
