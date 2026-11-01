@@ -107,6 +107,20 @@ body.ugOffen{position:fixed;left:0;right:0;overflow:hidden}
 details summary{cursor:pointer;font-weight:800;color:var(--grau);font-size:14px}
 /* Ablauf (29.10.2026): Schrittleiste, Reiter Mietverträge, Angebote nach dem Speichern */
 .schritt{display:flex;gap:6px;margin-top:10px}
+/* Schrittleiste (1.11.2026, Baran: oben sehen, wo ich bin, erledigt grün) */
+.weg{display:grid;grid-template-columns:minmax(0,1fr) 18px minmax(0,1fr) 18px minmax(0,1fr);align-items:center;gap:0;margin:2px 0 0}
+.weg .s{display:flex;align-items:center;gap:8px;min-width:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.weg .k{flex:0 0 auto;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;background:#E5E5EA;color:#8A8A8E}
+.weg .s span:not(.k){min-width:0}.weg .s b{display:block;font-size:14px;font-weight:800;color:#8A8A8E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.weg .s i{display:block;font-style:normal;font-size:11.5px;font-weight:700;color:#AEAEB2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.weg .s.ok .k{background:var(--gruen);color:#fff}.weg .s.ok b,.weg .s.ok i{color:var(--gruen)}
+.weg .s.jetzt .k{background:var(--rot);color:#fff;box-shadow:0 0 0 4px #F9D9DA}.weg .s.jetzt b{color:var(--ink,#1C1C1E)}.weg .s.jetzt i{color:var(--rot)}
+.weg .s.fehlt i{color:var(--rot)}.weg .s.fehlt .k{background:#FDECEC;color:var(--rot)}
+.weg .l{height:3px;border-radius:2px;background:#E5E5EA;margin:0 4px}.weg .l.ok{background:var(--gruen)}
+.sInfo{display:flex;justify-content:space-between;align-items:center;gap:10px;border-top:1px solid #EFEFF2;margin-top:12px;padding-top:9px;font-size:13px;font-weight:700;color:#6E6E73}
+.sInfo .gs{color:var(--gruen);white-space:nowrap}.sInfo .li{min-width:0}
+.sHaken{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.sHaken span{font-size:13px;font-weight:800;border-radius:999px;padding:6px 10px;background:#F2F2F4;color:#8A8A8E}.sHaken span.ok{background:#E3F4EA;color:var(--gruen)}
+@media(max-width:560px){.weg{align-items:start}.weg .s{flex-direction:column;gap:5px;text-align:center}.weg .k{width:28px;height:28px;font-size:13px}.weg .s span:not(.k){width:100%}.weg .s b{font-size:13px}.weg .s i{font-size:11px}.weg .l{margin-top:13px}.weg{grid-template-columns:minmax(0,1fr) 14px minmax(0,1fr) 14px minmax(0,1fr)}}
 .schritt div{flex:1;text-align:center;padding:9px 6px;border-radius:12px;background:var(--bg);font-weight:800;font-size:13px;color:var(--grau);cursor:pointer;white-space:nowrap}
 .schritt div.ok{background:#E8F6EE;color:var(--gruen)}.schritt div.fehlt{background:#FDECEC;color:var(--rot)}
 .kundeU{display:block;margin-top:12px;background:var(--gruen);color:#fff;border-radius:14px;padding:14px 12px;text-align:center;cursor:pointer}
@@ -1366,6 +1380,26 @@ function miniZeigen(){const m=$("miniStand");if(m)m.classList.toggle("an",MINI_S
 // Wischen vom linken Rand (App): eine Ebene zurück, wie in einer App
 window.mxZurueck=function(){if(["uebergabe","rueckgabe","schaden","ueberlassung"].includes(SICHT)&&aktuell()){zeige("mappe");return true}
   if(SICHT==="vertrag"&&!NEU&&aktuell()){zeige("mappe");return true}if(SICHT==="mappe"||SICHT==="vertrag"){zeige("vertraege");return true}return false};
+// Schrittleiste: 1 Mietvertrag, 2 Übergabe, 3 Rückgabe. Erledigt grün mit Haken, aktueller Schritt rot (1.11.2026, Baran, Beispielbild freigegeben)
+function wegHTML(v,st){const unter={vertrag:["unterschrieben","Unterschrift fehlt"],uebergabe:["erledigt","danach"],rueckgabe:["zurück","am Ende"]};
+  return '<div class="weg">'+st.map(([x,t,ok],i)=>{const jetzt=SICHT===x;const kl=ok&&!jetzt?"ok":jetzt?"jetzt":ok?"ok":(x==="vertrag"&&v?"fehlt":"");
+    const u=jetzt?(ok?"erledigt, jetzt offen":"jetzt"):ok?unter[x][0]:(x==="vertrag"&&v?unter.vertrag[1]:x==="rueckgabe"&&v&&v.bisD?wt2(v.bisD):unter[x][1]);
+    return (i?'<div class="l'+(st[i-1][2]?" ok":"")+'"></div>':"")+'<div class="s '+kl+'" data-s="'+x+'"><span class="k">'+(ok&&!jetzt?"✓":i+1)+'</span><span><b>'+t+'</b><i>'+u+'</i></span></div>'}).join("")+'</div>'}
+function wt2(d){const x=new Date(d+"T12:00");return ["So","Mo","Di","Mi","Do","Fr","Sa"][x.getDay()]+" "+d.slice(8,10)+"."+d.slice(5,7)+"."}
+let GESP_ZEIT="";
+function schritteStand(){const li=$("sLi"),gsE=$("sGs"),hk=$("sHaken");if(!li)return;const v=SICHT==="vertrag"?(bearbeitet()?aktuell():null):aktuell();
+  const pad=k=>!!(PAD[k]&&PAD[k].wert()),wert=i=>!!($(i)&&String($(i).value||"").trim());let l=[];
+  if(SICHT==="vertrag"){const f=fehltNoch();li.textContent=f.length?"Noch fehlt: "+f.map(x=>x[1]).join(", "):(v?"Mietvertrag "+v.nr:"Alles Nötige ist drin");
+    l=[["Mieter",wert("name")],["Auto",wert("modell")],["Zeitraum",wert("vonD")&&wert("bisD")],["Preis",wert("preis1")],["Unterschrift",pad("padV")||!!(v&&v.unterschrift)]]}
+  else if(v){li.textContent=wt2(v.vonD)+(v.vonU?" "+v.vonU:"")+" bis "+wt2(v.bisD)+(v.bisU?" "+v.bisU:"");
+    if(SICHT==="uebergabe")l=[["Mietvertrag",!!v.unterschrift],["Kilometer",wert("uKm")||!!(v.ueb&&v.ueb.km)],["Unterschrift Übergabe",pad("padU")||!!v.ueb]];
+    if(SICHT==="rueckgabe")l=[["Übergabe",!!v.ueb],["Kilometer",wert("rKm")||v.status==="zurück"],["Unterschrift Rückgabe",pad("padR")||v.status==="zurück"]]}
+  hk.innerHTML=l.map(([t,ok])=>'<span class="'+(ok?"ok":"")+'">'+(ok?"✓ ":"")+t+'</span>').join("");
+  const etwas=SICHT==="vertrag"?(wert("name")||!!v):!!v;gsE.textContent=etwas?"✓ gespeichert"+(GESP_ZEIT?" "+GESP_ZEIT:""):""}
+// Jede Eingabe wird schon von selbst gesichert (Entwurf, Übergabe/Rückgabe-Entwurf); hier nur die Uhrzeit dazu zeigen
+["input","change"].forEach(t=>document.addEventListener(t,e=>{if(!e.target.closest||!e.target.closest("#s_vertrag,#s_uebergabe,#s_rueckgabe"))return;
+  setTimeout(()=>{const d=new Date();GESP_ZEIT=String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");schritteStand()},700)}));
+document.addEventListener("click",e=>{if(e.target.closest&&e.target.closest("#s_vertrag,#s_uebergabe,#s_rueckgabe,.mxFenster"))setTimeout(schritteStand,800)});
 function schritte(){const el=$("schritte");if(!el)return;
   const formular=["vertrag","uebergabe","rueckgabe","schaden","ueberlassung"].includes(SICHT);
   $("wahlKarte").classList.toggle("versteckt",!formular);if(!formular)return;
@@ -1373,19 +1407,20 @@ function schritte(){const el=$("schritte");if(!el)return;
   $("wahl").classList.toggle("versteckt",SICHT==="vertrag"||!vorgaenge().length||(!!v&&!WAHL_OFFEN));   // Auswahl nur auf Wunsch, oben steht der Mietvertrag schon
   $("wahlLeer").classList.toggle("versteckt",SICHT==="vertrag"||vorgaenge().length>0);
   // Neuer Mietvertrag: kein Kasten oben (01.11.2026, Baran: oben steht schon „Neuer Mietvertrag“, gespeichert wird von selbst)
-  if(!v){miniStand(null,null);el.innerHTML="";$("wahlKarte").classList.add("versteckt");return}
+  if(!v){miniStand(null,null);if(SICHT!=="vertrag"){el.innerHTML="";$("wahlKarte").classList.add("versteckt");return}
+    el.innerHTML=wegHTML(null,[["vertrag","Mietvertrag",false],["uebergabe","Übergabe",false],["rueckgabe","Rückgabe",false]])+'<div class="sInfo"><span class="li" id="sLi"></span><span class="gs" id="sGs"></span></div><div class="sHaken" id="sHaken"></div>';
+    schritteStand();return}
   const st=[["vertrag","Mietvertrag",!!v.unterschrift||!!v.ueb],["uebergabe","Übergabe",!!v.ueb],["rueckgabe","Rückgabe",v.status==="zurück"]];
   el.innerHTML='<div class="sKopf"><div><b>'+esc(v.nr)+"  "+esc(v.name)+'</b><i>'+esc(v.auto)+", "+de(v.vonD)+" bis "+de(v.bisD)+(v.status==="zurück"?", zurückgegeben":"")+'</i></div>'+
     (WAHL_OFFEN?'<a href="#" id="sAlle">zu</a>':'<span class="fNav"><a href="#" class="teilen" id="sTeilen">Teilen</a><a href="#" class="mz" id="sMappe">‹ Mappe</a><a href="#" class="fX" id="sX" title="Schließen">✕</a></span>')+'</div>'+
-    '<div class="sTitel">Stand dieses Mietvertrags</div>'+
-    '<div class="schritt" style="margin-top:6px">'+st.map(([x,t,ok])=>'<div class="'+(ok?"ok":x==="vertrag"?"fehlt":"")+(SICHT===x?" an":"")+'" data-s="'+x+'">'+(ok?"✓ ":"")+t+'<small>'+(ok?"erledigt":x==="vertrag"?"Unterschrift fehlt":"offen")+'</small></div>').join("")+'</div>'+
+    '<div style="margin-top:12px">'+wegHTML(v,st)+'</div><div class="sInfo"><span class="li" id="sLi"></span><span class="gs" id="sGs"></span></div><div class="sHaken" id="sHaken"></div>'+
     (()=>{const f=fehlendeUnterschriften(v);return f.length?'<div class="kundeU" id="sKunde"><b>Kunde unterschreibt jetzt</b><small>'+esc(f.map(x=>x[1]).join(", "))+'</small></div>':""})()+
     (SICHT==="vertrag"?'<div id="ungesp" class="versteckt" style="margin-top:8px;color:var(--rot);font-size:13px;font-weight:800">Geändert. Unten auf „Fertig ✓“ tippen, dann gilt es.</div>'+
       '<a href="#" id="sNeu" class="hinweis" style="display:block;margin-top:8px">Das ist Mietvertrag '+esc(v.nr)+'. Einen anderen, neuen Mietvertrag anfangen?</a>':"");
   const te=$("sTeilen");if(te)te.onclick=e=>{e.preventDefault();teilenBlatt(v)};const ku=$("sKunde");if(ku)ku.onclick=kundeUnterschreibt;
   [...el.querySelectorAll("[data-s]")].forEach(c=>c.onclick=()=>{if(c.dataset.s==="vertrag"){if(bearbeitet())return;vertragLaden(v)}zeige(c.dataset.s)});
   const n=$("sNeu");if(n)n.onclick=e=>{e.preventDefault();if(ungespeichert()&&!confirm("Deine Änderungen an Mietvertrag "+v.nr+" gelten noch nicht. Trotzdem einen neuen Mietvertrag anfangen?"))return;leeren();schritte();meldung("Neuer Mietvertrag, leeres Formular")};
-  ungespeichertZeigen();miniStand(v,st)
+  ungespeichertZeigen();miniStand(v,st);schritteStand()
   const a=$("sAlle");if(a)a.onclick=e=>{e.preventDefault();WAHL_OFFEN=!WAHL_OFFEN;schritte()};
   const weg=ziel=>e=>{e.preventDefault();if(SICHT==="vertrag"&&ungespeichert()&&!confirm("Deine Änderungen an Mietvertrag "+v.nr+" gelten noch nicht. Trotzdem schließen?"))return;zeige(ziel)};
   const sm=$("sMappe");if(sm)sm.onclick=weg("mappe");const sx=$("sX");if(sx)sx.onclick=weg("vertraege")}
