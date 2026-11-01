@@ -1371,7 +1371,7 @@ function schritte(){const el=$("schritte");if(!el)return;
   const v=SICHT==="vertrag"?(bearbeitet()?aktuell():null):aktuell();
   $("wahl").classList.toggle("versteckt",SICHT==="vertrag"||!vorgaenge().length||(!!v&&!WAHL_OFFEN));   // Auswahl nur auf Wunsch, oben steht der Mietvertrag schon
   $("wahlLeer").classList.toggle("versteckt",SICHT==="vertrag"||vorgaenge().length>0);
-  if(!v){miniStand(null,null);el.innerHTML='<div class="sKopf"><div><b>Neuer Mietvertrag</b><i>Übergabe und Rückgabe machst du später bei diesem Mietvertrag, auch Tage oder Wochen danach. Dazwischen gehen andere Mietverträge ganz normal.</i><div class="gesichert">✓ Was du tippst, ist automatisch gesichert</div></div><a href="#" class="fX" id="sX" title="Schließen">✕</a></div>';
+  if(!v){miniStand(null,null);el.innerHTML='<div class="sKopf"><div><b>Neuer Mietvertrag</b></div><a href="#" class="fX" id="sX" title="Schließen">✕</a></div>';
     $("sX").onclick=e=>{e.preventDefault();try{if(neuInArbeit()){clearTimeout(entwurfTimer);localStorage.setItem("mietixEntwurfVertrag",JSON.stringify(entwurfSchnappschuss()))}}catch(_){}zeige("vertraege");if(neuInArbeit())meldung("Angefangen, steht oben unter Mietverträge zum Weitermachen")};return}
   const st=[["vertrag","Mietvertrag",!!v.unterschrift||!!v.ueb],["uebergabe","Übergabe",!!v.ueb],["rueckgabe","Rückgabe",v.status==="zurück"]];
   el.innerHTML='<div class="sKopf"><div><b>'+esc(v.nr)+"  "+esc(v.name)+'</b><i>'+esc(v.auto)+", "+de(v.vonD)+" bis "+de(v.bisD)+(v.status==="zurück"?", zurückgegeben":"")+'</i></div>'+
