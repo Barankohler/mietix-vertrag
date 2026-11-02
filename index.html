@@ -128,6 +128,7 @@ details summary{cursor:pointer;font-weight:800;color:var(--grau);font-size:14px}
 .kundeU b{font-size:17px;display:block;color:#fff}.kundeU small{display:block;font-size:13px;font-weight:600;opacity:.92;margin-top:3px}
 .schritt div small{display:block;font-size:11px;font-weight:700;margin-top:2px;opacity:.85}
 .sTitel{font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--grau);margin-top:10px}.schritt div.an{outline:2px solid var(--rot);color:var(--rot)}.schritt div.ok.an{color:var(--gruen)}
+.sZur{display:block;color:#C4161C!important;font-size:16px!important;font-weight:600!important;text-decoration:none!important;margin:0 0 6px;-webkit-tap-highlight-color:transparent}
 .sKopf{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}.sKopf>div{min-width:0;overflow-wrap:anywhere}.sKopf .fNav{flex:0 1 auto;flex-wrap:wrap;justify-content:flex-end}.sKopf b{font-size:16px;display:block}.sKopf i{font-style:normal;font-size:13px;color:var(--grau)}
 .sKopf a{font-size:13px;color:var(--grau);white-space:nowrap;font-weight:700}
 #wahl.klein{margin-top:8px;font-size:16px;min-height:44px;padding:8px 12px}
@@ -285,11 +286,25 @@ input,select,textarea{border:1.5px solid #E4E4E7;border-radius:12px;font-size:16
 .buPkt{display:flex;gap:4px;margin-top:6px}.buPkt s{width:16px;height:5px;border-radius:3px;background:#E3E3E8;text-decoration:none}.buPkt s.g{background:#34C759}.buPkt s.j{background:#FF9500}
 .buZ .t i.gruen{color:#1E8E4E;font-weight:600}
 #nbAutoZ .t b,#nbZeitZ .t b{white-space:normal!important;overflow:visible!important;text-overflow:clip!important}   /* nichts abschneiden (02.11.2026) */
+.nbDirektW{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:12px 4px 2px}.nbDirektW span{flex:1 1 160px;font-size:13px;color:#6E6E73}
+.nbDirektK{flex:0 0 auto;border:1.5px solid #1E8E4E;background:#fff;color:#1E8E4E;border-radius:12px;padding:9px 14px;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer}
+.nbDirektK:active{background:#E3F4EA}
 .buVerw{display:block;flex:1 0 100%;text-align:center;color:#C4161C;font-size:14px;font-weight:600;text-decoration:none;padding:8px 0 2px;-webkit-tap-highlight-color:transparent}
 body.unterSicht #reiter,body.unterSicht header .mxStart{display:none!important}
 .nkBlock{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;background:#fff;border-radius:12px;padding:10px 12px;margin:10px 0}.nkBlock .nkLabel{flex:1 1 auto;font-weight:700;font-size:15px}.nkBlock .nkPaar{flex:0 0 auto;margin-top:0}
 .buZ .t i{white-space:normal!important;overflow:visible!important;text-overflow:clip!important}   /* keine halben Sachen: nichts abschneiden (01.11.2026, Baran) */
 .buGk.zwei{display:flex;justify-content:space-between;gap:10px}.buGk.zwei span:last-child{text-transform:none;letter-spacing:0}
+.alFelder{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.alFeld{display:flex;align-items:center;gap:8px;background:#fff;border-radius:12px;padding:9px 12px;cursor:pointer;min-width:0;-webkit-tap-highlight-color:transparent}
+.alFeld span{flex:1;min-width:0}.alFeld small{display:block;font-size:11px;font-weight:700;color:#8A8A8E;text-transform:uppercase;letter-spacing:.4px}
+.alFeld b{display:block;font-size:16px;font-weight:700;color:#1C1C1E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.alFeld em{font-style:normal;color:#C7C7CC;font-size:20px}
+.alRad{background:#F7F7F9;border-radius:14px;overflow:hidden}
+.alRad div{display:flex;align-items:center;gap:12px;padding:12px 14px;border-top:.5px solid #E5E5EA;cursor:pointer}.alRad div:first-child{border-top:0}
+.alRad div span{flex:1;min-width:0}.alRad div b{display:block;font-size:16px;font-weight:600}.alRad div i{display:block;font-style:normal;font-size:13px;color:#8A8A8E}
+.alRad div u{flex:0 0 auto;width:24px;height:24px;border-radius:50%;border:2px solid #C7C7CC;box-sizing:border-box}
+.alRad div.an u{border:7px solid #C4161C}
+#alVb{margin-top:12px;background:#F7F7F9;border-radius:14px;padding:10px 14px;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}#alVb>div{min-width:0}#alVb input{width:100%!important;min-width:0!important;max-width:100%!important;box-sizing:border-box}#alVb small{display:block;font-size:11px;font-weight:700;color:#8A8A8E;text-transform:uppercase;margin-bottom:4px}
+.alFertig{display:block;width:100%;margin-top:14px;border:0;border-radius:14px;padding:14px;background:#C4161C;color:#fff;font-size:17px;font-weight:700;font-family:inherit;cursor:pointer}
 .alK{font-size:12px;font-weight:700;color:#6E6E73;text-transform:uppercase;letter-spacing:.3px;margin:14px 4px 6px}
 .alChips{display:flex;flex-wrap:wrap;gap:7px}.alChips span{font-size:14px;font-weight:600;border-radius:999px;padding:7px 12px;background:#fff;border:1px solid #D1D1D6;cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent}
 .alChips span.an{background:#1C1C1E;color:#fff;border-color:#1C1C1E}.alChips span em{font-style:normal;color:#FF6B6B;margin-left:5px}
@@ -591,6 +606,8 @@ input[type=date],input[type=time]{min-width:0;max-width:100%}
 <!-- ================= NEUE BUCHUNG (Fassung 2, 01.11.2026, Entwurf c2): ein Formular, Anzahlung anfordern, erhalten oder ohne ================= -->
 <section id="s_neu" class="versteckt">
   <div class="buTop"><a href="#" class="buZurueck">‹ Buchungen</a><b id="nbTitel">Neue Buchung</b></div>
+  <!-- Kunde steht schon da (02.11.2026, Baran: „da muss ein Button sein, Mietvertrag starten“): übernimmt das Eingetippte -->
+  <div class="nbDirektW" id="nbDirektW"><button type="button" class="nbDirektK" id="nbDirekt">Mietvertrag starten ›</button><span>Kunde ist schon da? Alles Eingetippte kommt mit.</span></div>
   <!-- unten: <a id="nbVerw"> Entwurf verwerfen (02.11.2026) -->
   <div class="buGk">Kunde</div>
   <div class="buGr">
@@ -620,7 +637,7 @@ input[type=date],input[type=time]{min-width:0;max-width:100%}
       <div class="buBox"><div class="chips" id="nbArt"></div></div></div>
     <div class="buWahl" data-m="ohne"><span class="kr"></span><span><b>Ohne Anzahlung</b><i>Für Freunde und Stammkunden. Auto wird sofort geblockt.</i></span></div>
   </div>
-  <a href="#" class="buDirekt" id="nbDirekt">Kunde ist schon da? Mietvertrag direkt anlegen&nbsp;›</a>
+
   <a href="#" class="buVerw versteckt" id="nbVerw" style="margin:18px 0 6px">Entwurf verwerfen</a>
 </section>
 
@@ -642,7 +659,7 @@ input[type=date],input[type=time]{min-width:0;max-width:100%}
 
 <!-- ================= MAPPE: ein Kunde, alle Schritte (30.10.2026, Baran) ================= -->
 <section id="s_mappe" class="versteckt">
-  <div class="karte mKopf"><div class="mZeile"><div><b id="mName"></b><i id="mInfo"></i></div><a href="#" class="fX" id="mZu" title="Schließen">✕</a></div><div class="mLinks" id="mLinks"></div></div>
+  <div class="karte mKopf"><a href="#" class="sZur" id="mZu">‹ Buchungen</a><div class="mZeile"><div><b id="mName"></b><i id="mInfo"></i></div></div><div class="mLinks" id="mLinks"></div></div>
   <div class="karte"><h2>Schritte</h2><div id="mSchritte"></div>
     <div id="mVerlInfo"></div>
     <a href="#" class="mVerlKnopf" id="mVerl">Verlängern</a></div>
@@ -791,12 +808,16 @@ input[type=date],input[type=time]{min-width:0;max-width:100%}
 <section id="s_vertraege" class="versteckt">
   <div class="vSuchBox"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="vSuche" type="search" autocomplete="off" placeholder="Name, Nummer oder Auto"></div>
   <!-- Filter nach Zeitraum und Fahrzeug, darüber die Summe (01.11.2026, Baran: „bei Alle kann man nach Datum und Fahrzeugmodell filtern“) -->
-  <div class="alK">Zeitraum</div>
-  <div class="alChips" id="alZeit"><span data-z="" class="an">Alles</span><span data-z="woche">Diese Woche</span><span data-z="monat">Dieser Monat</span><span data-z="vormonat">Letzter Monat</span><span data-z="jahr">Dieses Jahr</span><span data-z="frei">Von bis …</span></div>
-  <div class="alVb versteckt" id="alVb"><input type="date" id="alVon" aria-label="von"><span>bis</span><input type="date" id="alBis" aria-label="bis"></div>
-  <div class="alK">Fahrzeug</div>
-  <div class="alChips" id="alAuto"></div>
+  <!-- Zwei Auswahlfelder, Auswahl im Blatt von unten (02.11.2026, Baran zu filter_alle: „genau so macht man das als Profi“) -->
+  <div class="alFelder"><div class="alFeld" id="alZeitF"><span><small>Zeitraum</small><b id="alZeitW">Alles</b></span><em>›</em></div>
+    <div class="alFeld" id="alAutoF"><span><small>Fahrzeug</small><b id="alAutoW">Alle Autos</b></span><em>›</em></div></div>
   <div class="alSum" id="alSum"></div>
+  <div class="mxFenster" id="fAlZeit" role="dialog" aria-label="Zeitraum"><div class="mxKopf"><h3>Zeitraum</h3><button class="mxZu" type="button" aria-label="Schließen">✕</button></div>
+    <div class="alRad" id="alZeit"></div>
+    <div class="alVb versteckt" id="alVb"><div><small>Von</small><input type="date" id="alVon" aria-label="von"></div><div><small>Bis</small><input type="date" id="alBis" aria-label="bis"></div></div>
+    <button type="button" class="alFertig" id="alZeitOk">Fertig</button></div>
+  <div class="mxFenster" id="fAlAuto" role="dialog" aria-label="Fahrzeug"><div class="mxKopf"><h3>Fahrzeug</h3><button class="mxZu" type="button" aria-label="Schließen">✕</button></div>
+    <div class="alRad" id="alAuto"></div><button type="button" class="alFertig" id="alAutoOk">Fertig</button></div>
   <div id="vEntwurf"></div>
   <div id="alleListe"></div>
   <!-- Selten gebraucht: Knopf, dann Fenster (30.10.2026, Baran) -->
@@ -1865,10 +1886,16 @@ function alZeitraum(){const h=new Date(),j=h.getFullYear(),m=h.getMonth(),f=d=>i
   if(AL.z==="jahr")return[j+"-01-01",j+"-12-31",String(j)];
   if(AL.z==="frei"){const a=$("alVon").value,b=$("alBis").value;const dd=x=>x.split("-").reverse().join(".");return a||b?[a||"0000-01-01",b||"9999-12-31",a&&b?dd(a)+" bis "+dd(b):a?"ab "+dd(a):"bis "+dd(b)]:null}
   return null}
-function alChips(){$("alZeit").querySelectorAll("[data-z]").forEach(c=>c.classList.toggle("an",c.dataset.z===AL.z));$("alVb").classList.toggle("versteckt",AL.z!=="frei");
+function alChips(){const h=new Date(),j=h.getFullYear(),m=h.getMonth(),zr=alZeitraum();
+  const Z=[["woche","Diese Woche",""],["monat","Dieser Monat",BU_MON[m]+" "+j],["vormonat","Letzter Monat",BU_MON[(m+11)%12]+" "+(m?j:j-1)],["jahr","Dieses Jahr",String(j)],["","Alles",""],["frei","Von bis","eigener Zeitraum"]];
+  $("alZeit").innerHTML=Z.map(([k,t,u])=>'<div data-z="'+k+'" class="'+(AL.z===k?"an":"")+'"><span><b>'+t+'</b>'+(u?'<i>'+u+'</i>':'')+'</span><u></u></div>').join("");
+  $("alZeit").querySelectorAll("[data-z]").forEach(c=>c.onclick=()=>{AL.z=c.dataset.z;zeichneAlle()});
+  $("alVb").classList.toggle("versteckt",AL.z!=="frei");$("alVb").style.display=AL.z==="frei"?"grid":"";
   const autos=[...new Set(vorgaenge().filter(v=>!v._weg&&v.auto).map(v=>v.auto))].sort((a,b)=>a.localeCompare(b,"de"));
-  $("alAuto").innerHTML='<span data-a="" class="'+(AL.auto?"":"an")+'">Alle Autos</span>'+autos.map(a=>'<span data-a="'+esc(a)+'" class="'+(AL.auto===a?"an":"")+'">'+esc(a)+(AL.auto===a?"<em>✕</em>":"")+'</span>').join("");
-  $("alAuto").querySelectorAll("[data-a]").forEach(c=>c.onclick=()=>{AL.auto=AL.auto===c.dataset.a?"":c.dataset.a;zeichneAlle()})}
+  $("alAuto").innerHTML=[["","Alle Autos"]].concat(autos.map(a=>[a,a])).map(([k,t])=>'<div data-a="'+esc(k)+'" class="'+(AL.auto===k?"an":"")+'"><span><b>'+esc(t)+'</b></span><u></u></div>').join("");
+  $("alAuto").querySelectorAll("[data-a]").forEach(c=>c.onclick=()=>{AL.auto=c.dataset.a;zeichneAlle()});
+  $("alZeitW").textContent=AL.z==="frei"?(zr?zr[2]:"Von bis"):AL.z?(Z.find(z=>z[0]===AL.z)[2]||Z.find(z=>z[0]===AL.z)[1]):"Alles";
+  $("alAutoW").textContent=AL.auto||"Alle Autos"}
 function zeichneAlle(){if(!$("alleListe"))return;const q=normS($("vSuche").value).trim();alChips();const zr=alZeitraum();
   const l=vorgaenge().slice().reverse().filter(v=>!q||normS(v.nr+" "+v.name+" "+v.auto+" "+(v.kz||"")).includes(q))
     .filter(v=>!AL.auto||v.auto===AL.auto).filter(v=>!zr||(String(v.vonD||"")<=zr[1]&&String(v.bisD||v.vonD||"")>=zr[0]));
@@ -1887,7 +1914,9 @@ function zeichneAlle(){if(!$("alleListe"))return;const q=normS($("vSuche").value
       const wv=document.createElement("div");wv.className="bezWahl";wv.onclick=e=>e.stopPropagation();el.appendChild(wv);
       zahlChips(wv,a=>{alsBezahlt(v.nr,"rest",a);meldung("✓ "+v.name+": als bezahlt eingetragen");zeichneAlle()})}})}
 $("vSuche").addEventListener("input",zeichneAlle);
-$("alZeit").querySelectorAll("[data-z]").forEach(c=>c.onclick=()=>{AL.z=c.dataset.z;zeichneAlle()});["alVon","alBis"].forEach(i=>$(i).addEventListener("change",zeichneAlle));
+["alVon","alBis"].forEach(i=>$(i).addEventListener("change",zeichneAlle));
+$("alZeitF").onclick=()=>{alChips();mxAuf("fAlZeit")};$("alAutoF").onclick=()=>{alChips();mxAuf("fAlAuto")};
+["alZeitOk","alAutoOk"].forEach(i=>$(i).onclick=()=>{mxZu();zeichneAlle()});
 // Gespeicherten Mietvertrag ins Formular holen (ansehen, ändern, noch einmal drucken). Speichern ersetzt ihn unter derselben Nummer.
 function vertragLaden(v){entwurfAus=true;leeren();NEU=false;$("nr").value=v.nr;nrVonHand=true;WAHL=v.nr;
   ["name","anschrift","geb","gebort","telefon","email","kz","fin","km","preis1","zf","preis2","vonD","vonU","bisD","bisU","freikm","mvRab","mehrkm","paketKm","paketPreis","kfz","sb"].forEach(k=>{if(v[k]!==undefined&&v[k]!==null)$(k).value=v[k]});
@@ -1955,10 +1984,11 @@ function schritte(){const el=$("schritte");if(!el)return;
     schritteStand();return}
   const st=mappeSchritte(v).map(([x,t,ok])=>[x,t.replace("Überlassungserklärung","Überlassung"),ok]);   // Übergabe + Überlassung, Rückgabe + Schaden (1.11.2026)
   if(SICHT==="rueckgabe"&&v.status!=="zurück"&&gw("r_auff")==="ja")st[2][1]="Rückgabe + Schaden";
-  el.innerHTML='<div class="sKopf"><div><b>'+esc(v.nr)+"  "+esc(v.name)+'</b><i>'+esc(v.auto)+", "+de(v.vonD)+" bis "+de(v.bisD)+(v.status==="zurück"?", zurückgegeben":"")+'</i></div>'+
-    (WAHL_OFFEN?'<a href="#" id="sAlle">zu</a>':'<span class="fNav"><a href="#" class="teilen" id="sTeilen">Teilen</a><a href="#" class="mz" id="sMappe">‹ Mappe</a><a href="#" class="fX" id="sX" title="Schließen">✕</a></span>')+'</div>'+
+  // Kopf: links nur „‹ Übersicht“ (02.11.2026, Baran: Teilen, Mappe und ✕ raus, „Mappe“ klingt unverständlich). Teilen bleibt in der Übersicht.
+  el.innerHTML='<div class="sKopf"><div>'+(WAHL_OFFEN?'':'<a href="#" class="sZur" id="sMappe">‹ Übersicht</a>')+'<b>'+esc(v.nr)+"  "+esc(v.name)+'</b><i>'+esc(v.auto)+", "+de(v.vonD)+" bis "+de(v.bisD)+(v.status==="zurück"?", zurückgegeben":"")+'</i></div>'+
+    (WAHL_OFFEN?'<a href="#" id="sAlle">zu</a>':'')+'</div>'+
     '<div style="margin-top:12px">'+wegHTML(v,st)+'</div><div class="sInfo"><span class="li" id="sLi"></span><span class="gs" id="sGs"></span></div><div class="sHaken" id="sHaken"></div>'+
-    (()=>{const f=fehlendeUnterschriften(v);return f.length?'<div class="kundeU" id="sKunde"><b>'+(SICHT==="uebergabe"?"Kunde unterschreibt und Auto übergeben":SICHT==="rueckgabe"?"Kunde unterschreibt und Auto zurück":"Kunde unterschreibt jetzt")+'</b><small>'+esc(f.map(x=>x[1]).join(", "))+'</small></div>':""})()+
+    (()=>{const f=fehlendeUnterschriften(v);return f.length?'<div class="kundeU" id="sKunde"><b>'+(SICHT==="uebergabe"?"Übergabe starten":SICHT==="rueckgabe"?"Rückgabe starten":"Unterschrift starten")+'</b></div>':""})()+
     (SICHT==="vertrag"?'<div id="ungesp" class="versteckt" style="margin-top:8px;color:var(--rot);font-size:13px;font-weight:800">Geändert. Unten auf „Fertig ✓“ tippen, dann gilt es.</div>'+
       '<a href="#" id="sNeu" class="hinweis" style="display:block;margin-top:8px">Das ist Mietvertrag '+esc(v.nr)+'. Einen anderen, neuen Mietvertrag anfangen?</a>':"");
   const te=$("sTeilen");if(te)te.onclick=e=>{e.preventDefault();teilenBlatt(v)};const ku=$("sKunde");if(ku)ku.onclick=kundeUnterschreibt;
@@ -2165,7 +2195,7 @@ function zeichneMappe(){const v=aktuell();if(!v){zeige("vertraege");return}
   $("mLinks").innerHTML=(v.name?'<a class="mLink" id="mKunde" href="https://barankohler.github.io/mietix-zentrale/kunden.html?kunde='+encodeURIComponent(v.name)+'"><span><b>'+esc(v.name)+'</b><i>Kunde ansehen</i></span><em>›</em></a>':'')+
     (v.auto?'<a class="mLink" id="mAuto" href="https://barankohler.github.io/mietix-autos/?auto='+encodeURIComponent(v.auto)+'"><span><b>'+esc(v.auto)+'</b><i>'+esc([v.kz,"Auto ansehen"].filter(Boolean).join(", "))+'</i></span><em>›</em></a>':'');
   $("mInfo").textContent=v.auto+(v.kz?" ("+v.kz+")":"")+", "+de(v.vonD)+" "+(v.vonU||"")+" bis "+de(v.bisD)+" "+(v.bisU||"")+(v.status==="zurück"?", zurückgegeben":"");
-  $("mSchritte").innerHTML=st.map(([x,t,ok,uf],i)=>'<div class="mSchritt'+(ok&&!uf?" ok":"")+(ok&&uf?" luecke":"")+(nx&&nx[0]===x?" weiter":"")+'" data-m="'+x+'"><span class="nr">'+(ok&&!uf?"✓":ok?"!":(i+1))+'</span><b>'+t+'</b><i>'+
+  $("mSchritte").innerHTML=st.map(([x,t,ok,uf],i)=>'<div class="mSchritt'+(ok&&!uf?" ok":"")+(ok&&uf?" luecke":"")+(nx&&nx[0]===x?" weiter":"")+'" data-m="'+x+'"><span class="nr">'+(ok&&!uf?"✓":ok?"!":"✕")+'</span><b>'+t+'</b><i>'+
     (ok&&uf?"Unterschrift fehlt":ok&&x==="rueckgabe"&&((v.rueck||{}).verweigert||(v.schaden||{}).verweigert)?"Unterschrift verweigert":ok?"erledigt, ansehen":x==="vertrag"?"Unterschrift fehlt":(nx&&nx[0]===x?"als Nächstes":"noch offen"))+'</i></div>').join("");
   [...$("mSchritte").children].forEach(c=>c.onclick=()=>{const x=c.dataset.m;if(x==="vertrag")vertragLaden(v);zeige(x)});
   $("mDruck").innerHTML=druckReihe(v)+'<a href="#" class="mWa" id="mWa">Mietvertrag per WhatsApp an den Kunden senden</a>'+(v.status==="zurück"?'<div class="nkBlock" id="mDanke"><span class="nkLabel">Danke-Nachricht an den Kunden</span>'+nkPaar()+'</div>':'')+(werText(v)?'<div class="hinweis" style="text-align:center;margin-top:10px">'+esc(werText(v))+'</div>':'');
@@ -2341,7 +2371,7 @@ function zeige(s){SICHT=s;["heute","unterwegs","abgeschlossen","vertraege","buch
   if(["heute","unterwegs","abgeschlossen","vertraege"].includes(s))BU_REITER=s;
   document.body.classList.toggle("unterSicht",["neu","buchung","iban","reserviert"].includes(s));
   if(s!=="neu"&&NB_EDIT)nbEditEnde();
-  {const e=!!NB_EDIT&&s==="neu";$("nbTitel").textContent=e?"Buchung ändern":"Neue Buchung";$("nbWahlK").classList.toggle("versteckt",e);$("nbWahl").classList.toggle("versteckt",e);const nv=$("nbVerw");if(nv&&e)nv.classList.add("versteckt")}   // nur „‹ Buchungen“, keine Reiter (02.11.2026)
+  {const e=!!NB_EDIT&&s==="neu";$("nbTitel").textContent=e?"Buchung ändern":"Neue Buchung";$("nbWahlK").classList.toggle("versteckt",e);$("nbDirektW").classList.toggle("versteckt",e);$("nbWahl").classList.toggle("versteckt",e);const nv=$("nbVerw");if(nv&&e)nv.classList.add("versteckt")}   // nur „‹ Buchungen“, keine Reiter (02.11.2026)
   // oben Kommend, Unterwegs, Zurück (01.11.2026). Mappe und Formulare: der Reiter, in dem dieser Mietvertrag steht
   const reiterS=["heute","unterwegs","abgeschlossen","vertraege"].includes(s)?s:(["buchung","neu","iban","reserviert"].includes(s)||(s==="vertrag"&&NEU))?"heute":(()=>{const v=aktuell();return !v?BU_REITER:!v.ueb?"heute":v.status!=="zurück"?"unterwegs":"abgeschlossen"})();
   [...$("reiter").children].forEach(c=>{c.classList.toggle("an",c.dataset.s===reiterS);
@@ -2738,7 +2768,11 @@ $("nbRab").addEventListener("input",()=>{NB_PREIS_HAND=false;nbZeichnen();nbMerk
 $("nbAnzB").addEventListener("input",()=>{NB_ANZ_HAND=$("nbAnzB").value.trim()!=="";$("nbAnzB").classList.remove("fehlt");nbMerken()});
 [...$("nbWahl").querySelectorAll(".buWahl")].forEach(w=>w.onclick=()=>{NB_MODUS=w.dataset.m;nbZeichnen();nbMerken()});
 zahlartChips($("nbArt"),"");$("nbArt").onwahl=()=>nbMerken();
-$("nbDirekt").onclick=e=>{e.preventDefault();if(!buFormFrei())return;leeren();zeige("vertrag")};
+$("nbDirekt").onclick=e=>{e.preventDefault();if(!buFormFrei())return;
+  const v=$("nbVonD").value,b=$("nbBisD").value,km=Math.round(zahl($("nbKm").value)||0),pr=Math.round(zahl($("nbPreis").value)||0);
+  const x={id:null,name:$("nbName").value.trim(),nummer:$("nbTel").value.trim(),auto:NB_AUTO,von:v,bis:b,vonU:$("nbVonU").value,bisU:$("nbBisU").value,
+    angebot:NB_AUTO&&v&&b?{auto:NB_AUTO,von:v,bis:b,vonU:$("nbVonU").value,bisU:$("nbBisU").value,preis:pr||undefined,freikm:km||undefined,rabatt:Math.round(nbRab())}:{}};
+  leeren();uebernehmeAnfrage(x);nbLeeren();zeige("vertrag")};
 /* Buchung ändern (02.11.2026, Baran-Lückenliste 2): dasselbe Formular, vorbefüllt; speichert nur Kunde, Auto, Zeitraum, Preis, km, Rabatt
    in dieselbe Buchung. Anzahlung, Status und Bestätigung bleiben. Ein angefangener neuer Entwurf bleibt unberührt. */
 var NB_EDIT=null,NB_EDIT_ENTWURF=null;
