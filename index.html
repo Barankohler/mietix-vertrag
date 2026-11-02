@@ -290,7 +290,7 @@ input,select,textarea{border:1.5px solid #E4E4E7;border-radius:12px;font-size:16
 .nbDirektK{flex:0 0 auto;border:1.5px solid #1E8E4E;background:#fff;color:#1E8E4E;border-radius:12px;padding:9px 14px;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer}
 .nbDirektK:active{background:#E3F4EA}
 .buVerw{display:block;flex:1 0 100%;text-align:center;color:#C4161C;font-size:14px;font-weight:600;text-decoration:none;padding:8px 0 2px;-webkit-tap-highlight-color:transparent}
-body.unterSicht #reiter,body.unterSicht header .mxStart{display:none!important}
+body.unterSicht #reiter,body.unterSicht header .mxStart,body.unterSicht header h1,body.unterSicht header{display:none!important}   /* Unteransicht: nur ein Titel (02.11.2026) */
 .nkBlock{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;background:#fff;border-radius:12px;padding:10px 12px;margin:10px 0}.nkBlock .nkLabel{flex:1 1 auto;font-weight:700;font-size:15px}.nkBlock .nkPaar{flex:0 0 auto;margin-top:0}
 .buZ .t i{white-space:normal!important;overflow:visible!important;text-overflow:clip!important}   /* keine halben Sachen: nichts abschneiden (01.11.2026, Baran) */
 .buGk.zwei{display:flex;justify-content:space-between;gap:10px}.buGk.zwei span:last-child{text-transform:none;letter-spacing:0}
@@ -1847,7 +1847,7 @@ function vKarte(v){const z=v.zahlung||{},rest=z.rest||{},kaut=z.kaut||{};
   return'<div class="vorgang'+(AUF===v.nr?" auf":"")+'" data-nr="'+esc(v.nr)+'"><div class="vz"><span class="vav" style="background:'+vFarbe(v.name)+'">'+esc(ik)+'</span>'+
     '<span class="vt"><b>'+esc(v.name)+'</b><i>'+esc(v.auto)+(v.kz?", "+esc(v.kz):"")+'</i><i>'+kurz(v.vonD)+' bis '+de(v.bisD)+', Nr. '+esc(v.nr)+'</i>'+
     // Schritte als beschriftete Schilder (31.10.2026, Baran: auf einen Blick, erledigt grün, offen rot)
-    '<span class="vschritte">'+haken.map(([t,ok])=>'<em class="'+(ok?"ok":"")+'">'+(ok?"✓ ":"")+t+'</em>').join("")+'</span></span><span class="vpfeil">›</span></div>'+
+    '<span class="vschritte">'+haken.map(([t,ok])=>'<em class="'+(ok?"ok":"")+'">'+(ok?"✓ ":"✕ ")+t+'</em>').join("")+'</span></span><span class="vpfeil">›</span></div>'+
     ((mieteOffen||kautOffen||v.schaden)?'<div class="vflags">'+(mieteOffen?'<span class="rot" data-bez="1">Miete offen '+eur(offenBetrag(v))+' €, bezahlt?</span>':"")+(kautOffen?'<span class="rot">Kaution zurückgeben</span>':"")+(v.schaden?'<span class="rot">Schaden</span>':"")+'</div>':"")+
     (AUF===v.nr?'<div class="chips" style="margin-top:10px">'+[["Mietvertrag","vertrag"],["Übergabe","uebergabe"],["Rückgabe","rueckgabe"],["Schadensanerkennung","schaden"]].concat(mitFz(v.kautionArt)?[["Überlassungserklärung","ueberlassung"]]:[])
       .map(([t,x])=>'<div class="chip" data-geh="'+x+'">'+t+'</div>').join("")+'<div class="chip" data-wa="1" style="background:#25D366;border-color:#25D366;color:#fff">WhatsApp</div></div>'+druckReihe(v):"")+'</div>'}
