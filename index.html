@@ -215,6 +215,12 @@ h2.hT{margin:18px 4px 8px}#s_heute h2.hT:first-of-type{margin-top:6px}
 #mVerlInfo .vz a{float:right;font-weight:800;color:#1B8A4B;text-decoration:none}
 .kurz{display:flex;justify-content:space-between;align-items:center;gap:10px;background:#F6F6F7;border-radius:12px;padding:11px 13px;margin:8px 0;font-size:14px;line-height:1.35}
 .kurz a{flex:0 0 auto;font-weight:800;color:#C4161C;text-decoration:none}
+a.aend,#mVerlInfo .vz a.aend{flex:0 0 auto;float:none;color:#1C1C1E;font-size:14px;font-weight:700;text-decoration:none}.abZ a.aend{margin-left:auto}
+#mVerlInfo .vz i{display:block;font-style:normal;font-size:14px;color:#6E6E73}
+#fVPreis .buFeld,#fKosten .buFeld{padding-left:0;padding-right:0}#fVPreis .buFeld+.buFeld:before,#fKosten .buFeld+.buFeld:before{left:0}#fVPreis .buFeld label{flex-basis:150px;width:150px;font-size:16px}
+.vpInfo{font-size:14px;color:#8A8A8E;margin:-4px 0 8px}.vpVerlauf{font-size:13px;color:#8A8A8E;margin-top:10px;line-height:1.4}
+.kvZ{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:.5px solid #E5E5EA}.kvZ span{flex:1;min-width:0;overflow-wrap:anywhere}.kvZ b{display:block;font-weight:600}.kvZ i{display:block;font-style:normal;font-size:14px;color:#8A8A8E}
+#fVPreis input.fehlt,#fKosten input.fehlt{background-color:#FDE8E8!important;border-color:#FF3B30!important}
 .grossKurz{background:#fff;border:1px solid #E4E4E7;border-radius:18px;padding:14px 16px;margin-bottom:12px;font-size:15px}
 .mehrLink{display:inline-block;margin-top:10px;font-weight:800;color:#C4161C;text-decoration:none;font-size:14px;background:#E9E9EE;border:0;border-radius:10px;padding:8px 12px}
 .frage{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:12px}.frage b{font-size:15px}.frage .chips{margin:0}
@@ -734,7 +740,8 @@ input[type=date],input[type=time]{min-width:0;max-width:100%}
   <div class="karte mKopf"><a href="#" class="sZur" id="mZu">‹ Buchungen</a><div class="mZeile"><div><b id="mName"></b><i id="mInfo"></i></div></div><div class="mLinks" id="mLinks"></div></div>
   <div class="karte"><h2>Schritte</h2><div id="mSchritte"></div>
     <div id="mVerlInfo"></div>
-    <a href="#" class="mVerlKnopf" id="mVerl">Verlängern</a></div>
+    <a href="#" class="mVerlKnopf" id="mVerl">Verlängern</a>
+    <div style="margin-top:8px"><a href="#" class="aend" id="mKosten">Weitere Kosten</a></div></div>
   <div class="karte versteckt" id="verlKarte"><h2>Verlängern</h2>
     <div class="hinweis" id="verlBisher" style="margin-top:0"></div>
     <div class="chips" style="margin-top:10px"><div class="chip" data-plus="1">+1 Tag</div><div class="chip" data-plus="2">+2 Tage</div><div class="chip" data-plus="3">+3 Tage</div><div class="chip" data-plus="7">+1 Woche</div></div>
@@ -944,6 +951,7 @@ input[type=date],input[type=time]{min-width:0;max-width:100%}
     <div id="verspW"></div>
     <div class="zwei versteckt" id="eAufFreiW"><div><label>Aufbereitung, eigener Betrag €</label><input id="eAufFrei" inputmode="decimal"></div><div></div></div>
     <details class="mxKlein" id="eExtraW"><summary>Weitere Kosten: Schlüssel, Papiere, Bußgeld <em>›</em></summary>
+      <div id="eVorab"></div>
       <div class="chips" id="eExtra" style="margin-top:10px"></div>
       <div class="zwei"><div><label>Sonstiges, wofür?</label><input id="eSonstT"></div><div><label>Betrag €</label><input id="eSonstB" inputmode="decimal"></div></div></details>
     <div class="ergebnis" id="eErgebnis">Endabrechnung: noch nichts zu berechnen.</div>
@@ -1022,6 +1030,14 @@ input[type=date],input[type=time]{min-width:0;max-width:100%}
   <div class="rsWarn versteckt" id="daWarn" style="margin:0 16px 10px"></div>
   <div style="padding:4px 16px 0"><a href="#" class="buK1" id="daOk">✓ Reservieren</a><div class="buGrau" id="daGrau">Auto wird im Kalender geblockt</div>
     <a href="#" class="buVerw versteckt" id="daWeg">Anzahlung zurücknehmen</a></div></div>
+<!-- Verlängerung nachträglich ändern und weitere Kosten vor der Rückgabe (Baran 05.11.2026) -->
+<div class="mxFenster" id="fVPreis" role="dialog" aria-label="Verlängerung ändern"><div class="mxKopf"><h3>Verlängerung ändern</h3><button class="mxZu" type="button" aria-label="Schließen">✕</button></div>
+  <div id="vpListe"></div><div class="rsWarn versteckt" id="vpWarn"></div><a href="#" class="buK1" id="vpOk" style="margin-top:12px">✓ Preis ändern</a><div class="vpVerlauf" id="vpVerlauf"></div></div>
+<div class="mxFenster" id="fKosten" role="dialog" aria-label="Weitere Kosten"><div class="mxKopf"><h3>Weitere Kosten</h3><button class="mxZu" type="button" aria-label="Schließen">✕</button></div>
+  <div class="vpInfo" style="margin:0 0 6px">Kommen bei der Rückgabe in die Abrechnung.</div><div id="kvListe"></div>
+  <div class="buFeld"><label for="kvT">Wofür <span class="pfl">*</span></label><input id="kvT" autocomplete="off"></div>
+  <div class="buFeld"><label for="kvB">Betrag <span class="pfl">*</span></label><input id="kvB" inputmode="numeric" data-einheit="€"></div>
+  <div class="rsWarn versteckt" id="kvWarn"></div><a href="#" class="buK1" id="kvOk" style="margin-top:12px">✓ Kosten eintragen</a></div>
 <div class="mxFenster" id="fNbAuto" role="dialog" aria-label="Auto wählen"><div class="mxKopf"><h3>Auto wählen</h3><button class="mxZu" type="button" aria-label="Schließen">✕</button></div>
   <div class="buGr buRand" id="nbAutos"></div></div>
 <div class="mxFenster" id="fNbZeit" role="dialog" aria-label="Zeitraum"><div class="mxKopf"><h3>Zeitraum</h3><button class="mxZu" type="button" aria-label="Schließen">✕</button></div>
@@ -1620,13 +1636,15 @@ async function fuelleVertrag(v,nur){
 // Was der Kunde noch zahlt und weshalb: eine Quelle für das Protokoll und die Karte „Noch abkassieren“ (04.11.2026, Baran).
 // Höchstens 4 Posten, mehr fasst der kleinste Teil der Endabrechnung zu „Weitere Kosten“ zusammen. ea: noch nicht gespeicherte Endabrechnung.
 function nachzahlung(v,ea,alle){if(ea===undefined)ea=v.endabrechnung;
+  if(!ea&&(v.kostenVorab||[]).length){const ex=kostenAlsExtra(v);ea={extra:ex,summe:ex.reduce((s,x)=>s+x.betrag,0)}}   // Weitere Kosten vor der Rückgabe: stehen schon in der Rechnung, nach der Rückgabe in der Endabrechnung, nie doppelt
   const z=v.zahlung||{},r=z.rest||{},a=z.anz||{},vl=v.verlaengerungen||[],rd=x=>Math.round(+x||0),su=l=>l.reduce((s,x)=>s+(x.aufpreis||0),0);
-  const rest=!r.am?rd(zahl(r.betrag)):0,vO=vl.filter(x=>!x.bezahlt||(x.imRest&&!r.am)),imRest=Math.min(rest,rd(su(vl.filter(x=>x.imRest&&!r.am)))),verl=imRest+rd(verlOffen(v));
+  const rest=!r.am?rd(zahl(r.betrag)):0,vO=vl.filter(x=>!x.bezahlt||(x.imRest&&!r.am)||verlDiff(x)>0),imRest=Math.min(rest,rd(su(vl.filter(x=>x.imRest&&!r.am)))),verl=imRest+rd(verlOffen(v));
   const vorn=[],ende=[];if(rest-imRest>0)vorn.push({t:"Restmiete",b:rest-imRest});
   if(verl>0){const kz=d=>de(d).slice(0,6),ab=(vO[0]||{}).bisAlt,bis=(vO[vO.length-1]||{}).bisNeu,tg=ab&&bis?Math.round((new Date(bis)-new Date(ab))/864e5):0;
     vorn.push({t:tg>0?"Verlängerung "+tg+(tg===1?" Tag":" Tage")+" ("+kz(ab)+" bis "+kz(bis)+")":"Verlängerung"+(bis?" am "+kz(bis):""),b:verl})}
-  const kr0=v.kautionRueck||{},eS=ea&&!ea.bezahlt?rd(ea.summe):0,einb=kr0.verrechnet?0:rd(kr0.einbehalt);let eOffen=0;
-  if(eS>einb){eOffen=eS-einb;const e=ea;
+  const eBz=ea&&ea.bezahlt,eTeil=eBz&&eBz.betrag!=null,kr0=v.kautionRueck||{},eS=ea&&!eBz?rd(ea.summe):eTeil?Math.max(0,rd(ea.summe)-rd(eBz.betrag)):0,einb=kr0.verrechnet?0:rd(kr0.einbehalt);let eOffen=0;
+  if(eTeil&&eS>einb){eOffen=eS-einb;const kl=kostenAlsExtra(v),le=kl[kl.length-1];ende.push({t:le&&rd(le.betrag)===eS?le.t:"Weitere Kosten",b:eOffen})}   // Endabrechnung war schon bezahlt, nur der neue Teil ist offen
+  else if(eS>einb){eOffen=eS-einb;const e=ea;
     {const kw=e.kmB!=null?rd(e.kmB):rd(e.mehrkm*e.satz);if(kw)ende.push({t:"Mehrkilometer: "+kmText(e.mehrkm)+" km × "+eur(e.satz)+" €",b:kw})}
     if(rd(e.tank))ende.push({t:"Nachtanken: "+literText(e.liter)+" Liter × 2,50 € + 25 €",b:rd(e.tank)});
     if(rd(e.auf))ende.push({t:"Aufbereitung",b:rd(e.auf)});
@@ -1647,12 +1665,50 @@ function kautAbr(v,ea){const kz=(v.zahlung||{}).kaut||{},k=kz.am&&mitGeld(v.kaut
 function kautVerrechnen(v,hand){const a=kautAbr(v);if(!a.k||v.kautionRueck)return;const h=iso(new Date()),z=v.zahlung=v.zahlung||{},vorher=JSON.stringify({zahlung:z,verl:v.verlaengerungen||[],end:v.endabrechnung||null});
   if(a.nach>0&&hand==null){v.kautionRueck={betrag:0,einbehalt:a.k,gesamt:a.k,kaution:a.k,grund:"Mit offenen Beträgen verrechnet",am:h,posten:a.posten,teil:true,vorher};return}
   const zur=hand!=null?Math.max(0,Math.min(a.k,hand)):a.zurueck,gesamt=a.k-zur;let miete=0;const r=z.rest=z.rest||{};
-  {let vs=0;(v.verlaengerungen||[]).forEach(y=>{if(!y.bezahlt){y.bezahlt=true;y.bezahltAm=h;if(!y.imRest)vs+=y.aufpreis||0}});
+  {const vs=verlZahlen(v,h);
     if(!r.am&&(zahl(r.betrag)||vs)){r.betrag=eur((zahl(r.betrag)||0)+vs);r.art="Kaution";r.am=h;miete=Math.round(zahl(r.betrag)||0)}}   // Rest schon bezahlt: die Verlängerung steckt im Einbehalt
   if(v.endabrechnung&&+v.endabrechnung.summe>0&&!v.endabrechnung.bezahlt)v.endabrechnung.bezahlt={art:"Kaution",am:h};
   v.kautionRueck={betrag:zur,einbehalt:Math.max(0,gesamt-miete),gesamt,miete,kaution:a.k,grund:gesamt?"Mit der Kaution verrechnet":"",am:zur>0?"":h,posten:a.posten,verrechnet:true,vorher}}   // am leer: Betrag steht fest, aber noch nicht zurückgegeben (Frage nach „Auto zurück“)
 function kautAusgezahlt(nr){const l=vorgaenge(),x=l.find(y=>y.nr===nr);if(x&&x.kautionRueck){x.kautionRueck.am=iso(new Date());schreib("mietixVorgaenge",l)}}
-function kautZurueckNehmen(x){const kr=x.kautionRueck;if(kr&&kr.vorher){try{const w=JSON.parse(kr.vorher);x.zahlung=w.zahlung;x.verlaengerungen=w.verl;if(w.end)x.endabrechnung=w.end;else delete x.endabrechnung}catch(e){}}delete x.kautionRueck}
+function kautZurueckNehmen(x){const kr=x.kautionRueck;if(kr&&kr.vorher){try{const w=JSON.parse(kr.vorher);x.zahlung=w.zahlung;x.verlaengerungen=w.verl;if(w.end)x.endabrechnung=w.end;else delete x.endabrechnung}catch(e){}}delete x.kautionRueck;kostenAbgleichen(x)}
+// Bezahlte Verlängerung geändert: gezahlt hält fest, was der Kunde wirklich bezahlt hat, rest.betrag bleibt das erhaltene Geld (05.11.2026)
+function verlDiff(y){return y.gezahlt!=null?(y.aufpreis||0)-y.gezahlt:0}
+function verlUeber(v){return (v.verlaengerungen||[]).reduce((s,y)=>s+Math.max(0,-verlDiff(y)),0)}
+// Alles Offene der Verlängerungen als bezahlt: gibt zurück, was neu in rest.betrag gehört
+function verlZahlen(x,h){let s=0;(x.verlaengerungen||[]).forEach(y=>{const d=verlDiff(y);if(!y.bezahlt){y.bezahlt=true;y.bezahltAm=h;if(!y.imRest)s+=y.aufpreis||0}else if(d>0){s+=d;delete y.gezahlt;y.bezahltAm=h}});return s}
+function kostenAlsExtra(v){return (v.kostenVorab||[]).map(x=>({t:x.t,betrag:Math.round(+x.betrag||0),vorab:x.id}))}
+// Weitere Kosten vor der Rückgabe in die schon gespeicherte Endabrechnung: alte vorab-Zeilen raus, aktuelle rein, Summe um den Unterschied. Zweimal aufgerufen ändert nichts.
+function kostenAbgleichen(x){const e=x.endabrechnung;if(!e)return;const alt=Math.round(+e.summe||0),su=l=>l.reduce((s,y)=>s+Math.round(+y.betrag||0),0),ex=e.extra||[],aV=ex.filter(y=>y.vorab),nV=kostenAlsExtra(x);
+  if(!aV.length&&!nV.length)return;const neu=alt-su(aV)+su(nV);e.extra=nV.concat(ex.filter(y=>!y.vorab));e.summe=neu;if(neu===alt)return;
+  if(!e.bezahlt&&(x.kautionRueck||{}).verrechnet)e.bezahlt={art:"Kaution",am:x.kautionRueck.am||iso(new Date())};   // Abrechnung mit der Kaution ist fest: der neue Teil steht einzeln offen
+  if(e.bezahlt){if(e.bezahlt.betrag==null)e.bezahlt.betrag=alt;if(+e.bezahlt.betrag===neu)delete e.bezahlt.betrag}}
+// Abrechnung mit der Kaution neu rechnen geht nur, solange kein Geld geflossen ist: Kaution nicht ausgezahlt, nichts danach bar bezahlt
+function kautNeuGeht(x){const kr=x.kautionRueck;if(!kr||!kr.vorher||!(kr.verrechnet||kr.teil)||(kr.am&&+kr.betrag>0)||(kr.verrechnet&&kr.miete===undefined))return false;
+  let w;try{w=JSON.parse(kr.vorher)}catch(e){return false}const r=(x.zahlung||{}).rest||{},e=x.endabrechnung||{};
+  return !(r.am&&r.art!=="Kaution"&&!((w.zahlung||{}).rest||{}).am)&&!(e.bezahlt&&e.bezahlt.art!=="Kaution"&&!(w.end||{}).bezahlt)}
+// Zurück zum Stand vor dem Verrechnen, Änderung anwenden, neu verrechnen. Ein von Hand getipptes „Zurück an den Kunden“ bleibt, dann kommt der Grund als Text zurück.
+function kautNeuRechnen(x,aenderung){const kr=x.kautionRueck,hand=!kr.teil&&+kr.betrag!==Math.max(0,(+kr.kaution||0)-(kr.posten||[]).reduce((s,p)=>s+p.b,0))?+kr.betrag:null,grund=kr.grund,endJetzt=x.endabrechnung?JSON.parse(JSON.stringify(x.endabrechnung)):null;
+  kautZurueckNehmen(x);if(endJetzt){if(endJetzt.bezahlt&&endJetzt.bezahlt.art==="Kaution")delete endJetzt.bezahlt;x.endabrechnung=endJetzt}aenderung(x);const soll=kautAbr(x).zurueck;kautVerrechnen(x,hand);
+  if(x.kautionRueck&&grund&&!/^Mit /.test(grund))x.kautionRueck.grund=grund;
+  return hand!=null&&hand!==soll?"„Zurück an den Kunden“ bleibt bei "+eur(hand)+" €, von Hand getippt. Neu gerechnet wären es "+eur(soll)+" €.":""}
+// Einzelner Preis: im offenen Rest wächst der Rest mit, offen bleibt offen, bezahlt bleibt bezahlt und der Unterschied steht offen oder als Überzahlung da
+function verlLage(x,i,neu){const y=(x.verlaengerungen||[])[i];if(!y)return;const z=x.zahlung=x.zahlung||{},r=z.rest=z.rest||{},alt=y.aufpreis||0;y.aufpreis=neu;
+  if(y.imRest&&!r.am)r.betrag=eur(Math.max(0,(zahl(r.betrag)||0)+neu-alt));
+  else if(y.bezahlt){if(y.gezahlt==null)y.gezahlt=alt;if(y.gezahlt===neu)delete y.gezahlt}}
+// neu: Betrag je Verlängerung. Gibt den roten Hinweis zurück oder "", null wenn sich nichts geändert hat.
+function verlPreiseSetzen(x,neu){const vl=x.verlaengerungen||[],wech=[];let d=0;neu.forEach((b,i)=>{const alt=(vl[i]||{}).aufpreis||0;if(vl[i]&&b!==alt){wech.push([i,b,alt]);d+=b-alt}});if(!wech.length)return null;
+  x.preis1=eur((zahl(x.preis1)||0)+d);x.gesamt=eur((zahl(x.preis1)||0)+(zahl(x.preis2)||0)+(zahl(x.paketPreis)||0));let rot="";const lage=s=>wech.forEach(([i,b])=>verlLage(s,i,b));
+  if(kautNeuGeht(x))rot=kautNeuRechnen(x,lage);
+  else{lage(x);const kr=x.kautionRueck;if(kr&&kr.vorher){try{const w=JSON.parse(kr.vorher),st={verlaengerungen:w.verl,zahlung:w.zahlung||{}};lage(st);w.zahlung=st.zahlung;kr.vorher=JSON.stringify(w)}catch(e){}   // „rückgängig“ der Kaution führt sonst den alten Preis zurück
+      if(kr.verrechnet)rot="Die Kaution ist schon abgerechnet und ausgezahlt, die Abrechnung bleibt wie sie war."+(verlUeber(x)?" Überzahlung "+eur(verlUeber(x))+" € bitte an den Kunden zurückzahlen.":verlOffen(x)?" Der Mehrbetrag "+eur(verlOffen(x))+" € steht offen.":"")}}
+  const zeit=new Date().toISOString();wech.forEach(([i,b,alt])=>(x.verlauf=x.verlauf||[]).push({am:zeit,was:"Verlängerung "+de(vl[i].bisNeu).slice(0,6)+": "+eur(alt)+" € auf "+eur(b)+" €"}));return rot}
+// Überzahlung ist zurückgezahlt: Geldstand folgt. War die Verlängerung in der ausgezahlten Kaution, stimmt danach auch die Abrechnung auf dem Papier
+function verlUeberErledigt(x){const ue=verlUeber(x);if(!ue)return;(x.verlaengerungen||[]).forEach(y=>{if(verlDiff(y)<0)delete y.gezahlt});
+  const z=x.zahlung=x.zahlung||{},r=z.rest=z.rest||{},kr=x.kautionRueck,pv=kr&&kr.verrechnet&&kr.miete!==undefined&&(kr.posten||[]).find(p=>/^Verlängerung/.test(p.t)&&p.b>=ue);
+  if(pv){pv.b-=ue;kr.betrag=(+kr.betrag||0)+ue;kr.gesamt=Math.max(0,(+kr.gesamt||0)-ue);if(r.am&&r.art==="Kaution"){r.betrag=eur(Math.max(0,(zahl(r.betrag)||0)-ue));kr.miete=Math.max(0,(+kr.miete||0)-ue)}else kr.einbehalt=Math.max(0,(+kr.einbehalt||0)-ue)}
+  else r.betrag=eur(Math.max(0,(zahl(r.betrag)||0)-ue));
+  (x.verlauf=x.verlauf||[]).push({am:new Date().toISOString(),was:"Überzahlung Verlängerung "+eur(ue)+" € zurückgezahlt"})}
+function verlUeberHtml(v){const ue=verlUeber(v);return ue?'<div class="vz" style="background:#FDE8E8"><span><b style="color:#C4161C">Überzahlung '+eur(ue)+' €</b><i>Verlängerung geändert, der Kunde hat zu viel bezahlt. Bitte zurückzahlen.</i></span><a href="#" class="aend" data-ueerl>zurückgezahlt</a></div>':""}
 const nzBetrag=b=>(b<0?"- ":"")+eur(Math.abs(b))+" €";
 // Abschnitt Nachzahlung im Protokoll, unter den Unterschriften. Nichts offen: Abschnitt fehlt ganz.
 async function nachzahlungZeichnen(doc,v){const kr=v.kautionRueck||{},mitK=kr.verrechnet&&(kr.posten||[]).length>0;let n=nachzahlung(v);if(!mitK&&(n.summe<=0||!n.posten.length))return;
@@ -1866,18 +1922,20 @@ function eExtraZeichnen(){$("eExtra").innerHTML=E_EXTRA.map(([t,b],i)=>'<div cla
   $("eExtra").querySelectorAll("[data-ex]").forEach(c=>c.onclick=()=>{const t=E_EXTRA[+c.dataset.ex][0];E_AN.has(t)?E_AN.delete(t):E_AN.add(t);eExtraZeichnen();eRechne()})}
 function eExtraListe(){const l=E_EXTRA.filter(([t])=>E_AN.has(t)).map(([t,b])=>({t,betrag:b})),sb=zahl($("eSonstB").value)||0;
   if(sb)l.push({t:$("eSonstT").value.trim()||"Sonstiges",betrag:sb});return l}
-function eExtraSetzen(l){E_AN=new Set();$("eSonstT").value="";$("eSonstB").value="";(l||[]).forEach(x=>{if(E_EXTRA.some(([t])=>t===x.t))E_AN.add(x.t);else{$("eSonstT").value=x.t||"";$("eSonstB").value=eur(x.betrag)}});
-  $("eExtraW").open=!!(l&&l.length);eExtraZeichnen()}
+function eExtraSetzen(l){E_AN=new Set();$("eSonstT").value="";$("eSonstB").value="";(l||[]).forEach(x=>{if(x.vorab)return;if(E_EXTRA.some(([t])=>t===x.t))E_AN.add(x.t);else{$("eSonstT").value=x.t||"";$("eSonstB").value=eur(x.betrag)}});
+  $("eExtraW").open=!!((l&&l.length)||((aktuell()||{}).kostenVorab||[]).length);eExtraZeichnen()}
+// Aufstellung der Kosten aus der Übersicht, rechnet über eWerte mit, ändern im selben Fenster
+function eVorabZeichnen(){const el=$("eVorab"),l=(aktuell()||{}).kostenVorab||[];if(!el)return;el.innerHTML=l.map(x=>'<div class="abZ"><span><b>'+esc(x.t)+'</b></span><a href="#" class="aend" data-kosten>ändern</a><em>'+eur(x.betrag)+' €</em></div>').join("")}
 let E_KM_HAND=false,E_ZURUECK=null,E_FEST=null;
 $("eKmB").addEventListener("input",()=>{const o=$("eKmB").value,n=o.replace(/[^\d.,]/g,"");if(n!==o)$("eKmB").value=n;E_KM_HAND=n.trim()!=="";eRechne()});
 function eWerte(){const mehr=zahl($("rMehr").value)||0,satz=zahl($("eSatz").value)!==null?zahl($("eSatz").value):(zahl((aktuell()||{}).mehrkm)||0),auf=eAufBetrag();
   // Gespeicherte Rückgabe erneut geöffnet: Nachtanken und Verspätung bleiben, bis jemand dort etwas ändert (04.11.2026, Nachtest)
   const fest=E_FEST&&E_FEST.nr===(aktuell()||{}).nr?E_FEST:null,liter=JN.tankJn==="nein"?(zahl($("eLiter").value)||0):JN.tankJn===undefined&&fest?(+fest.liter||0):0,tank=JN.tankJn===undefined&&fest&&fest.tank?Math.round(+fest.tank):liter?Math.round(liter*2.5+25):0,versp=VERSP_AN?verspaetung().betrag:fest&&!fest.verspAus?Math.round(+fest.versp||0):0;
-  const extra=eExtraListe(),ex=extra.reduce((s,x)=>s+x.betrag,0);
+  const extra=kostenAlsExtra(aktuell()||{}).concat(eExtraListe()),ex=extra.reduce((s,x)=>s+x.betrag,0);
   const c=x=>Math.round(x);   // ganze Euro (1.11.2026, Baran: keine Cent; Test: 747.0000000000001 im Speicher)
   const kmB=E_KM_HAND&&zahl($("eKmB").value)!==null?c(zahl($("eKmB").value)):c(mehr*satz);   // Vorschlag km × Preis, Getipptes bleibt
   return{mehr,satz,auf,kmB,liter,tank,versp,extra,summe:c(kmB+auf+tank+versp+ex)}}
-function eRechne(){const e=eWerte();if(!E_KM_HAND&&document.activeElement!==$("eKmB"))$("eKmB").value=e.kmB?eur(e.kmB):"";
+function eRechne(){const e=eWerte();eVorabZeichnen();if(!E_KM_HAND&&document.activeElement!==$("eKmB"))$("eKmB").value=e.kmB?eur(e.kmB):"";
   {const v=aktuell();const fr=v?zahl(v.freikm):null,gf=zahl($("rGef").value);$("mkZeile").innerHTML=gf===null?'<span><b>Erst den Kilometerstand eintragen</b></span>':'<span><b>Gefahren '+kmText(gf)+' km</b>'+(fr!==null?'<i>inklusive waren '+kmText(fr)+' km</i>':'')+'</span><em>'+(e.mehr?kmText(e.mehr)+" km":"keine")+'</em>'}
   $("eErgebnis").classList.add("versteckt");
   $("eErgebnis").innerHTML="Endabrechnung:<br>"
@@ -2332,18 +2390,18 @@ function schadenZeigen(){$("schadenSlot").classList.toggle("versteckt",gw("r_auf
 // Noch abkassieren bei der Rückgabe: offene Restmiete (mit Verlängerung, wenn sie im Rest steckt) und offener Aufpreis der Verlängerung
 function rOffenZeigen(){const k=$("rOffen"),v=aktuell();if(!k)return;if(!v||v.status==="zurück"){k.classList.add("versteckt");return}
   const a=(v.zahlung||{}).anz||{},e=eWerte(),ea={mehrkm:e.mehr,satz:e.satz,kmB:e.kmB,auf:e.auf,liter:e.liter,tank:e.tank,versp:e.versp,extra:e.extra,summe:e.summe},n=nachzahlung(v,ea),ab=kautAbr(v,ea);
-  const zeile=(t,b,minus)=>{const m=String(t).match(/^(.*?)(?::\s*|\s*\()(.+?)\)?$/);return'<div class="abZ"><span><b>'+esc(m?m[1]:t)+'</b>'+(m?'<i>'+esc(m[2])+'</i>':'')+'</span><em'+(minus?' class="minus"':'')+'>'+(minus?"- ":"")+eur(Math.abs(b))+' €</em></div>'};
+  const zeile=(t,b,minus)=>{const m=String(t).match(/^(.*?)(?::\s*|\s*\()(.+?)\)?$/);return'<div class="abZ"><span><b>'+esc(m?m[1]:t)+'</b>'+(m?'<i>'+esc(m[2])+'</i>':'')+'</span>'+(/^Verlängerung/.test(t)?'<a href="#" class="aend" data-vpreis>ändern</a>':'')+'<em'+(minus?' class="minus"':'')+'>'+(minus?"- ":"")+eur(Math.abs(b))+' €</em></div>'};
   k.classList.remove("versteckt");k.style.background="";
   if(ab.k){const artT=(ZARTEN.find(x=>x[0]===ab.art)||[,ab.art])[1]||"",schaden=gw("r_auff")==="ja";
     let unten;if(schaden)unten='<div class="abGr rot"><span>Kaution bleibt, bis der Schaden geklärt ist</span></div>';
     else if(ab.nach>0&&E_ZURUECK==null)unten='<div class="abGr rot"><span>Kunde zahlt noch</span><span>'+eur(ab.nach)+' €</span></div>';
     else unten='<div class="abGr"><span>Zurück an den Kunden</span><input id="eZurueck" inputmode="decimal" aria-label="Zurück an den Kunden, Euro" value="'+eur(E_ZURUECK!=null?E_ZURUECK:ab.zurueck)+'"></div>';
-    k.innerHTML='<h2 style="margin-bottom:6px">Abrechnung mit der Kaution</h2><div class="abZ"><span><b>Kaution erhalten</b>'+(artT?'<i>'+esc(artT)+'</i>':'')+'</span><em>'+eur(ab.k)+' €</em></div>'+ab.posten.map(x=>zeile(x.t,x.b,true)).join("")+
+    k.innerHTML=verlUeberHtml(v)+'<h2 style="margin-bottom:6px">Abrechnung mit der Kaution</h2><div class="abZ"><span><b>Kaution erhalten</b>'+(artT?'<i>'+esc(artT)+'</i>':'')+'</span><em>'+eur(ab.k)+' €</em></div>'+ab.posten.map(x=>zeile(x.t,x.b,true)).join("")+
       (ab.posten.length?'<div class="abZ"><span><b>Einbehalten</b><i>wird als bezahlt gemerkt</i></span><em>'+eur(E_ZURUECK!=null?Math.max(0,ab.k-E_ZURUECK):ab.einbehalt)+' €</em></div>':'')+unten;
     const f=$("eZurueck");if(f)f.addEventListener("change",()=>{const w=f.value.trim();E_ZURUECK=w===""||zahl(w)===null||Math.round(zahl(w))===ab.zurueck?null:Math.max(0,Math.min(ab.k,Math.round(zahl(w))));rOffenZeigen()});return}
   const z1=(t,b,fett)=>fett?'<div class="abGr rot"><span>'+esc(t)+'</span><span>'+nzBetrag(b)+'</span></div>':zeile(t,b);
-  if(n.summe<=0){k.innerHTML='<div style="font-weight:800;color:#1E8E4E">✓ Miete komplett bezahlt'+(zahl(a.betrag)&&a.am?", Anzahlung "+eur(zahl(a.betrag))+" € erhalten":"")+'</div>';return}
-  k.innerHTML='<h2 style="margin-bottom:6px">Noch abkassieren</h2>'+(n.anz?'<div style="color:#6E6E73;font-weight:600;font-size:14px;margin-bottom:4px">Anzahlung '+eur(n.anz)+' € schon erhalten</div>':"")+
+  if(n.summe<=0){k.innerHTML=verlUeberHtml(v)+'<div style="font-weight:800;color:#1E8E4E">✓ Miete komplett bezahlt'+(zahl(a.betrag)&&a.am?", Anzahlung "+eur(zahl(a.betrag))+" € erhalten":"")+'</div>';return}
+  k.innerHTML=verlUeberHtml(v)+'<h2 style="margin-bottom:6px">Noch abkassieren</h2>'+(n.anz?'<div style="color:#6E6E73;font-weight:600;font-size:14px;margin-bottom:4px">Anzahlung '+eur(n.anz)+' € schon erhalten</div>':"")+
     n.posten.map(x=>z1(x.t,x.b)).join("")+z1("Gesamt noch zu zahlen",n.summe,true)}
 
 /* ---------- Entwurf Übergabe/Rückgabe: Getipptes bleibt beim Neuladen oder Schließen (30.10.2026) ---------- */
@@ -2413,15 +2471,68 @@ function verlSpeichern(){const v0=aktuell();if(!v0)return;const neu=$("verlBis")
     v.preis1=eur((zahl(v.preis1)||0)+auf);if(zfa)v.preis2=eur((zahl(v.preis2)||0)+zfa);v.gesamt=eur((zahl(v.preis1)||0)+(zahl(v.preis2)||0)+(zahl(v.paketPreis)||0));
     if(!restBezahlt||VERL_ZAHL==="jetzt")r.betrag=eur((zahl(r.betrag)||0)+auf+zfa)});   // offen: kommt zum Rest; schon bezahlt: Rest wächst mit
   $("verlKarte").classList.add("versteckt");zeichneMappe();
-  const text="*Ihre Verlängerung ist bestätigt*\n\nFahrzeug: "+v.auto+"\nNeue Rückgabe: "+de(v.bisD)+", "+(v.bisU||"")+" Uhr\nAufpreis: "+eur(auf+zfa)+" €"+(zfa?" (davon Zusatzfahrer "+eur(zfa)+" €)":"")+"\nInklusive Kilometer jetzt: "+(v.freikm||"")+" km"+(kmPlus?" (+"+kmText(kmPlus)+" km für die Verlängerung)":"")+"\n\nVielen Dank und weiterhin gute Fahrt!";
+  const text=verlText(v,"*Ihre Verlängerung ist bestätigt*",auf+zfa,zfa,kmPlus);
   nachSheet("✓ Verlängert bis "+de(v.bisD),v.name+", "+v.auto+". Aufpreis "+eur(auf+zfa)+" €, inklusive jetzt "+(v.freikm||"")+" km.",[
     {t:"Bestätigung per WhatsApp an den Kunden",voll:true,wa:true,text:()=>text,tel:()=>v.telefon,f:()=>waOeffnen(v,text),bleibt:true},
     {t:"Geänderten Mietvertrag drucken",f:()=>oeffnen(()=>seite(()=>fuelleVertrag(aktuell(),0),0)),bleibt:true}])}
+function verlText(v,titel,auf,zfa,kmPlus,zusatz){return titel+"\n\nFahrzeug: "+v.auto+"\nNeue Rückgabe: "+de(v.bisD)+", "+(v.bisU||"")+" Uhr\nAufpreis: "+eur(auf)+" €"+(zfa?" (davon Zusatzfahrer "+eur(zfa)+" €)":"")+(zusatz||"")+"\nInklusive Kilometer jetzt: "+(v.freikm||"")+" km"+(kmPlus?" (+"+kmText(kmPlus)+" km für die Verlängerung)":"")+"\n\nVielen Dank und weiterhin gute Fahrt!"}
 function offenBetrag(v){return ((!((v.zahlung||{}).rest||{}).am)?(zahl(((v.zahlung||{}).rest||{}).betrag)||0):0)+verlOffen(v)}
-function verlOffen(v){return (v.verlaengerungen||[]).filter(x=>!x.bezahlt).reduce((s,x)=>s+(x.aufpreis||0),0)}
-function verlBezahlt(){const a=aktuell()||{},offen=(a.verlaengerungen||[]).filter(x=>!x.bezahlt).reduce((s,x)=>s+(x.aufpreis||0),0);
+function verlOffen(v){return (v.verlaengerungen||[]).reduce((s,x)=>s+(!x.bezahlt?(x.aufpreis||0):Math.max(0,verlDiff(x))),0)}
+function verlBezahlt(){const a=aktuell()||{},offen=verlOffen(a);
   if(!confirm("Aufpreis "+eur(offen)+" € für die Verlängerung von "+(a.name||"dem Kunden")+" bezahlt?"))return;
-  aendere(v=>{const r=((v.zahlung=v.zahlung||{}).rest=v.zahlung.rest||{});let s=0;(v.verlaengerungen||[]).forEach(x=>{if(!x.bezahlt){x.bezahlt=true;x.bezahltAm=iso(new Date());if(!x.imRest)s+=x.aufpreis||0}});r.betrag=eur((zahl(r.betrag)||0)+s)});zeichneMappe();meldung("Aufpreis als bezahlt eingetragen")}
+  aendere(v=>{const r=((v.zahlung=v.zahlung||{}).rest=v.zahlung.rest||{});const s=verlZahlen(v,iso(new Date()));r.betrag=eur((zahl(r.betrag)||0)+s)});zeichneMappe();meldung("Aufpreis als bezahlt eingetragen")}
+/* ---------- Verlängerung ändern und weitere Kosten vor der Rückgabe (Baran 05.11.2026) ---------- */
+// Getipptes liegt bis zum Knopf auf dem Gerät (mietixFeld wie die anderen Entwürfe), das Geld ändert sich erst mit dem Knopf
+const VP_EW=nr=>"mietixFeld:verlPreis:"+nr,KV_EW=nr=>"mietixFeld:kosten:"+nr;let KV_ID=null;
+function ewLies(k){try{return JSON.parse(localStorage.getItem(k)||"null")}catch(e){return null}}
+function ewSchreib(k,w){try{localStorage.setItem(k,JSON.stringify(w))}catch(e){}}
+function ewWeg(k){try{localStorage.removeItem(k)}catch(e){}}
+function nachAenderung(){GELADEN.vertrag=null;if(SICHT==="rueckgabe")eRechne();else if(SICHT==="mappe")zeichneMappe()}
+function verlLageText(v,y){const r=(v.zahlung||{}).rest||{},d=verlDiff(y);if(y.imRest&&!r.am)return"steht im offenen Rest";if(!y.bezahlt)return"noch offen";if(d>0)return"bezahlt waren "+eur(y.gezahlt)+" €, "+eur(d)+" € offen";if(d<0)return"bezahlt waren "+eur(y.gezahlt)+" €, "+eur(-d)+" € zu viel";
+  return r.art==="Kaution"||(v.kautionRueck||{}).verrechnet?"mit der Kaution verrechnet":"bezahlt"}
+function vpAuf(){const v=aktuell();if(!v||!(v.verlaengerungen||[]).length)return;const ew=ewLies(VP_EW(v.nr))||{},kr=v.kautionRueck;
+  $("vpListe").innerHTML=v.verlaengerungen.map((y,i)=>{const kz=d=>de(d).slice(0,6),tg=y.bisAlt&&y.bisNeu?Math.round((new Date(y.bisNeu)-new Date(y.bisAlt))/864e5):0;
+    return'<div class="buFeld"><label for="vp'+i+'">'+(y.bisAlt?kz(y.bisAlt)+" bis "+kz(y.bisNeu):"Verlängerung "+(i+1))+'</label><input id="vp'+i+'" inputmode="numeric" autocomplete="off" data-einheit="€" value="'+esc(ew[i]!=null?ew[i]:eur(y.aufpreis||0))+'"></div>'+
+      '<div class="vpInfo">'+(tg?tg+(tg===1?" Tag, ":" Tage, "):"")+verlLageText(v,y)+(y.zfAufpreis?", davon Zusatzfahrer "+eur(y.zfAufpreis)+" €":"")+'</div>'}).join("");
+  $("vpWarn").classList.add("versteckt");
+  if(kr&&kr.vorher&&!kautNeuGeht(v)&&kr.verrechnet){$("vpWarn").textContent="Die Kaution ist schon abgerechnet und ausgezahlt. Die Abrechnung bleibt, der Unterschied steht danach offen oder als Überzahlung da.";$("vpWarn").classList.remove("versteckt")}
+  const vl=(v.verlauf||[]).filter(x=>/^Verlängerung /.test(x.was)).slice(-3);$("vpVerlauf").innerHTML=vl.map(x=>"Geändert am "+esc(de(x.am.slice(0,10)).slice(0,6))+", "+esc(x.was)).join("<br>");
+  mxAuf("fVPreis")}
+$("vpListe").addEventListener("input",e=>{const v=aktuell();if(!v)return;e.target.classList.remove("fehlt");const o=e.target.value,n=o.replace(/[^\d.,]/g,"");if(n!==o)e.target.value=n;ewSchreib(VP_EW(v.nr),[...$("vpListe").querySelectorAll("input")].map(f=>f.value))});
+$("vpOk").onclick=e=>{e.preventDefault();const v0=aktuell();if(!v0)return;const felder=[...$("vpListe").querySelectorAll("input")],neu=felder.map(f=>{const b=zahl(f.value);return b===null||b<0?null:Math.round(b)});
+  felder.forEach((f,i)=>f.classList.toggle("fehlt",neu[i]===null));if(neu.includes(null)){$("vpWarn").textContent="Noch fehlt: Betrag der Verlängerung. 0 € gilt, leer nicht.";$("vpWarn").classList.remove("versteckt");return}
+  const summeAlt=(v0.verlaengerungen||[]).reduce((s,y)=>s+(y.aufpreis||0),0);let rot=null;const v=aendere(x=>{rot=verlPreiseSetzen(x,neu)});ewWeg(VP_EW(v0.nr));mxZu();
+  if(rot===null){meldung("Preis unverändert");return}nachAenderung();
+  const vl=v.verlaengerungen,su=vl.reduce((s,y)=>s+(y.aufpreis||0),0),zf=vl.reduce((s,y)=>s+(y.zfAufpreis||0),0),ue=verlUeber(v),of=verlOffen(v),bzD=vl.some(y=>y.gezahlt!=null);
+  const text=verlText(v,"*Ihre Verlängerung wurde geändert*",su,zf,0,"\nVorher: "+eur(summeAlt)+" €"+(ue?"\nZu viel bezahlt: "+eur(ue)+" €":bzD&&of?"\nNoch zu zahlen: "+eur(of)+" €":""));
+  // Das Fenster nimmt beim Schließen seinen Verlaufs-Eintrag weg, erst danach das Blatt öffnen, sonst schließt der Rücksprung es gleich wieder
+  const blatt=()=>{nachSheet("✓ Verlängerung geändert",v.name+", "+v.auto+". Aufpreis "+eur(summeAlt)+" € auf "+eur(su)+" €, Mietpreis jetzt "+(v.preis1||"")+" €.",[
+    {t:"Änderung per WhatsApp an den Kunden",voll:true,wa:true,text:()=>text,tel:()=>v.telefon,f:()=>waOeffnen(v,text),bleibt:true},
+    {t:"Geänderten Mietvertrag drucken",f:()=>oeffnen(()=>seite(()=>fuelleVertrag(aktuell(),0),0)),bleibt:true}]);
+  if(rot)$("nach").querySelector(".unter").insertAdjacentHTML("afterend",'<div class="rsWarn">'+esc(rot)+'</div>');
+  if(SICHT==="rueckgabe"){const zl=$("nachZu");zl.textContent="Schließen";zl.onclick=x=>{x.preventDefault();$("nachBg").click()};if(zl.nextElementSibling)zl.nextElementSibling.style.setProperty("display","none","important")}};
+  let bf=false;const einmal=()=>{if(bf)return;bf=true;removeEventListener("popstate",bp);blatt()},bp=()=>setTimeout(einmal,40);addEventListener("popstate",bp);setTimeout(einmal,450)};
+function kvListeZeichnen(){const v=aktuell(),l=(v||{}).kostenVorab||[];$("kvListe").innerHTML=l.map(x=>'<div class="kvZ"><span><b>'+esc(x.t)+'</b><i>'+eur(x.betrag)+' €</i></span><a href="#" class="aend" data-kvz="'+esc(x.id)+'">ändern</a><a href="#" class="aend" data-kvw="'+esc(x.id)+'">löschen</a></div>').join("");
+  $("kvOk").textContent=KV_ID?"✓ Änderung speichern":"✓ Kosten eintragen"}
+function kvAuf(){const v=aktuell();if(!v)return;const ew=ewLies(KV_EW(v.nr));KV_ID=ew&&ew.id&&(v.kostenVorab||[]).some(x=>x.id===ew.id)?ew.id:null;$("kvT").value=ew?ew.t||"":"";$("kvB").value=ew?ew.b||"":"";["kvT","kvB"].forEach(i=>$(i).classList.remove("fehlt"));$("kvWarn").classList.add("versteckt");kvListeZeichnen();mxAuf("fKosten")}
+["kvT","kvB"].forEach(i=>$(i).addEventListener("input",()=>{const v=aktuell();if(!v)return;$(i).classList.remove("fehlt");if(i==="kvB"){const o=$(i).value,n=o.replace(/[^\d.,]/g,"");if(n!==o)$(i).value=n}ewSchreib(KV_EW(v.nr),{id:KV_ID,t:$("kvT").value,b:$("kvB").value})}));
+function kostenAendern(fn,was){let rot="";const v=aendere(x=>{const aend=y=>{fn(y);kostenAbgleichen(y)};if(kautNeuGeht(x))rot=kautNeuRechnen(x,aend);else{aend(x);if((x.kautionRueck||{}).verrechnet&&(x.endabrechnung||{}).bezahlt&&x.endabrechnung.bezahlt.betrag!=null)rot="Die Kaution ist schon abgerechnet, die Abrechnung bleibt wie sie war. Der Unterschied steht in der Übersicht."}
+    (x.verlauf=x.verlauf||[]).push({am:new Date().toISOString(),was})});nachAenderung();return{v,rot}}
+$("kvOk").onclick=e=>{e.preventDefault();const v0=aktuell();if(!v0)return;const t=$("kvT").value.trim(),b=zahl($("kvB").value),f=[];
+  if(!t){f.push("Wofür");$("kvT").classList.add("fehlt")}if(b===null||!(Math.round(b)>0)){f.push("Betrag");$("kvB").classList.add("fehlt")}
+  if(f.length){$("kvWarn").textContent="Noch fehlt: "+f.join(", ");$("kvWarn").classList.remove("versteckt");return}
+  const bet=Math.round(b),id=KV_ID,alt=(v0.kostenVorab||[]).find(x=>x.id===id);
+  const r=kostenAendern(x=>{const l=x.kostenVorab=x.kostenVorab||[],h=l.find(y=>y.id===id);if(h){h.t=t;h.betrag=bet}else l.push({id:"k"+Date.now(),t,betrag:bet,am:iso(new Date())})},alt?"Weitere Kosten geändert: "+alt.t+" "+eur(alt.betrag)+" € auf "+t+" "+eur(bet)+" €":"Weitere Kosten: "+t+" "+eur(bet)+" €");
+  ewWeg(KV_EW(v0.nr));KV_ID=null;$("kvT").value="";$("kvB").value="";$("kvWarn").classList.add("versteckt");kvListeZeichnen();
+  if(r.rot){$("kvWarn").textContent=r.rot;$("kvWarn").classList.remove("versteckt")}else meldung(alt?"✓ Kosten geändert":"✓ "+t+", "+eur(bet)+" € eingetragen")};
+$("kvListe").addEventListener("click",e=>{const z=e.target.closest("[data-kvz]"),w=e.target.closest("[data-kvw]");if(!z&&!w)return;e.preventDefault();const v=aktuell();if(!v)return;const id=(z||w).dataset[z?"kvz":"kvw"],x=(v.kostenVorab||[]).find(y=>y.id===id);if(!x)return;
+  if(z){KV_ID=id;$("kvT").value=x.t;$("kvB").value=eur(x.betrag);ewSchreib(KV_EW(v.nr),{id,t:x.t,b:eur(x.betrag)});kvListeZeichnen();$("kvT").focus();return}
+  if(!confirm(x.t+", "+eur(x.betrag)+" € löschen?"))return;if(KV_ID===id){KV_ID=null;$("kvT").value="";$("kvB").value="";ewWeg(KV_EW(v.nr))}
+  const r=kostenAendern(y=>{y.kostenVorab=(y.kostenVorab||[]).filter(q=>q.id!==id)},"Weitere Kosten gelöscht: "+x.t+" "+eur(x.betrag)+" €");kvListeZeichnen();if(r.rot){$("kvWarn").textContent=r.rot;$("kvWarn").classList.remove("versteckt")}else meldung("Kosten gelöscht")});
+// Knöpfe in Übersicht und Rückgabe: ein Weg, auch nach jedem Neuzeichnen
+["mVerlInfo","rOffen","eVorab"].forEach(i=>$(i).addEventListener("click",e=>{const t=e.target.closest&&e.target.closest("[data-vpreis],[data-kosten],[data-ueerl]");if(!t)return;e.preventDefault();
+  if(t.hasAttribute("data-vpreis"))vpAuf();else if(t.hasAttribute("data-kosten"))kvAuf();else{const v=aktuell(),ue=verlUeber(v||{});if(!ue||!confirm(eur(ue)+" € an "+v.name+" zurückgezahlt?"))return;aendere(x=>verlUeberErledigt(x));nachAenderung();meldung("✓ Überzahlung "+eur(ue)+" € zurückgezahlt")}}));
+$("mKosten").onclick=e=>{e.preventDefault();kvAuf()};
 $("mVerl").onclick=e=>{e.preventDefault();verlOeffnen()};
 $("verlAb").onclick=e=>{e.preventDefault();$("verlKarte").classList.add("versteckt")};
 $("verlOk").onclick=e=>{e.preventDefault();verlSpeichern()};
@@ -2527,7 +2638,9 @@ function zeichneMappe(){const v=aktuell();if(!v){zeige("vertraege");return}
   $("haupt").textContent=nx?"Weiter: "+nx[1]:"Neuer Mietvertrag";
   $("mVerl").classList.toggle("versteckt",v.status==="zurück");$("verlKarte").classList.add("versteckt");
   const vl=v.verlaengerungen||[],kTeil=!!(v.kautionRueck||{}).teil,off=kTeil?0:verlOffen(v);
-  $("mVerlInfo").innerHTML=vl.length?'<div class="vz">Verlängert'+(vl.length>1?" ("+vl.length+"x)":"")+' bis '+de(v.bisD)+(off?', <b>Aufpreis '+eur(off)+' € noch offen</b><a href="#" id="mVerlBez">bezahlt</a>':(vl[vl.length-1].imRest&&!(((v.zahlung||{}).rest||{}).am)?', Aufpreis steht im offenen Rest':', Aufpreis bezahlt'))+(v.status!=="zurück"?'<a href="#" id="mVerlWeg">zurücknehmen</a>':"")+'</div>':"";
+  $("mVerlInfo").innerHTML=vl.length?'<div class="vz">Verlängert'+(vl.length>1?" ("+vl.length+"x)":"")+' bis '+de(v.bisD)+', '+eur(vl.reduce((s,y)=>s+(y.aufpreis||0),0))+' €'+(off?', <b>Aufpreis '+eur(off)+' € noch offen</b>'+'<a href="#" class="aend" data-vpreis>ändern</a><a href="#" id="mVerlBez">bezahlt</a>':(vl[vl.length-1].imRest&&!(((v.zahlung||{}).rest||{}).am)?', Aufpreis steht im offenen Rest':', Aufpreis bezahlt')+'<a href="#" class="aend" data-vpreis>ändern</a>')+(v.status!=="zurück"?'<a href="#" id="mVerlWeg">zurücknehmen</a>':"")+'</div>':"";
+  if(verlUeber(v))mvPlus(verlUeberHtml(v));
+  {const kv=v.kostenVorab||[];if(kv.length)mvPlus('<div class="vz"><span>Weitere Kosten <b>'+eur(kv.reduce((s,x)=>s+(+x.betrag||0),0))+' €</b>'+kv.map(x=>'<i>'+esc(x.t)+', '+eur(x.betrag)+' €</i>').join("")+'</span><a href="#" class="aend" data-kosten>ändern</a></div>')}
   if(v.ueb&&kautNull((v.zahlung||{}).kaut))mvPlus('<div class="vz"><span>Kaution 0 €</span></div>');
   {const kk=(v.zahlung||{}).kaut||{};if(v.status==="zurück"&&v.kautionRueck&&!v.kautionRueck.am&&v.kautionRueck.betrag>0)mvPlus('<div class="vz"><span>Kaution '+eur(v.kautionRueck.betrag)+' € <b>noch zurückgeben</b></span><a href="#" id="mKautErl">zurückgegeben</a></div>');
     else if(v.status==="zurück"&&kk.am&&!v.kautionRueck&&zahl(kk.betrag))mvPlus('<div class="vz"><span>Kaution '+eur(zahl(kk.betrag))+' € <b>noch zurückgeben</b></span><a href="#" id="mKautAuf">abrechnen</a></div>')}   // kein Sackgassen-Hinweis (04.11.2026)
@@ -2535,7 +2648,7 @@ function zeichneMappe(){const v=aktuell();if(!v){zeige("vertraege");return}
   {const ke=$("mKautErl");if(ke)ke.onclick=e=>{e.preventDefault();kautAusgezahlt(v.nr);zeichneMappe();meldung("✓ Kaution zurückgegeben")};const ka=$("mKautAuf");if(ka)ka.onclick=e=>{e.preventDefault();zeige("unterwegs");setTimeout(()=>{try{$("hKautKarte").scrollIntoView({block:"start"})}catch(x){}},80)};
     const a=$("mVerlWeg");if(a)a.onclick=e=>{e.preventDefault();const l=vl[vl.length-1];if(!confirm("Letzte Verlängerung von "+v.name+" zurücknehmen?\n\nRückgabe wieder am "+de(l.bisAlt)+", Aufpreis "+eur(l.aufpreis||0)+" € fällt weg."))return;
       aendere(x=>{const y=x.verlaengerungen.pop(),z=x.zahlung=x.zahlung||{},r=z.rest=z.rest||{},zf=y.zfAufpreis||0,auf=(y.aufpreis||0)-zf;x.bisD=y.bisAlt;x.bisU=y.uAlt||x.bisU;if(y.kmNeu)x.freikm=y.kmVorher;
-        x.preis1=eur((zahl(x.preis1)||0)-auf);if(zf)x.preis2=eur((zahl(x.preis2)||0)-zf);x.gesamt=eur((zahl(x.preis1)||0)+(zahl(x.preis2)||0)+(zahl(x.paketPreis)||0));if(y.bezahlt)r.betrag=eur(Math.max(0,(zahl(r.betrag)||0)-(y.aufpreis||0)))});zeichneMappe();meldung("✓ Verlängerung zurückgenommen")};
+        x.preis1=eur((zahl(x.preis1)||0)-auf);if(zf)x.preis2=eur((zahl(x.preis2)||0)-zf);x.gesamt=eur((zahl(x.preis1)||0)+(zahl(x.preis2)||0)+(zahl(x.paketPreis)||0));if(y.bezahlt)r.betrag=eur(Math.max(0,(zahl(r.betrag)||0)-(y.gezahlt!=null?y.gezahlt:(y.aufpreis||0))))});zeichneMappe();meldung("✓ Verlängerung zurückgenommen")};
     const b=$("mRueckWeg");if(b)b.onclick=e=>{e.preventDefault();if(!confirm("Rückgabe von "+v.name+" rückgängig machen?\n\nDas Auto gilt dann wieder als unterwegs. Die Angaben der Rückgabe bleiben zum Ändern stehen."))return;
       aendere(x=>{x.status="unterwegs";if(x.kautionRueck&&x.kautionRueck.vorher)kautZurueckNehmen(x)});GELADEN={};zeichneMappe();meldung("✓ Rückgabe rückgängig gemacht")}}
   const kr=v.kautionRueck;if(kr&&kr.am)mvPlus('<div class="vz"><span>Kaution zurück am '+de(kr.am)+': '+eur(kr.betrag)+' €'+((kr.gesamt||kr.einbehalt)?', Einbehalt '+eur(kr.gesamt||kr.einbehalt)+' €':'')+'</span><a href="#" id="mKautWeg">rückgängig</a></div>');
@@ -2545,13 +2658,16 @@ function zeichneMappe(){const v=aktuell();if(!v){zeige("vertraege");return}
   // Endabrechnung bezahlt direkt in der Mappe, mit Zahlart und Rückgängig (02.11.2026, Lückenliste 4)
   const ea=v.endabrechnung||{};
   if(kTeil){const noch=nachzahlung(v).summe;if(noch>0){mvPlus('<div class="vz"><span>Nach der Kaution <b>'+eur(noch)+' € noch offen</b></span><a href="#" id="mTeilBez">Bezahlt</a><div id="mTeilWahl"></div></div>');
-      $("mTeilBez").onclick=e=>{e.preventDefault();const w=$("mTeilWahl");if(w.firstChild)return;zahlChips(w,za=>{aendere(x=>{const h=iso(new Date()),kr=x.kautionRueck,z=x.zahlung=x.zahlung||{},r=z.rest=z.rest||{},eO=(x.endabrechnung&&!x.endabrechnung.bezahlt)?+x.endabrechnung.summe||0:0;let vs=0;(x.verlaengerungen||[]).forEach(y=>{if(!y.bezahlt){y.bezahlt=true;y.bezahltAm=h;if(!y.imRest)vs+=y.aufpreis||0}});
+      $("mTeilBez").onclick=e=>{e.preventDefault();const w=$("mTeilWahl");if(w.firstChild)return;zahlChips(w,za=>{aendere(x=>{const h=iso(new Date()),kr=x.kautionRueck,z=x.zahlung=x.zahlung||{},r=z.rest=z.rest||{},eO=(x.endabrechnung&&!x.endabrechnung.bezahlt)?+x.endabrechnung.summe||0:0;const vs=verlZahlen(x,h);
           if(!r.am){const ges=(zahl(r.betrag)||0)+vs,ueber=Math.max(0,(kr.einbehalt||0)-eO);r.betrag=eur(Math.max(0,ges-ueber));r.art=za;r.am=h}if(x.endabrechnung&&eO)x.endabrechnung.bezahlt={art:za,am:h};kr.teil=false;kr.verrechnet=true});zeichneMappe();meldung("✓ Als bezahlt eingetragen")})}}}
-  else if(+ea.summe>0){const bz=ea.bezahlt;mvPlus(bz?'<div class="vz"><span>Endabrechnung '+eur(ea.summe)+' € bezahlt am '+de(bz.am)+'</span><a href="#" id="mEndWeg">rückgängig</a></div>'
+  else if(+ea.summe>0||(ea.bezahlt&&ea.bezahlt.betrag!=null)){const bz=ea.bezahlt,bzD=bz&&bz.betrag!=null?(+ea.summe||0)-(+bz.betrag||0):0;mvPlus(bzD>0?'<div class="vz"><span>Endabrechnung geändert, <b>'+eur(bzD)+' € noch offen</b>, bezahlt waren '+eur(bz.betrag)+' €</span><a href="#" id="mEndBez">Bezahlt</a><div id="mEndWahl"></div></div>'
+      :bzD<0?'<div class="vz" style="background:#FDE8E8"><span><b style="color:#C4161C">Endabrechnung überzahlt '+eur(-bzD)+' €</b><i>Kosten geändert, bezahlt waren '+eur(bz.betrag)+' €. Bitte zurückzahlen.</i></span><a href="#" class="aend" id="mEndUe">zurückgezahlt</a></div>'
+      :bz?'<div class="vz"><span>Endabrechnung '+eur(ea.summe)+' € bezahlt am '+de(bz.am)+'</span><a href="#" id="mEndWeg">rückgängig</a></div>'
       :(+((v.kautionRueck||{}).einbehalt)||0)>=+ea.summe?'<div class="vz"><span>Endabrechnung '+eur(ea.summe)+' € mit der Kaution verrechnet</span></div>'
       :'<div class="vz"><span>Endabrechnung <b>'+eur(+ea.summe-(+((v.kautionRueck||{}).einbehalt)||0))+' € noch offen</b>'+((v.kautionRueck||{}).einbehalt?' (nach Einbehalt)':'')+'</span><a href="#" id="mEndBez">Bezahlt</a><div id="mEndWahl"></div></div>');
     const eb=$("mEndBez");if(eb)eb.onclick=e=>{e.preventDefault();const wv=$("mEndWahl");if(wv.firstChild)return;
       zahlChips(wv,za=>{aendere(x=>{x.endabrechnung=Object.assign({},x.endabrechnung||{},{bezahlt:{art:za,am:iso(new Date())}})});zeichneMappe();meldung("✓ Endabrechnung als bezahlt eingetragen")})};
+    const eu=$("mEndUe");if(eu)eu.onclick=e=>{e.preventDefault();if(!confirm(eur(-bzD)+" € an "+v.name+" zurückgezahlt?"))return;aendere(x=>{const q=x.endabrechnung;delete q.bezahlt.betrag;if(!(+q.summe>0))delete q.bezahlt;(x.verlauf=x.verlauf||[]).push({am:new Date().toISOString(),was:"Überzahlung Endabrechnung "+eur(-bzD)+" € zurückgezahlt"})});zeichneMappe();meldung("✓ Überzahlung zurückgezahlt")};
     const ew=$("mEndWeg");if(ew)ew.onclick=e=>{e.preventDefault();if(!confirm("„Endabrechnung bezahlt“ bei "+v.name+" rückgängig machen?\n\nSie steht dann wieder als offen da."))return;
       aendere(x=>{if(x.endabrechnung)delete x.endabrechnung.bezahlt});zeichneMappe();meldung("Rückgängig: Endabrechnung wieder offen")}}}
 var MAPPE_VON="";
@@ -2611,7 +2727,7 @@ let KAUT_TIPP={};try{KAUT_TIPP=JSON.parse(sessionStorage.getItem("mietixKautTipp
 function kautFeldNull(){const kb=$("uKautB"),v=aktuell();if(!kb||!v||!kb.offsetParent)return false;const n=kb.value.trim();if(n===""||zahl(n)!==0)return false;const l=vorgaenge(),x=l.find(y=>y.nr===v.nr);if(!x)return false;
   x.zahlung=x.zahlung||{};x.zahlung.kaut=Object.assign({},x.zahlung.kaut||{},{betrag:"0",art:"",am:""});schreib("mietixVorgaenge",l);GELADEN.vertrag=null;delete KAUT_TIPP[v.nr];meldung("Kaution 0 € eingetragen");uZahlZeichnen();return true}
 function alsBezahlt(nr,was,art){const l=vorgaenge(),x=l.find(y=>y.nr===nr);if(!x)return;const z=x.zahlung=x.zahlung||{},r=z[was]=z[was]||{};
-  r.art=art;r.am=iso(new Date());if(was==="rest"){let s=0;(x.verlaengerungen||[]).forEach(y=>{if(!y.bezahlt){y.bezahlt=true;y.bezahltAm=r.am;if(!y.imRest)s+=y.aufpreis||0}});if(s)r.betrag=eur((zahl(r.betrag)||0)+s)}
+  r.art=art;r.am=iso(new Date());if(was==="rest"){const s=verlZahlen(x,r.am);if(s)r.betrag=eur((zahl(r.betrag)||0)+s)}
   schreib("mietixVorgaenge",l);GELADEN.vertrag=null}
 window.addEventListener("mietix-abgleich",e=>{if(SICHT==="uebergabe"&&(e.detail||[]).includes("mietixVorgaenge"))uZahlZeichnen()});   // Rückgängig: die Karte zeigt sofort den wahren Stand
 function uZahlZeichnen(){const v=aktuell(),z=(v&&v.zahlung)||{},teile=[];if(!v){$("uZahlKarte").classList.add("versteckt");return}
@@ -3067,9 +3183,9 @@ $("daOk").onclick=e=>{e.preventDefault();const x=buAnfrage(DA_ID);if(!x){mxZu();
   if(f.length){buRot("Noch fehlt: "+f.join(", "));return}
   if(DA_EDIT){buAendern(x.id,y=>{y.anzahlung=Object.assign({},y.anzahlung||{},{betrag:b,art:c.dataset.za});(y.verlauf=y.verlauf||[]).push({am:new Date().toISOString(),was:"Anzahlung geändert"})});
     DA_EDIT=false;mxZu();meldung("✓ Anzahlung geändert");bZeichnen();return}
-  // Auto inzwischen belegt? Dann nicht reservieren
+  // Auto inzwischen belegt? Nachfragen, nichts sperren (Baran 05.11.2026)
   const r=buBelegt(x.auto,x.von,x.bis,"",x.id);
-  if(r.t.length){$("daWarn").innerHTML=(r.m.length?esc(x.auto)+" ist in dem Zeitraum inzwischen belegt:<br>"+r.m.map(esc).join("<br>")+(r.sp.length?"<br>":""):"")+r.sp.map(s=>esc(buSperreText(s))).join("<br>");$("daWarn").classList.remove("versteckt");buRot(((r.m.length?x.auto+" ist inzwischen belegt: "+r.m.join(", ")+(r.sp.length?", ":""):"")+r.sp.map(buSperreText).join(", ")+".").replace(/\.\.$/,".")+" Nicht reserviert.");return}
+  if(r.t.length&&!confirm(buBelegtTitel(x.auto,r)+"\n"+r.t.join(", ")+"\n\nTrotzdem reservieren?")){$("daWarn").innerHTML=(r.m.length?esc(x.auto)+" ist in dem Zeitraum inzwischen belegt:<br>"+r.m.map(esc).join("<br>")+(r.sp.length?"<br>":""):"")+r.sp.map(s=>esc(buSperreText(s))).join("<br>");$("daWarn").classList.remove("versteckt");buRot(((r.m.length?x.auto+" ist inzwischen belegt: "+r.m.join(", ")+(r.sp.length?", ":""):"")+r.sp.map(buSperreText).join(", ")+".").replace(/\.\.$/,".")+" Nicht reserviert.");return}
   if(!buAendern(x.id,y=>{y.status="gebucht";y.anzahlung={betrag:b,quote:30,art:c.dataset.za,am:iso(new Date())}}))return;
   mxZu();RES_ID=x.id;zeige("reserviert")};
 
@@ -3323,6 +3439,7 @@ document.addEventListener("visibilitychange",()=>{if(document.hidden)return;if(S
 let ABGL_SIG="";
 window.addEventListener("mietix-abgleich",()=>{const sig=["mietixVorgaenge","mietixAnfragen","mietixStand","mietixSperren"].map(k=>{const t=localStorage.getItem(k)||"";let h=0;for(let i=0;i<t.length;i++)h=(h*31+t.charCodeAt(i))|0;return t.length+":"+h}).join("|");
   if(sig===ABGL_SIG)return;ABGL_SIG=sig;   // nichts geändert: nicht neu zeichnen, sonst springt die Seite (1.11.2026)
+  if(SICHT==="mappe"&&$("verlKarte").classList.contains("versteckt"))zeichneMappe();if(SICHT==="rueckgabe")eRechne();   // Rückgängig oder anderes Gerät: Preise und Kosten sofort wahr (05.11.2026)
   kundenListe();if(SICHT==="vertraege"){zeichneAlle();zeichneBuchungen()}if(SICHT==="abgeschlossen"){zeichneAbgeschlossen();zeichneBuchungen()}
   if(SICHT==="heute"||SICHT==="unterwegs")zeichneHeute();else if(SICHT==="buchung")bZeichnen();else if(SICHT==="neu")nbZeichnen();else if(["iban","reserviert"].includes(SICHT)){zeichneBuchungen();const id=SICHT==="iban"?IBAN_ID:RES_ID,x=id?buAnfrage(id):null;   // Rückgängig: dieser Bildschirm stimmt nicht mehr (04.11.2026)
     if(!x||x._weg||x.status==="abgesagt"||(SICHT==="reserviert"&&x.status!=="gebucht")){if(x&&!x._weg&&x.status!=="abgesagt"){BU_ID=x.id;zeige("buchung")}else zeige(BU_REITER)}}else if(SICHT!=="vertrag"&&SICHT!=="vertraege"&&SICHT!=="abgeschlossen"){wahlFuellen();schritte()}
