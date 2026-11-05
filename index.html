@@ -428,9 +428,12 @@ input.fehlt,select.fehlt,textarea.fehlt,.fehlt>input,input.rotRand{background-co
 .ereihe .minik[data-s]{background:transparent!important;border:0!important;border-radius:8px!important;color:#1C1C1E!important;font-weight:600!important;padding:9px 3px!important}
 .ereihe .minik[data-s].an{background:#1C1C1E!important;color:#fff!important;outline:0!important;font-weight:700!important}
 /* Löschen = rote Schrift ohne Kasten, Nebenaktion = roter Rand */
-.minik.weg{background:transparent!important;border-color:transparent!important;color:#FF3B30!important;font-weight:600!important}
+.minik.weg{background:#E9E9EE!important;border-color:transparent!important;color:#FF3B30!important;font-weight:600!important}
 .minik.angebot,.minik.wa,.minik.vertragk{text-decoration:none!important}
-.fsAuf{background:#fff!important;color:#C4161C!important;border:1.5px solid #C4161C!important}
+.fsAuf,.fsKn .fsHoch{background:#E9E9EE!important;color:#1C1C1E!important;border:0!important}
+.minik.waRand{background:#E9E9EE!important;color:#1E8E4E!important;border:0!important}
+.eintrag .minik.anzk{background:#E9E9EE!important;color:#C4161C!important;border:0!important}
+.zeile.tipp .eintr{background:#E9E9EE;border-radius:10px;padding:5px 10px}
 /* Überschriften über einer Liste: klein, grau, groß geschrieben, wie im Entwurf */
 html body h2.hT,html body p.feldname,html body main h2.gruppe,html body .app>h2,html body main>h2,html body h2.thema,html body .bereich>.kopf>b{font-size:13px!important;letter-spacing:.3px!important;color:#6E6E73!important;font-weight:600!important;text-transform:uppercase!important}
 html body h2.hT{margin:20px 16px 7px!important}
@@ -444,7 +447,7 @@ html body .app>h2,html body main>h2{margin-left:16px!important;margin-right:16px
 .frage .chips [data-jn=ja].an{background:#34C759!important;color:#fff!important;outline:0}
 .frage .chips [data-jn=nein].an{background:#FF3B30!important;color:#fff!important;outline:0}
 /* Kunden: „‹ Kunden“ wie „‹ Start“ als rote Schrift, Überschriften klein und grau */
-html body .kTop #kZu{border:0!important;background:none!important;padding:4px 0!important;color:#C4161C!important;font-size:17px!important;font-weight:600!important}
+html body .kTop #kZu,html body .kTop #kBearb{border:0!important;background:#E9E9EE!important;border-radius:10px!important;padding:5px 12px!important;font-size:16px!important;font-weight:600!important;text-decoration:none!important}html body .kTop #kZu{color:#C4161C!important}
 html body .ab{font-size:13px!important;letter-spacing:.3px;color:#6E6E73!important;font-weight:600!important;text-transform:uppercase;margin:20px 16px 7px!important}
 html body .ab span{text-transform:none;letter-spacing:0}
 /* Versteckt bleibt versteckt: display:flex!important oben darf .versteckt nicht schlagen (Fund 01.11.2026) */
@@ -503,7 +506,7 @@ input[type=date],input[type=time]{min-width:0;max-width:100%}
 #nkMeld.an{opacity:1;transform:translateX(-50%) translateY(0)}
 </style><style>
 /* Listenkopf (04.11.2026) */
-.lkKopf{margin:12px 0 10px}.lkSuche{display:flex;align-items:center;gap:8px;background:#E4E4E9;border-radius:12px;padding:0 12px;height:42px}
+.lkKopf{margin:12px 0 10px}.lkSuche{display:flex;align-items:center;gap:8px;background:#E4E4E9;border-radius:12px;padding:0 12px;height:44px;box-sizing:border-box}
 .lkSuche svg{width:18px;height:18px;flex:0 0 auto;stroke:#6E6E73;fill:none;stroke-width:2;stroke-linecap:round}
 .lkSuche input{flex:1;min-width:0;width:100%!important;margin:0!important;padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important;height:40px;font:500 16px inherit;font-family:inherit;outline:0;-webkit-appearance:none;appearance:none}
 .lkSuche input::-webkit-search-cancel-button{-webkit-appearance:none}
@@ -563,10 +566,17 @@ input[type=date],input[type=time]{min-width:0;max-width:100%}
 </script><script>
 /* Knopf-Paar je Nachricht: WhatsApp und Kopieren (02.11.2026) */
 (function(){if(window.nkPaar)return;
+  // Preise ohne Internet (05.11.2026): jede geladene Preisdatei bleibt auf dem Gerät, ohne Netz oder nach 6 Sekunden Warten gilt die letzte (Tiefgarage)
+  {const netz=window.fetch,K="mietixPreisKopie";window.fetch=function(u,o){const s=typeof u==="string"?u:(u&&u.url)||"";if(s.indexOf("mietix-preise/preise.json")<0)return netz.apply(this,arguments);
+    const kopie=()=>{try{const t=localStorage.getItem(K);return t?new Response(t,{status:200,headers:{"Content-Type":"application/json"}}):null}catch(e){return null}};
+    return new Promise((ok,nein)=>{let da=false;const uhr=setTimeout(()=>{const k=kopie();if(k&&!da){da=true;ok(k)}},6000);
+      netz.call(window,u,o).then(r=>{clearTimeout(uhr);if(r.ok){r.clone().text().then(t=>{try{if(t&&t.charAt(0)==="{"&&localStorage.getItem(K)!==t)localStorage.setItem(K,t)}catch(e){}}).catch(()=>{});if(!da){da=true;ok(r)}return}
+        const k=kopie();if(!da){da=true;ok(k||r)}}).catch(e=>{clearTimeout(uhr);const k=kopie();if(da)return;da=true;if(k)ok(k);else nein(e)})})}}
   const SWA='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2z"/></svg>';
   const SKO='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="12" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h2"/></svg>';
   window.nkPaar=function(art){return'<span class="nkPaar'+(art?" "+art:"")+'"><button type="button" class="nkWa" data-nk="wa">'+SWA+'WhatsApp</button><button type="button" class="nkKo" data-nk="ko">'+SKO+'Kopieren</button></span>'};
-  window.nkNummer=function(t){let n=String(t||"").replace(/\D/g,"");if(String(t||"").trim().startsWith("+"))return n;if(n.startsWith("00"))return n.slice(2);if(n.startsWith("0"))return"49"+n.slice(1);return n};
+  // Eine Regel für alle Seiten (05.11.2026): + und 00 = Ländervorwahl steht schon da, 0 = deutsche Nummer, 15x/16x/17x ohne 0 = deutsches Handy
+  window.nkNummer=function(t){let n=String(t||"").replace(/\D/g,"");if(!n)return"";if(!String(t||"").trim().startsWith("+")){if(n.startsWith("00"))n=n.slice(2);else if(n.startsWith("0"))n="49"+n.slice(1);else if(/^1[567]\d{8,9}$/.test(n))n="49"+n}return n.replace(/^490/,"49")};
   // Baran 05.11.2026: keine Anrede am Anfang, kein Gruß am Ende, in jeder Nachricht. Auch selbst gespeicherte Texte laufen hier durch.
   window.nkOhneGruss=function(t){let s=String(t||"").replace(/^\s*(?:Hallo|Hi|Moin|Guten Tag|Guten Morgen|Guten Abend|Sehr geehrte[^\n,]*|Liebe[rs]?\b[^\n,]*)(?:\s+[^\s,!\n]+){0,2}\s*[,!]\s*/,"").replace(/\s*\n\s*(?:Viele|Liebe|Beste|Freundliche|Mit freundlichen)\s+Grüßen?\s*(?:\n[^\n]*)?\s*$/,"").replace(/\s*\n\s*(?:Ihr|Euer)\s+Mietix[- ]Team\s*$/,"").trim();return s?s.charAt(0).toUpperCase()+s.slice(1):s};
   window.nkWa=function(tel,text){const n=nkNummer(tel);window.open("https://wa.me/"+(n&&n.length>=8?n:"")+"?text="+encodeURIComponent(nkOhneGruss(text)),"_blank")};
@@ -676,8 +686,8 @@ input[type=date],input[type=time]{min-width:0;max-width:100%}
   </div>
   <div class="buGk">Auto und Zeitraum</div>
   <div class="buGr">
-    <div class="buZ" id="nbAutoZ"></div>
     <div class="buZ" id="nbZeitZ"></div>
+    <div class="buZ" id="nbAutoZ"></div>
     <div class="buZ versteckt" id="nbPreisZ"></div>
   </div>
   <!-- Preis-Block wie überall (01.11.2026, Baran zu einheit_2: Preis, Inklusive, Rabatt direkt sichtbar, kein Fenster) -->
@@ -976,10 +986,10 @@ input[type=date],input[type=time]{min-width:0;max-width:100%}
     <label>Weiteres Vorgehen</label><div class="chips" data-gruppe="s_weiter"><div class="chip" data-v="gutachter">Sachverständigengutachten wird beauftragt</div><div class="chip" data-v="kv">Kostenvoranschlag folgt</div></div>
     <label>Einbehaltene Kaution</label><div class="chips" data-gruppe="s_kaution"><div class="chip an" data-v="geld">Geldkaution</div><div class="chip" data-v="fahrzeug">Fahrzeug des Mieters (gemäß Sicherungsvertrag)</div><div class="chip" data-v="beides">Fahrzeug und Geldkaution</div></div>
     <div id="sKautW"><label>Geldkaution in Höhe von €</label><input id="sKaution" inputmode="decimal"></div>
-    <div class="hinweis">Das Kästchen „Mit der Unterschrift erkennt der Mieter …“ wird nur angekreuzt, wenn unten „Mieter erkennt den Schaden an“ angetippt ist. Das entscheidet der Mieter selbst.</div>
+    <div class="hinweis">Das Kästchen „Mit der Unterschrift erkennt der Mieter …“ folgt der Unterschrift. Wer nicht anerkennt, verweigert die Unterschrift, dann bleibt es leer.</div>
   </div>
   <div class="karte"><h2>Unterschrift</h2><label>Unterschrift Mieter (Schadensanerkennung)</label><div class="pad" id="padS"><canvas width="900" height="300"></canvas><div class="tipp">Antippen, dann groß unterschreiben</div><div class="weg">Löschen</div><div class="gross">Antippen für Vollbild</div></div>
-    <div class="chips" style="margin-top:8px"><div class="chip" id="sAnerkannt">Mieter erkennt den Schaden an</div><div class="chip" id="sVerw">Kunde verweigert Unterschrift</div></div></div>
+    <div class="hinweis" id="sAnerkannt"></div><div class="chips" style="margin-top:8px"><div class="chip" id="sVerw">Kunde verweigert Unterschrift</div></div></div>
 </section>
 
 <!-- ================= ÜBERLASSUNGSERKLÄRUNG ================= -->
@@ -1178,14 +1188,18 @@ function fehlendeUnterschriften(v){const l=[];if(!v)return l;const p=k=>PAD[k]&&
   if(SICHT==="uebergabe"&&!v.ueb){if(mitFz(v.kautionArt)&&!p("padSV"))l.push(["padSV","Überlassungserklärung"]);if(!p("padU"))l.push(["padU","Übergabe"])}
   if(SICHT==="rueckgabe"&&v.status!=="zurück"){if(!p("padR")&&!VERW.padR)l.push(["padR","Rückgabe"]);if(gw("r_auff")==="ja"&&!p("padS")&&!VERW.padS)l.push(["padS","Schadensanerkennung"])}
   return l}
-function kundeUnterschreibt(){const v=aktuell(),l=fehlendeUnterschriften(v);if(!l.length)return;FOLGE={nr:v.nr,liste:l,i:0,fertig:[]};folgeWeiter()}
+function kundeUnterschreibt(){const v=aktuell(),l=fehlendeUnterschriften(v);if(!l.length)return;
+  // Was aufs Papier gehört, vor der Unterschrift: Kilometer und Unterschriften selbst kommen danach (Prüfung 05.11.2026)
+  {const f=SICHT==="vertrag"?fehltMietvertragFertig():["uebergabe","rueckgabe"].includes(SICHT)?fehltProtokoll().filter(x=>!/^(pad|schritte|uKm|rKm|uZahlKarte)/.test(x[0])):[];if(f.length){gesperrtMeldung(f);return}if(!zusatzGesehen())return}
+  FOLGE={nr:v.nr,liste:l,i:0,fertig:[]};folgeWeiter()}
 function folgeWeiter(){const f=FOLGE;if(!f)return;if(f.i>=f.liste.length){FOLGE=null;folgeEnde(f);return}
   const[ziel,titel]=f.liste[f.i];grossOeffnen(ziel);$("ugTitel").textContent=(f.liste.length>1?(f.i+1)+" von "+f.liste.length+": ":"")+"Unterschrift Mieter, "+titel}
 function folgeEnde(f){schritte();hauptText();if(!f.fertig.length)return;const nurV=f.fertig.every(x=>x==="Mietvertrag");
   // 1.11.2026 Baran: nach der letzten Unterschrift gleich speichern, kein extra Tipp mehr (nur wenn sonst nichts fehlt)
   const fertigS=(SICHT==="uebergabe"||SICHT==="rueckgabe")&&!nurV&&!(typeof fehltProtokoll==="function"&&fehltProtokoll().length)&&!fehlendeUnterschriften(aktuell()).length;
-  const fertigV=SICHT==="vertrag"&&!fehltNoch().length&&!!PAD.padV.wert();
+  const fehltV=SICHT==="vertrag"&&PAD.padV.wert()?fehltMietvertragFertig():[],fertigV=SICHT==="vertrag"&&!fehltNoch().length&&!!PAD.padV.wert()&&!fehltV.length;
   if(fertigS||fertigV){meldung("✓ Unterschrieben, wird gespeichert …");setTimeout(()=>{hauptText();$("haupt").click()},500);return}
+  {const rest=fehltV.length?fehltV:(SICHT==="uebergabe"||SICHT==="rueckgabe")&&!nurV?fehltProtokoll().filter(x=>!/^pad/.test(x[0])):[];if(rest.length){gesperrtMeldung(rest);return}}
   const weiter=SICHT==="uebergabe"&&!nurV?" Jetzt unten auf „Auto übergeben ✓“ tippen.":SICHT==="rueckgabe"&&!nurV?" Jetzt unten auf „Auto zurück ✓“ tippen.":SICHT==="vertrag"?" Jetzt unten auf „"+$("haupt").textContent+"“ tippen.":"";
   meldung("✓ Unterschrieben: "+f.fertig.join(", ")+"."+weiter)}
 const PAD={};["padV","padU","padR","padS","padSV","padVM"].forEach(id=>{if($(id))PAD[id]=padMachen(id)});
@@ -1247,8 +1261,8 @@ async function stempel(doc,seite,yLinie,mieterPng,vermieterPng,verweigert){const
 function chipWahl(el,wert){[...el.children].forEach(c=>c.classList.toggle("an",c.dataset.v===wert))}
 function chipWert(el){const c=[...el.children].find(c=>c.classList.contains("an"));return c?c.dataset.v:""}
 document.querySelectorAll("[data-gruppe]").forEach(g=>[...g.children].forEach(c=>c.onclick=()=>{
-  const war=c.classList.contains("an");chipWahl(g,war?"":c.dataset.v);g.dispatchEvent(new Event("wahl"))}));
-["uReserve","rReserve","vSchein","vBrief","avbHaken","sAnerkannt","svBestaetigt"].forEach(i=>$(i).onclick=()=>$(i).classList.toggle("an"));
+  const war=c.classList.contains("an");chipWahl(g,war?"":c.dataset.v);g.classList.remove("fehlt");g.dispatchEvent(new Event("wahl"))}));
+["uReserve","rReserve","vSchein","vBrief","avbHaken","svBestaetigt"].forEach(i=>$(i).onclick=()=>$(i).classList.toggle("an"));
 const an=i=>$(i).classList.contains("an"), setzeAn=(i,w)=>$(i).classList.toggle("an",!!w);
 const gruppe=n=>document.querySelector('[data-gruppe="'+n+'"]');
 const gw=n=>chipWert(gruppe(n)), gs=(n,w)=>{if(w!==undefined)chipWahl(gruppe(n),w)};
@@ -1510,55 +1524,93 @@ async function lade(b64,v){const doc=await PDFLib.PDFDocument.load(bytes(b64));F
     const oz=zeichenOhneSchrift(v);if(oz.length&&window.mxFehler)mxFehler("Diese Zeichen fehlen im PDF: "+oz.slice(0,8).join(" ")+". Bitte in lateinischen Buchstaben eintragen, zum Beispiel den Namen, und das PDF prüfen.",12000)}return doc}
 function flach(f){if(FONT_U){f.updateFieldAppearances(FONT);f.flatten({updateFieldAppearances:false})}else f.flatten()}
 // Die Vorlagen haben manche Felder doppelt (gleicher Name auf mehreren Seiten): immer alle füllen.
-// Passt ein Text nicht in die Linie, wird die Schrift kleiner statt abgeschnitten.
+// Passt ein Text nicht in die Linie, wird die Schrift kleiner, aber nie unter 7 pt (Prüfung 05.11.2026). Passt er dann noch nicht, kommt der ganze Wortlaut
+// auf ein Zusatzblatt am Ende des PDF, im Feld steht der Anfang mit Verweis. Nichts wird still abgeschnitten, die Vorlage bleibt unverändert.
 const alle=(f,n)=>f.getFields().filter(x=>x.getName()===n);
-function T(f,n,w){if(w===undefined||w===null||w==="")return;w=String(w);
-  alle(f,n).forEach(x=>{try{x.setText(w);
-    if(!x.isMultiline()&&FONT){const breite=Math.min(...x.acroField.getWidgets().map(g=>g.getRectangle().width))-4;
-      const m=(x.acroField.getDefaultAppearance()||"").match(/(\d+(?:\.\d+)?) Tf/);let fs=m?+m[1]:10;
-      while(fs>6&&FONT.widthOfTextAtSize(w,fs)>breite)fs-=0.5;
-      // Ort zu lang (01.11.2026, Test: „… 55252 Ma“ abgeschnitten): erst ohne PLZ, dann nur die Stadt
-      if(FONT.widthOfTextAtSize(w,fs)>breite&&/\b\d{5}\s/.test(w)){const k=[w.replace(/,?\s*\b\d{5}\s+/,", "),stadtVon(w)];
-        for(const z of k){let g=m?+m[1]:10;while(g>6&&FONT.widthOfTextAtSize(z,g)>breite)g-=0.5;if(FONT.widthOfTextAtSize(z,g)<=breite){w=z;fs=g;x.setText(w);break}}}
-      x.setFontSize(fs)}}catch(e){}})}
+const MIN_PT=7,SIEHE=["siehe Zusatzblatt","s. Zusatzblatt","s. Zusatz","s. Z."];
+const ZEILEN_FAKTOR=1.125;
+const FELD_WORT={name:"Name des Mieters",anschrift:"Anschrift",geb_ort:"Geburtsort",telefon:"Telefon",email:"E-Mail",modell:"Fahrzeug",kennzeichen:"Kennzeichen",fin:"Fahrgestellnummer",zusatzfahrer:"Zusatzfahrer",kaution_fahrzeugdaten:"Fahrzeugdaten der Sicherheit",ort:"Ort",gegenstaende_abweichung:"Abweichungen/Sonstiges",reifenmarke:"Reifenmarke/-größe",bemerkung:"Bemerkungen",beschreibung:"Beschreibung",schaden_ort:"Ort am Fahrzeug",schaden_art:"Art des Schadens",ort_feststellung:"Ort der Feststellung",sf_modell:"Sicherungsfahrzeug",sf_kennzeichen:"Kennzeichen Sicherungsfahrzeug",sf_fin:"Fahrgestellnummer Sicherungsfahrzeug"};
+const feldWort=n=>{const k=n.replace(/^(sa_mieter_|r_mieter_|sv_mieter_|sa_|sv_|p2_|m_|f_|u_|r_)/,"");return FELD_WORT[k]||k.replace(/_/g," ")};
+function zusatzMerken(doc,n,w){doc.mxZusatz=doc.mxZusatz||[];if(!doc.mxZusatz.some(x=>x.n===n))doc.mxZusatz.push({n,wort:feldWort(n),text:w})}
+const feldPt=x=>{const m=(x.acroField.getDefaultAppearance()||"").match(/(\d+(?:\.\d+)?) Tf/);return m&&+m[1]?+m[1]:10};
+// Das Feld schreibt ohne Unterschneidung, der Text wird also bis 1,5 % breiter als gemessen: so viel Reserve, sonst fehlt am Rand ein Buchstabe
+const feldBreite=l=>(Math.min(...l.flatMap(x=>x.acroField.getWidgets().map(g=>g.getRectangle().width)))-4)*0.985;
+function passtPt(w,breite,pt){let fs=pt;while(fs>MIN_PT&&FONT.widthOfTextAtSize(w,fs)>breite)fs-=0.5;return FONT.widthOfTextAtSize(w,fs)<=breite?fs:0}
+// Längster Anfang (ganze Wörter) mit Verweis, der noch passt. Ohne sinnvollen Anfang null.
+function anfangMit(w,verweis,passt){const ws=String(w).split(/\s+/);let a=1,b=ws.length-1,best=null;while(a<=b){const m=(a+b)>>1,t=ws.slice(0,m).join(" ").replace(/[,;:]$/,"")+verweis;if(passt(t)){best=t;a=m+1}else b=m-1}
+  return best&&best.length-verweis.length>=8?best:null}
+function T(f,n,w){if(w===undefined||w===null||w==="")return;w=String(w);const l=alle(f,n);if(!l.length)return;
+  try{if(l[0].isMultiline()){TMehr(f,l,n,w);return}
+    const breite=feldBreite(l),pt=feldPt(l[0]);let t=w.replace(/\s*\n\s*/g," "),fs=passtPt(t,breite,pt);
+    if(!fs){zusatzMerken(f.doc,n,w);t=anfangMit(t," … siehe Zusatzblatt",x=>FONT.widthOfTextAtSize(x,MIN_PT)<=breite)||SIEHE.find(x=>FONT.widthOfTextAtSize(x,MIN_PT)<=breite)||SIEHE[SIEHE.length-1];fs=MIN_PT}
+    l.forEach(x=>{x.setText(t);x.setFontSize(fs)})}catch(e){}}
+// Mehrzeilige Felder: bis 7 pt, was dann nicht passt steht ganz auf dem Zusatzblatt
+function TMehr(f,l,n,w){const q=l[0].acroField.getWidgets()[0].getRectangle(),hoch=q.height-1.5,zeilen=(t,fs)=>PDFLib.layoutMultilineText(t,{alignment:0,fontSize:fs,font:FONT,bounds:{x:1,y:1,width:(q.width-4)*0.985,height:q.height-2}}),passt=(t,fs)=>{const L=zeilen(t,fs);return L.lines.length*L.lineHeight<=hoch};
+  let fs=feldPt(l[0]),t=w;while(fs>MIN_PT&&!passt(t,fs))fs-=0.5;
+  if(!passt(t,fs)){zusatzMerken(f.doc,n,w);t=anfangMit(t," … (vollständig auf dem Zusatzblatt)",x=>passt(x,MIN_PT))||SIEHE[0];fs=MIN_PT}
+  t=zeilen(t,fs).lines.map(x=>x.text).join("\n");   // Zeilen selbst umbrechen: mit der Reserve oben fehlt am rechten Rand nichts
+  l.forEach(x=>{x.setText(t);x.setFontSize(fs)})}
+// Vorlagenwert darf nie stehen bleiben: leer heißt leer (B2, wie schon beim Kautionsbetrag)
+function TL(f,n,w){if(w===undefined||w===null||String(w).trim()==="")alle(f,n).forEach(x=>{try{x.setText("")}catch(e){}});else T(f,n,w)}
+// Ortsfelder: Ort ohne PLZ reicht. Der Standard-Ort hat kurze Fassungen, damit nicht jede Übergabe ein Zusatzblatt braucht (D1). Nie nur die Stadt.
+function ortFassungen(w){const k=[w,w.replace(/,?\s*\b\d{5}\s+/,", ")];if(/peter-sander/i.test(w))k.push("Peter-Sander-Str. 43 B, Kastel","Peter-Sander-Straße 43 B");return k}
+function TO(f,n,w){if(!w)return;w=String(w);const l=alle(f,n);if(!l.length)return;try{const breite=feldBreite(l),pt=feldPt(l[0]),z=ortFassungen(w).find(x=>passtPt(x,breite,pt));T(f,n,z||w)}catch(e){T(f,n,w)}}
+// Art und Ort am Fahrzeug passen nicht lesbar: ganzer Wortlaut in die Beschreibung, im kleinen Feld „siehe Beschreibung“ (A3)
+function schadenBesch(s,artPasst,ortPasst){return [ortPasst?"":"Ort am Fahrzeug: "+s.ortFz,artPasst?"":"Art des Schadens: "+s.art,s.besch||""].filter(Boolean).join("\n")}
+/* Zusatzblatt (Entwurf 05.11.2026, E3): eigene Seite am Ende, Nummer, Datum, leere Linien zum Unterschreiben von Hand. Nie die gespeicherte Unterschrift. */
+async function zusatzblatt(doc,titel,zeile,ort,datum,liste){const z=liste||doc.mxZusatz||[];if(!z.length)return;
+  const B=await doc.embedFont(PDFLib.StandardFonts.HelveticaBold),G=doc.getPage(0).getSize(),L=34,RE=561.2756,GR=9.5,ZH=14,c=PDFLib.rgb(.1,.1,.1),rot=PDFLib.rgb(.647059,.129412,.086275),li=PDFLib.rgb(.227451,.227451,.235294);
+  const sauber=t=>[...String(t)].map(x=>{try{FONT.encodeText(x);return x}catch(e){return x==="\n"?x:""}}).join("");
+  const umbruch=t=>{const r=[];sauber(t).split("\n").forEach(ab=>{let a="";ab.trim().split(/\s+/).forEach(w=>{while(FONT.widthOfTextAtSize(w,GR)>RE-L){let i=w.length;while(i>1&&FONT.widthOfTextAtSize(w.slice(0,i),GR)>RE-L)i--;if(a){r.push(a);a=""}r.push(w.slice(0,i));w=w.slice(i)}const n=a?a+" "+w:w;if(a&&FONT.widthOfTextAtSize(n,GR)>RE-L){r.push(a);a=w}else a=n});r.push(a)});return r};
+  let p,y;const kopf=(weiter)=>{p=doc.addPage([G.width,G.height]);y=G.height-54;p.drawRectangle({x:L,y:y-3,width:4,height:18,color:rot});p.drawText(titel+(weiter?", Fortsetzung":""),{x:L+11,y,size:13,font:B,color:c});y-=20;p.drawText(sauber(zeile),{x:L+11,y,size:GR,font:FONT,color:c});y-=30};
+  kopf(false);
+  z.forEach(e=>{const zk=umbruch(e.text);if(y<170)kopf(true);p.drawText("Vollständiger Wortlaut: "+e.wort+" (auf dem Hauptblatt nicht vollständig darstellbar):",{x:L,y,size:GR,font:B,color:c});y-=ZH+2;
+    zk.forEach(x=>{if(y<110)kopf(true);p.drawText(x,{x:L,y,size:GR,font:FONT,color:c});y-=ZH});y-=14});
+  if(y<130)kopf(true);y=Math.min(y-34,G.height-250);
+  p.drawText(sauber((ort||"Wiesbaden")+", den "+(datum||"")),{x:L,y,size:GR,font:FONT,color:c});
+  [[283,"Unterschrift Vermieter"],[440,"Unterschrift Mieter"]].forEach(([x,t])=>{p.drawLine({start:{x,y:y-2},end:{x:x+112,y:y-2},thickness:.7,color:li});p.drawText(t,{x:x+56-FONT.widthOfTextAtSize(t,7.5)/2,y:y-13,size:7.5,font:FONT,color:li})})}
 function X(f,n,ja){if(!ja)return;alle(f,n).forEach(x=>{try{x.check()}catch(e){}})}
 /* Ort in „…, den Datum“ (01.11.2026, Baran: Lieferung, auf Mietvertrag und Übergabe derselbe Ort).
    Die Vorlage hat „Wiesbaden, den“ fest gedruckt. Nur wenn der Ort woanders ist, wird diese Stelle beim Ausfüllen
    weiß abgedeckt und „<Stadt>, den <Datum>“ an derselben Stelle in derselben Größe geschrieben. Die Vorlage bleibt unverändert. */
 function stadtVon(o){o=String(o||"").trim();if(!o)return"";const m=o.match(/\b\d{5}\s+([^,]+)/);return(m?m[1]:o.split(",").pop()).trim()}
-function ortAnders(o){const st=stadtVon(o);return st&&!/^(wiesbaden|mainz-kastel|wiesbaden-kastel)$/i.test(st)?st:""}
+function ortAnders(o){const st=stadtVon(o);return st&&!/^(wiesbaden|mainz-kastel|wiesbaden-kastel)$/i.test(st)&&!/peter-sander/i.test(st)?st:""}
 function ortZeigen(){const a=ortAnders($("vOrt").value);$("vOrtText").textContent=a||"Wiesbaden"}
 $("vOrtAendern").onclick=e=>{e.preventDefault();$("vOrtZeile").classList.toggle("versteckt");if(!$("vOrt").value)$("vOrt").value=ORT;$("vOrt").focus()};
 $("vOrt").addEventListener("input",ortZeigen);
-const ORT_STELLE={vertrag:[[0,746.0,755.5],[1,669.1,678.6]],rueck:[[0,690.6,700.1]]};
+const ORT_STELLE={vertrag:[[0,746.0,755.5],[1,669.1,678.6]],rueck:[[0,690.6,700.1]],schaden:[[0,662.1,671.6]],sv:[[0,548.7,558.2]]};
 function ortStempeln(doc,stelle,stadt,daten){const gr=50.2/FONT.widthOfTextAtSize("Wiesbaden,",1);
   stelle.forEach(([seite,oben,unten],i)=>{const p=doc.getPages()[seite],H=p.getHeight(),t=stadt+", den "+(daten[i]||"");
     const g=Math.min(gr,178/FONT.widthOfTextAtSize(t,1));
     p.drawRectangle({x:32.5,y:H-unten-2.2,width:72,height:unten-oben+3.4,color:PDFLib.rgb(1,1,1)});
     p.drawText(t,{x:34,y:H-unten+0.21*gr,size:g,font:FONT,color:PDFLib.rgb(0.1,0.1,0.1)})})}
-async function fuelleVertrag(v){
+async function fuelleVertrag(v,nur){
   const doc=await lade(V_VERTRAG,v),f=doc.getForm(),u=v.ueb||{},z=v.zahlung||{};
   T(f,"vertrag_nr",v.nr);T(f,"m_name",v.name);T(f,"m_anschrift",v.anschrift);T(f,"m_geb_datum",de(v.geb));T(f,"m_geb_ort",v.gebort);
   T(f,"m_telefon",v.telefon);T(f,"m_email",v.email);T(f,"f_modell",v.auto);T(f,"f_kennzeichen",v.kz);T(f,"f_fin",v.fin);T(f,"f_km",kmText(u.km||v.km));
   T(f,"p1_preis",v.paketPreis?eur((zahl(v.preis1)||0)+(zahl(v.paketPreis)||0)):v.preis1);if(v.zf){T(f,"p2_zusatzfahrer",v.zf);T(f,"p2_preis",v.preis2);X(f,"p2_genehmigt",true)}
   T(f,"mietzeitraum_von",de(v.vonD)+(v.vonU?" "+v.vonU:""));T(f,"mietzeitraum_bis",de(v.bisD)+(v.bisU?" "+v.bisU:""));
-  T(f,"gesamtpreis",v.gesamt);T(f,"freikilometer",kmText(v.freikm));T(f,"mehrkilometer",v.mehrkm);
+  T(f,"gesamtpreis",v.gesamt);T(f,"freikilometer",kmText(v.freikm));TL(f,"mehrkilometer",v.mehrkm);
   [["anzahlung","anzahlung","anz"],["restbetrag","rest","rest"],["kaution_betrag","kaution","kaut"]].forEach(([feld,p,k])=>{const r=z[k]||{};
     T(f,feld,r.betrag);if(r.art)X(f,p+"_"+(r.art==="ec"||r.art==="kredit"?"karte":r.art),true);T(f,p+"_bezahlt_am",de(r.am))});
   if(!(z.kaut||{}).betrag)alle(f,"kaution_betrag").forEach(x=>{try{x.setText("")}catch(e){}});   // Vorlage hat 1.950 als Vorgabe: leer heißt leer (30.10.2026)
-  if(mitFz(v.kautionArt))X(f,"kaution_fahrzeug",true);if(v.kautionArt==="geld"||v.kautionArt==="beides")X(f,"kaution_geld",true);
-  T(f,"kaution_fahrzeugdaten",v.kfz);T(f,"selbstbeteiligung",v.sb);const vOrtA=ortAnders(u.ort||v.ort);T(f,"v_ort_datum",vOrtA?"":v.datum);
-  T(f,"u_datum",de(u.datum||v.vonD));T(f,"u_uhrzeit",u.uhr||v.vonU);T(f,"u_ort",u.ort||ORT);
+  if(mitFz(v.kautionArt))X(f,"kaution_fahrzeug",true);if((v.kautionArt==="geld"||v.kautionArt==="beides")&&!kautNull(z.kaut))X(f,"kaution_geld",true);   // ohne Kaution (0 €) beide leer, E6
+  T(f,"kaution_fahrzeugdaten",v.kautionArt==="geld"?"":v.kfz);TL(f,"selbstbeteiligung",v.sb);const vOrtA=ortAnders(u.ort||v.ort);T(f,"v_ort_datum",vOrtA?"":v.datum);
+  T(f,"u_datum",de(u.datum||v.vonD));T(f,"u_uhrzeit",u.uhr||v.vonU);TO(f,"u_ort",u.ort||ORT);
   X(f,"u_aussen_"+u.aussen,!!u.aussen);X(f,"u_innen_"+u.innen,!!u.innen);X(f,"u_tank_"+u.tank,!!u.tank);
-  X(f,"u_gegenstaende_vollstaendig",u.gegen==="ja");X(f,"u_gegenstaende_abweichung_cb",u.gegen==="nein"||!!u.abw);T(f,"u_gegenstaende_abweichung",u.abw);
+  X(f,"u_gegenstaende_vollstaendig",u.gegen==="ja"&&!u.abw);X(f,"u_gegenstaende_abweichung_cb",u.gegen==="nein"||!!u.abw);T(f,"u_gegenstaende_abweichung",u.abw);
   X(f,"u_reifen_"+u.reifen,!!u.reifen);X(f,"u_reifen_reserverad",!!u.reserve);X(f,"u_felgen_"+u.felgen,!!u.felgen);T(f,"u_reifenmarke",u.marke);
   ["vl","vr","hl","hr"].forEach(k=>T(f,"u_profil_"+k,(u.profil||{})[k]));
   X(f,"u_fotos_ja",u.fotos==="ja");X(f,"u_fotos_nein",u.fotos==="nein");T(f,"u_bemerkung",u.bem);T(f,"u_ort_datum",vOrtA?"":u.ortDatum||v.datum);
-  X(f,"agb_akzeptiert",!!v.avb||!!v.unterschrift);
+  X(f,"agb_akzeptiert",true);   // vorbereitet immer vorbelegt, mit Unterschrift sowieso (C6)
   flach(f);
+  if((z.rest||{}).art==="Kaution"&&z.rest.am){const p=doc.getPages()[0],H=p.getHeight();["mit Kaution","verrechnet"].forEach((t,i)=>p.drawText(t,{x:408,y:H-457.4-i*7.4,size:7,font:FONT,color:PDFLib.rgb(.227451,.227451,.235294)}))}   // Vorlage hat kein Kästchen dafür, E7
   if(vOrtA)ortStempeln(doc,ORT_STELLE.vertrag,vOrtA,[v.datum,u.ortDatum||v.datum]);
   await stempel(doc,0,LINIE.vertrag1,v.unterschrift,v.unterschriftVermieter||vermieterUnterschrift());
-  await stempel(doc,1,LINIE.vertrag2,u.unterschrift,u.unterschriftVermieter||vermieterUnterschrift());
+  await stempel(doc,1,LINIE.vertrag2,u.unterschrift,u.unterschriftVermieter||(v.ueb?vermieterUnterschrift():""));   // keine Vermieter-Unterschrift auf leerem Protokoll (D4)
+  // Einzeldruck nimmt nur, was auf seiner Seite steht (Felder von Seite 2: Protokoll plus Nummer, Auto, Mieter)
+  const zl=(doc.mxZusatz||[]).filter(x=>nur===0?!/^u_/.test(x.n):nur===1?/^(u_|vertrag_nr|f_kennzeichen|f_modell|f_km|m_name|m_telefon)/.test(x.n):true),zd=nur===1?u.ortDatum||v.datum:v.datum;
+  await zusatzblatt(doc,"ZUSATZBLATT zum Mietvertrag-Nr. "+v.nr,(nur===1?"Übergabeprotokoll":nur===0?"Mietvertrag":"Mietvertrag und Übergabeprotokoll")+" vom "+(zd||""),vOrtA||"",zd,zl);
   return doc.save()}
 // Was der Kunde noch zahlt und weshalb: eine Quelle für das Protokoll und die Karte „Noch abkassieren“ (04.11.2026, Baran).
 // Höchstens 4 Posten, mehr fasst der kleinste Teil der Endabrechnung zu „Weitere Kosten“ zusammen. ea: noch nicht gespeicherte Endabrechnung.
@@ -1613,46 +1665,54 @@ async function nachzahlungZeichnen(doc,v){const kr=v.kautionRueck||{},mitK=kr.ve
   const gt=nzBetrag(n.summe);p.drawText(UNTEN,{x:310,y:H-776,size:10,font:B,color:TX});p.drawText(gt,{x:R-B.widthOfTextAtSize(gt,10),y:H-776,size:10,font:B,color:TX})}
 // Bemerkungen sind seit dem Abschnitt Nachzahlung niedriger: selbst gesetzt, langer Text wird kleiner, nichts wird abgeschnitten (Kasten 657 bis 679 von oben)
 function bemerkungZeichnen(doc,t){if(!t)return;const p=doc.getPages()[0],H=p.getHeight(),B=523,sauber=x=>[...String(x)].map(z=>{try{FONT.encodeText(z);return z}catch(e){return z==="\n"?z:""}}).join("");
-  const umbruch=g=>{const l=[];sauber(t).split("\n").forEach(ab=>{let z="";ab.trim().split(/\s+/).forEach(w=>{const n=z?z+" "+w:w;if(z&&FONT.widthOfTextAtSize(n,g)>B){l.push(z);z=w}else z=n});l.push(z)});return l};
-  let g=9,l=umbruch(g);while(g>4.5&&l.length*g*1.18>20){g-=0.25;l=umbruch(g)}
+  const umbruch=(x,g)=>{const l=[];sauber(x).split("\n").forEach(ab=>{let z="";ab.trim().split(/\s+/).forEach(w=>{const n=z?z+" "+w:w;if(z&&FONT.widthOfTextAtSize(n,g)>B){l.push(z);z=w}else z=n});l.push(z)});return l};
+  let g=9,l=umbruch(t,g);while(g>MIN_PT&&l.length*g*1.18>20){g-=0.25;l=umbruch(t,g)}
+  // Ab 7 pt Zusatzblatt (C8): auf dem Protokoll der Anfang mit Verweis, kein Text verschwindet still
+  if(l.length*g*1.18>20){zusatzMerken(doc,"r_bemerkung",t);const k=anfangMit(String(t)," … (vollständig auf dem Zusatzblatt)",x=>umbruch(x,g).length*g*1.18<=20)||SIEHE[0];l=umbruch(k,g)}
   const y0=657.35+(22-l.length*g*1.18)/2+g*0.86;l.forEach((z,i)=>p.drawText(z,{x:37,y:H-y0-i*g*1.18,size:g,font:FONT,color:PDFLib.rgb(.227451,.227451,.235294)}))}
 async function fuelleRueckgabe(v){
   const doc=await lade(V_RUECK,v),f=doc.getForm(),r=v.rueck||{};
   T(f,"r_vertrag_nr",v.nr);T(f,"r_kennzeichen",v.kz);T(f,"r_modell",v.auto);T(f,"r_mieter_name",v.name);T(f,"r_mieter_telefon",v.telefon);
-  T(f,"r_datum",de(r.datum||v.bisD));T(f,"r_uhrzeit",r.uhr||v.bisU);T(f,"r_ort",r.ort||ORT);
+  T(f,"r_datum",de(r.datum||v.bisD));T(f,"r_uhrzeit",r.uhr||v.bisU);TO(f,"r_ort",r.ort||ORT);
   T(f,"r_km",kmText(r.km));T(f,"r_gefahrene_km",kmText(r.gefahren));T(f,"r_mehrkilometer",kmText(r.mehrkm));
   X(f,"r_aussen_"+r.aussen,!!r.aussen);X(f,"r_innen_"+r.innen,!!r.innen);X(f,"r_tank_"+r.tank,!!r.tank);
-  X(f,"r_gegenstaende_vollstaendig",r.gegen==="ja");X(f,"r_gegenstaende_abweichung_cb",r.gegen==="nein"||!!r.abw);T(f,"r_gegenstaende_abweichung",r.abw);
+  X(f,"r_gegenstaende_vollstaendig",r.gegen==="ja"&&!r.abw);X(f,"r_gegenstaende_abweichung_cb",r.gegen==="nein"||!!r.abw);T(f,"r_gegenstaende_abweichung",r.abw);
   X(f,"r_reifen_"+r.reifen,!!r.reifen);X(f,"r_reifen_reserverad",!!r.reserve);X(f,"r_felgen_"+r.felgen,!!r.felgen);T(f,"r_reifenmarke",r.marke);
   ["vl","vr","hl","hr"].forEach(k=>T(f,"r_profil_"+k,(r.profil||{})[k]));
   X(f,"r_fotos_ja",r.fotos==="ja");X(f,"r_fotos_nein",r.fotos==="nein");X(f,"r_auffaellig_ja",r.auff==="ja");X(f,"r_auffaellig_nein",r.auff==="nein");
   const rOrtA=ortAnders(r.ort);T(f,"r_ort_datum",rOrtA?"":r.ortDatum||heuteDe());
-  flach(f);if(rOrtA)ortStempeln(doc,ORT_STELLE.rueck,rOrtA,[r.ortDatum||heuteDe()]);await stempel(doc,0,LINIE.rueck,r.unterschrift,r.unterschriftVermieter||vermieterUnterschrift(),r.verweigert);bemerkungZeichnen(doc,r.bem);await nachzahlungZeichnen(doc,v);return doc.save()}
+  flach(f);if(rOrtA)ortStempeln(doc,ORT_STELLE.rueck,rOrtA,[r.ortDatum||heuteDe()]);await stempel(doc,0,LINIE.rueck,r.unterschrift,r.unterschriftVermieter||vermieterUnterschrift(),r.verweigert);bemerkungZeichnen(doc,r.bem);await nachzahlungZeichnen(doc,v);
+  await zusatzblatt(doc,"ZUSATZBLATT zum Mietvertrag-Nr. "+v.nr,"Rückgabeprotokoll vom "+(r.ortDatum||heuteDe())+", "+(v.auto||"")+", "+(v.kz||""),rOrtA,r.ortDatum||heuteDe());return doc.save()}
 async function fuelleSchaden(v){
   const doc=await lade(V_SCHADEN,v),f=doc.getForm(),s=v.schaden||{};
   T(f,"sa_vertrag_nr",v.nr);T(f,"sa_mieter_name",v.name);T(f,"sa_mieter_telefon",v.telefon);T(f,"sa_mieter_anschrift",v.anschrift);
   T(f,"sa_modell",v.auto);T(f,"sa_kennzeichen",v.kz);T(f,"sa_fin",v.fin);T(f,"sa_km",kmText(s.km));
-  T(f,"sa_datum",de(s.datum));T(f,"sa_uhrzeit",s.uhr);T(f,"sa_ort_feststellung",s.ort);
-  T(f,"sa_schaden_ort",s.ortFz);T(f,"sa_schaden_art",s.art);T(f,"sa_beschreibung",s.besch);
+  T(f,"sa_datum",de(s.datum));T(f,"sa_uhrzeit",s.uhr);TO(f,"sa_ort_feststellung",s.ort);
+  const passtFeld=(n,w)=>{if(!w)return true;const l=alle(f,n);return !l.length||!!passtPt(String(w).replace(/\s*\n\s*/g," "),feldBreite(l),feldPt(l[0]))},ortOk=passtFeld("sa_schaden_ort",s.ortFz),artOk=passtFeld("sa_schaden_art",s.art);
+  T(f,"sa_schaden_ort",ortOk?s.ortFz:"siehe Beschreibung");T(f,"sa_schaden_art",artOk?s.art:"siehe Beschreibung");T(f,"sa_beschreibung",schadenBesch(s,artOk,ortOk));
   X(f,"sa_fotos_ja",s.fotos==="ja");X(f,"sa_fotos_nein",s.fotos==="nein");X(f,"sa_besichtigt_ja",s.besichtigt==="ja");X(f,"sa_besichtigt_nein",s.besichtigt==="nein");
   T(f,"sa_sb",s.sb);X(f,"sa_gutachter",s.weiter==="gutachter");X(f,"sa_kv",s.weiter==="kv");
-  if(mitFz(s.kaution))X(f,"sa_kaution_fahrzeug",true);if(s.kaution==="geld"||s.kaution==="beides"){X(f,"sa_kaution_geld",true);T(f,"sa_kaution_betrag",s.betrag)}
-  T(f,"sa_ort_datum",s.ortDatum||heuteDe());X(f,"sa_anerkannt",!!s.anerkannt);
-  flach(f);await stempel(doc,0,LINIE.schaden,s.unterschrift,s.unterschriftVermieter||vermieterUnterschrift(),s.verweigert);return doc.save()}
+  if(mitFz(s.kaution))X(f,"sa_kaution_fahrzeug",true);if(s.kaution==="geld"||s.kaution==="beides"){if(!kautNull({betrag:s.betrag}))X(f,"sa_kaution_geld",true);T(f,"sa_kaution_betrag",s.betrag)}   // ohne Kaution kein Kästchen, E6
+  const sOrtA=ortAnders(s.ort),sTag=s.ortDatum||heuteDe();T(f,"sa_ort_datum",sOrtA?"":sTag);
+  X(f,"sa_anerkannt",!!s.unterschrift&&!(s.verweigert&&s.verweigert.am));   // folgt der Unterschrift, nie bei Verweigerung (A1, A2, E1, E2)
+  flach(f);if(sOrtA)ortStempeln(doc,ORT_STELLE.schaden,sOrtA,[sTag]);await stempel(doc,0,LINIE.schaden,s.unterschrift,s.unterschriftVermieter||vermieterUnterschrift(),s.verweigert);
+  await zusatzblatt(doc,"ZUSATZBLATT zum Mietvertrag-Nr. "+v.nr,"Schadensanerkennung vom "+sTag+", "+(v.auto||"")+", "+(v.kz||""),sOrtA,sTag);return doc.save()}
 async function fuelleUeberlassung(v){
   const doc=await lade(V_SV,v),f=doc.getForm(),s=v.sv||{};
   T(f,"sv_vertrag_nr",v.nr);T(f,"sv_mieter_name",v.name);T(f,"sv_mieter_geb",de(v.geb));T(f,"sv_mieter_anschrift",v.anschrift);
   T(f,"sv_sf_modell",s.modell);T(f,"sv_sf_kennzeichen",s.kz);T(f,"sv_sf_fin",s.fin);T(f,"sv_sf_wert",s.wert);
   X(f,"sv_uebergabe_schein",!!s.schein);X(f,"sv_uebergabe_brief",!!s.brief);
-  T(f,"sv_schluessel_anzahl",s.schluessel);T(f,"sv_ort_datum",s.ortDatum||heuteDe());X(f,"sv_bestaetigt",!!s.bestaetigt||!!s.unterschrift);
-  flach(f);await stempel(doc,0,LINIE.sv,s.unterschrift,s.unterschriftVermieter||vermieterUnterschrift());return doc.save()}
+  const vaOrt=ortAnders((v.ueb||{}).ort||v.ort),svTag=s.ortDatum||heuteDe();T(f,"sv_schluessel_anzahl",s.schluessel);T(f,"sv_ort_datum",vaOrt?"":svTag);X(f,"sv_bestaetigt",!!s.bestaetigt||!!s.unterschrift);
+  flach(f);if(vaOrt)ortStempeln(doc,ORT_STELLE.sv,vaOrt,[svTag]);await stempel(doc,0,LINIE.sv,s.unterschrift,s.unterschriftVermieter||vermieterUnterschrift());
+  await zusatzblatt(doc,"ZUSATZBLATT zum Mietvertrag-Nr. "+v.nr,"Überlassungserklärung vom "+svTag+", "+(s.modell||"")+", "+(s.kz||""),vaOrt,svTag);return doc.save()}
 // Mietvertrag als PDF teilen (iPhone: Teilen-Fenster, dann WhatsApp und den Kunden wählen). Mit Unterschriften, wenn da.
 async function teilen(v){try{const b=await fuelleVertrag(v);const f=new File([b],"Mietvertrag "+v.nr+" "+v.name+".pdf",{type:"application/pdf"});
     if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:"Mietvertrag "+v.nr})}
     else{const url=URL.createObjectURL(new Blob([b],{type:"application/pdf"}));window.open(url,"_blank");meldung("Teilen geht hier nicht, PDF ist offen")}}
   catch(e){if(!/abort/i.test(e.message||""))alert("Senden ging nicht: "+e.message)}}
+// Blatt i aus dem Mietvertrag, ein Zusatzblatt (ab Seite 3) geht immer mit
 async function seite(machen,i){const voll=await PDFLib.PDFDocument.load(await machen());
-  const neu=await PDFLib.PDFDocument.create();const[p]=await neu.copyPages(voll,[i]);neu.addPage(p);return neu.save()}
+  const neu=await PDFLib.PDFDocument.create();(await neu.copyPages(voll,[i].concat(voll.getPageIndices().slice(2)))).forEach(p=>neu.addPage(p));return neu.save()}
 // Am Computer (Chrome, Edge, Firefox) geht es direkt ins Druckfenster, ohne erst die PDF-Ansicht zu öffnen.
 const DIREKT=!/Mobi|iPhone|iPad|Android/.test(navigator.userAgent)&&/Chrome|Firefox|Edg/.test(navigator.userAgent);
 async function drucken(machen){
@@ -1689,7 +1749,7 @@ function sammle(){
     zahlung:{anz:zl("anzB","z_anz","anzAm"),rest:zl("restB","z_rest","restAm"),kaut:{betrag:betrag("kautB"),art:gw("z_kaut"),am:$("kautAm").value}},
     kautionArt:gw("k_art"),kfz:$("kfz").value.trim(),sb:betrag("sb"),status:"unterwegs",
     ort:$("vOrt").value.trim()||ORT,
-    unterschrift:PAD.padV.wert(),unterschriftVermieter:PAD.padV.wert()?vermieterUnterschrift():"",avb:an("avbHaken")||!!PAD.padV.wert()}}
+    unterschrift:PAD.padV.wert(),unterschriftVermieter:PAD.padV.wert()?vermieterUnterschrift():"",avb:true}}
 function lerneAuto(name,werte){const fz=lies("mietixFahrzeuge",{});const neu=fz[name]||{};
   Object.keys(werte).forEach(k=>{if(werte[k])neu[k]=werte[k]});fz[name]=neu;schreib("mietixFahrzeuge",fz)}
 // Zahlung, die inzwischen bei Übergabe oder in der Übersicht eingetragen wurde, kommt ins Formular. Sonst nimmt Speichern sie still zurück (04.11.2026, Nachtest 3)
@@ -1764,7 +1824,7 @@ function formularLaden(erzwingen){const v=aktuell();if(!v)return;
     $("rKm").value=kmText(r.km||"");$("rKmAb").value=kmText(u.km||v.km||"");$("rKmAbFeld").classList.toggle("versteckt",!!$("rKmAb").value.trim());$("rGef").value=kmText(r.gefahren||"");$("rMehr").value=kmText(r.mehrkm||"");
     $("rD").value=r.datum||iso(new Date());$("rU").value=r.uhr||jetztUhr();$("rOrt").value=r.ort||ORT;
     protokollSetzen("r",Object.assign({aussen:"sauber",innen:"sauber",tank:"voll",gegen:"ja",fotos:"ja",
-      reifen:u.reifen,felgen:u.felgen,reserve:u.reserve,marke:u.marke,profil:u.profil},v.rueck||{}));
+      reifen:u.reifen||uebStandard(v).reifen,felgen:u.felgen||"alu",reserve:u.reserve,marke:u.marke,profil:u.profil},v.rueck||{}));
     gs("r_auff",r.auff||"nein");$("rBem").value=r.bem||"";PAD.padR.setzen(r.unterschrift||"");verwSetzen("padR",(r.verweigert||{}).am||"");
     const ea=v.endabrechnung||{};$("eSatz").value=ea.satz!=null?eur(ea.satz):(v.mehrkm||"1,99");E_ZURUECK=null;E_FEST=v.status==="zurück"&&v.endabrechnung?{nr:v.nr,tank:ea.tank,liter:ea.liter,versp:ea.versp}:null;E_KM_HAND=ea.kmB!=null&&Math.round(ea.kmB)!==Math.round((+ea.mehrkm||0)*(+ea.satz||0));$("eKmB").value=E_KM_HAND?eur(ea.kmB):"";
     $("eAuf").value=ea.aufWahl!=null?ea.aufWahl:"";$("eAufFrei").value=ea.aufWahl==="frei"&&ea.auf?eur(ea.auf):"";eExtraSetzen(ea.extra);
@@ -1775,7 +1835,7 @@ function formularLaden(erzwingen){const v=aktuell();if(!v)return;
     $("sBesch").value=s.besch||(v.rueck&&v.rueck.auff==="ja"?v.rueck.bem||"":"");   // aus der Rückgabe übernommen
     $("sSb").value=s.sb||v.sb||"";gs("s_fotos",s.fotos||"ja");gs("s_besichtigt",s.besichtigt||"ja");gs("s_weiter",s.weiter||"");
     gs("s_kaution",s.kaution||v.kautionArt||"geld");
-    $("sKaution").value=s.betrag||((v.zahlung||{}).kaut||{}).betrag||"";PAD.padS.setzen(s.unterschrift||"");setzeAn("sAnerkannt",s.anerkannt);verwSetzen("padS",(s.verweigert||{}).am||"");S_HAND={};sKautZeigen();
+    $("sKaution").value=s.betrag||((v.zahlung||{}).kaut||{}).betrag||"";PAD.padS.setzen(s.unterschrift||"");verwSetzen("padS",(s.verweigert||{}).am||"");S_HAND={};S_BES_HAND=!!s.besichtigt;sKautZeigen();sAnerkanntZeigen();
 }
   if(SICHT==="ueberlassung"){const s=v.sv||{};$("vInfo").innerHTML="Mieter: "+v.name+"<br>geb. am: "+de(v.geb)+"<br>Anschrift: "+(v.anschrift||"");
     const kf=String(v.kfz||"").split(",").map(x=>x.trim()).filter(Boolean),einTeil=kf.length===1?kf[0]:"",istKz=/^[A-ZÄÖÜ]{1,3}[ -]+[A-Z]{1,2}[ -]*\d{1,4}[EH]?$/i.test(einTeil);
@@ -1862,33 +1922,80 @@ function fehltNoch(){const f=[],w=i=>!!String($(i).value||"").trim();if(!w("name
   if(!$("vonD").value||!$("bisD").value)f.push([!$("vonD").value?"vonD":"bisD","Zeitraum"]);else if($("bisD").value<$("vonD").value)f.push(["bisD","Rückgabe liegt vor der Abholung"]);if(!w("preis1"))f.push(["preis1","Preis"]);return f}
 // Zum ersten fehlenden Feld springen (versteckte Felder wie die Anschrift: das sichtbare Feld daneben)
 function hinZu(id){if(id==="modell"){const z=$("autoZeile");z.classList.add("fehlt");try{z.scrollIntoView({block:"center",behavior:"smooth"})}catch(x){}return}
-  let el=$(id);if(!el)return;if(el.offsetParent===null&&el.nextElementSibling)el=el.nextElementSibling.querySelector("input")||el.nextElementSibling;
+  let el=$(id)||gruppe(id);if(!el)return;{const zu=el.closest("#wFz,#wKm,#wuZust,#wrZust,#wUZeit,#wRZeit");if(zu){KURZ_OFFEN["k"+zu.id.slice(1)]=true;kurzAlle()}}
+  if(el.offsetParent===null&&el.nextElementSibling)el=el.nextElementSibling.querySelector("input")||el.nextElementSibling;
   try{el.scrollIntoView({block:"center",behavior:"smooth"});if(el.focus&&el.tagName==="INPUT")el.focus()}catch(x){}}
 // Übergabe und Rückgabe erst, wenn alles da und unterschrieben ist. Getipptes bleibt als Entwurf gesichert, auch für das andere Gerät.
 /* Kunde verweigert Unterschrift (1.11.2026, Baran mit Anwalt): nur Rückgabe und Schadensanerkennung, nie Mietvertrag oder Übergabe.
    Ein Tipp fragt nach und vermerkt Datum und Uhrzeit, Rückgabe geht dann weiter, im PDF steht der Vermerk statt der Unterschrift. */
-var S_HAND={};   // Felder der Schadensanerkennung, die jemand selbst getippt hat
+var S_HAND={},S_BES_HAND=false;   // Felder der Schadensanerkennung, die jemand selbst getippt hat; Besichtigt selbst gewählt
 const VERW={padR:"",padS:""},VERW_CHIP={padR:"rVerw",padS:"sVerw"};
 const verwText=am=>{const d=new Date(am);return "Kunde verweigert Unterschrift, "+String(d.getDate()).padStart(2,"0")+"."+String(d.getMonth()+1).padStart(2,"0")+"."+d.getFullYear()+" "+String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0")+" Uhr"};
-function verwSetzen(k,am){VERW[k]=am||"";const c=$(VERW_CHIP[k]);if(!c)return;c.classList.toggle("an",!!VERW[k]);c.textContent=VERW[k]?verwText(VERW[k]):"Kunde verweigert Unterschrift"}
+function verwSetzen(k,am){VERW[k]=am||"";const c=$(VERW_CHIP[k]);if(!c)return;c.classList.toggle("an",!!VERW[k]);c.textContent=VERW[k]?verwText(VERW[k]):"Kunde verweigert Unterschrift";if(k==="padS")sAnerkanntZeigen()}
 const verwOk=k=>!!VERW[k]&&!(PAD[k]&&PAD[k].wert());
 ["padR","padS"].forEach(k=>{const c=$(VERW_CHIP[k]);if(!c)return;c.onclick=()=>{
   if(VERW[k]){verwSetzen(k,"");}else{if(PAD[k]&&PAD[k].wert()){meldung("Der Kunde hat schon unterschrieben");return}
     if(!confirm("Kunde verweigert die Unterschrift? Wird mit Datum und Uhrzeit vermerkt."))return;verwSetzen(k,new Date().toISOString())}
+  // „Gemeinsam besichtigt“ ist bei Verweigerung kein Vorschlag mehr, das entscheidet Baran bewusst
+  if(k==="padS"&&!S_BES_HAND)gs("s_besichtigt",VERW.padS?"":"ja");
   try{protMerken()}catch(e){}schritte();hauptText()};
-  const P=PAD[k];if(P){const alt=P.setzen;P.setzen=function(d){const r=alt.apply(P,arguments);if(d&&VERW[k])verwSetzen(k,"");return r}}});
+  const P=PAD[k];if(P){const alt=P.setzen;P.setzen=function(d){const r=alt.apply(P,arguments);if(d&&VERW[k])verwSetzen(k,"");if(k==="padS")sAnerkanntZeigen();return r}}});
+// Gruppen beim fertigen Papier: nie keins, nie zwei (Prüfung 05.11.2026, A5, B4). Antippen und ändern bleibt immer möglich, leer geht nur beim Vorbereiten.
+const GRUPPEN_PROT=[["aussen","Außen"],["innen","Innenraum"],["tank","Tankfüllung"],["gegen","Gegenstände"],["reifen","Bereifung"],["felgen","Felgen"],["fotos","Fotos"]];
+function fehltGruppen(p,f){GRUPPEN_PROT.forEach(([k,t])=>{if(!gw(p+"_"+k))f.push([p+"_"+k,t])});if(gw(p+"_gegen")==="nein"&&!$(p+"Abw").value.trim())f.push([p+"Abw","Text bei Abweichungen"])}
+function fehltSchaden(f){const w=i=>!!String($(i).value||"").trim();if(!w("sOrtFz"))f.push(["sOrtFz","Ort am Fahrzeug"]);if(!w("sArt"))f.push(["sArt","Art des Schadens"]);if(!w("sBesch"))f.push(["sBesch","Schadensbeschreibung"]);
+  [["s_fotos","Fotos zur Dokumentation"],["s_besichtigt","Schaden gemeinsam besichtigt"],["s_weiter","Weiteres Vorgehen"],["s_kaution","Einbehaltene Kaution"]].forEach(([g,t])=>{if(!gw(g))f.push([g,t])})}
 function fehltProtokoll(){kautFeldNull();const v=aktuell(),f=[];if(!v)return f;const pad=k=>!!(PAD[k]&&PAD[k].wert()),w=i=>!!($(i)&&String($(i).value||"").trim());
-  if(SICHT==="uebergabe"&&!v.ueb){if(!v.unterschrift)f.push(["schritte","Unterschrift Mietvertrag"]);if(!w("uKm"))f.push(["uKm","Kilometerstand"]);else if(zahl($("uKm").value)===null)f.push(["uKm","Kilometerstand als Zahl"]);
+  if(SICHT==="uebergabe"){const sv=!$("svSlot").classList.contains("versteckt");
+    if(!v.ueb){if(!v.unterschrift)f.push(["schritte","Unterschrift Mietvertrag"]);if(!w("uKm"))f.push(["uKm","Kilometerstand"]);else if(zahl($("uKm").value)===null)f.push(["uKm","Kilometerstand als Zahl"]);
     // Kaution ist Pflicht (Baran 04.11.2026): erhalten oder bewusst 0 €. Nur Fahrzeug als Sicherheit braucht kein Geld. Alte Mietverträge fragt erst das Ausfüllen der Übergabe.
     if(mitGeld(v.kautionArt)&&!kautFertig(v))f.push(["uZahlKarte","Kaution (Zahlart wählen oder 0 € eintragen)"]);
-    if(!$("svSlot").classList.contains("versteckt")){if(!w("vModell")||!w("vKz"))f.push(["vModell","Sicherungsfahrzeug"]);if(!w("vFin"))f.push(["vFin","Fahrgestellnummer"]);   // 1.11.2026 Baran: FIN Pflicht, Fahrzeugwert unnötig (raus)
-if(!pad("padSV"))f.push(["padSV","Unterschrift Überlassungserklärung"])}
-    if(!pad("padU"))f.push(["padU","Unterschrift Übergabe"])}
-  if(SICHT==="rueckgabe"&&v.status!=="zurück"){if(!v.ueb)f.push(["schritte","erst die Übergabe"]);if(!w("rKm"))f.push(["rKm","Kilometerstand"]);else if(zahl($("rKm").value)===null)f.push(["rKm","Kilometerstand als Zahl"]);   // 1.11.2026 Test: Rückgabe ging ohne Übergabe
-    if(!pad("padR")&&!verwOk("padR"))f.push(["padR","Unterschrift Rückgabe"]);
-    if(gw("r_auff")==="ja"){if(!w("sBesch"))f.push(["sBesch","Schadensbeschreibung"]);if(!pad("padS")&&!verwOk("padS"))f.push(["padS","Unterschrift Schadensanerkennung"])}}
+    if(sv){if(!w("vModell")||!w("vKz"))f.push(["vModell","Sicherungsfahrzeug"]);if(!w("vFin"))f.push(["vFin","Fahrgestellnummer"]);   // 1.11.2026 Baran: FIN Pflicht, Fahrzeugwert unnötig (raus)
+if(!pad("padSV"))f.push(["padSV","Unterschrift Überlassungserklärung"])}}
+    if(sv&&(!v.ueb||pad("padSV"))&&!an("vSchein")&&!an("vBrief"))f.push(["vSchein","Fahrzeugschein oder Fahrzeugbrief"]);
+    if(!v.ueb||pad("padU"))fehltGruppen("u",f);
+    if(!v.ueb&&!pad("padU"))f.push(["padU","Unterschrift Übergabe"])}
+  if(SICHT==="rueckgabe"){const neu=v.status!=="zurück",uR=pad("padR")||verwOk("padR");
+    if(neu){if(!v.ueb)f.push(["schritte","erst die Übergabe"]);if(!w("rKm"))f.push(["rKm","Kilometerstand"]);else if(zahl($("rKm").value)===null)f.push(["rKm","Kilometerstand als Zahl"])}   // 1.11.2026 Test: Rückgabe ging ohne Übergabe
+    if(neu||uR){fehltGruppen("r",f);if(!gw("r_auff"))f.push(["r_auff","Auffällig ja oder nein"])}
+    if(neu&&!uR)f.push(["padR","Unterschrift Rückgabe"]);
+    // Schaden auch nachträglich (C5). Alte Schäden ohne Unterschrift bleiben speicherbar, Vorbereiten geht.
+    if(gw("r_auff")==="ja"){const uS=pad("padS")||verwOk("padS"),sNeu=neu||!v.schaden;if(sNeu||uS)fehltSchaden(f);if(sNeu&&!uS)f.push(["padS","Unterschrift Schadensanerkennung"])}}
   return f}
-function gesperrtMeldung(f){if(f.some(x=>x[0]==="modell"))$("autoZeile").classList.add("fehlt");hinZu(f[0][0]);meldungRot("Noch fehlt: "+f.map(x=>x[1]).join(", "))}
+// Mietvertrag fertig (mit Unterschrift): FIN, SB, Mehrkilometer. Kommt der Wert aus den Fahrzeugdaten, steht er als Vorschlag im Feld, sonst roter Hinweis (B2, C7). Vorbereiten geht ohne.
+function fehltMietvertragFertig(){const f=[],w=i=>!!String($(i).value||"").trim(),m=$("modell").value.trim(),fz=fahrzeugListe().find(a=>a.name===m)||{},p=autoPreis(m)||{},z=(aktuell()||{}).zahlung||{},alt=vorgaenge().find(x=>x.nr===$("nr").value.trim()),altU=!!alt&&!!alt.unterschrift&&alt.unterschrift===PAD.padV.wert();
+  // Alter, schon unterschriebener Mietvertrag ohne den Wert bleibt speicherbar. Wer einen vorhandenen Wert löscht oder neu unterschreiben lässt, bekommt den Hinweis.
+  [["fin","Fahrgestellnummer",fz.fin],["sb","Selbstbeteiligung",fz.sb],["mehrkm","Preis je Mehrkilometer",p.kmPreis?eur(p.kmPreis):""]].forEach(([i,t,x])=>{if(w(i)||(altU&&!alt[i]))return;if(x){$(i).value=x;$(i).dispatchEvent(new Event("input",{bubbles:true}));f.push([i,t+" (Vorschlag aus den Fahrzeugdaten eingetragen, bitte prüfen)"])}else f.push([i,t])});
+  [["Zahlart Anzahlung","z_anz","anzAm","anz"],["Zahlart Rest","z_rest","restAm","rest"],["Zahlart Kaution","z_kaut","kautAm","kaut"]].forEach(([t,g,d,k])=>{if($(d).value&&!gw(g)&&(z[k]||{}).art!=="Kaution")f.push([g,t])});return f}
+// Passt ein Text nicht aufs Papier, sagt die App das vor der Unterschrift (A3, A4, B3, C8). Nur Hinweis, kein Stopp außer einem Tipp.
+let HV=null;function breiteHv(t,g){if(!HV)HV=PDFLib.StandardFontEmbedder.for(PDFLib.StandardFonts.Helvetica);const x=String(t);try{return HV.widthOfTextAtSize(x,g)}catch(e){return HV.widthOfTextAtSize(x.replace(/[^\x20-\x7E\xA0-\xFF]/g,"n"),g)}}
+const passtEinzeilig=(t,b)=>breiteHv(t.replace(/\s+/g," "),MIN_PT)<=(b-4)*0.985;
+function passtMehrzeilig(t,b,h,g,faktor){g=g||MIN_PT;let z=0;String(t).split("\n").forEach(ab=>{let a="";z++;ab.trim().split(/\s+/).forEach(w=>{const n=a?a+" "+w:w;if(a&&breiteHv(n,g)>(b-4)*0.985){z++;a=w}else a=n})});return z*g*(faktor||ZEILEN_FAKTOR)<=h-1.5}
+const PAPIER_FELDER={vertrag:[["name","Name",160],["anschrift","Anschrift",204],["gebort","Geburtsort",70],["telefon","Telefon",160],["email","E-Mail",204],["modell","Fahrzeug",160],["kz","Kennzeichen",113],["fin","Fahrgestellnummer",152],["zf","Zusatzfahrer",190],["kfz2","Fahrzeugdaten der Sicherheit",301]],
+  uebergabe:[["uAbw","Abweichungen",270],["uMarke","Reifenmarke",144],["uOrt","Ort der Übergabe",143,"ort"],["uBem","Bemerkungen",527,38],["vModell","Sicherungsfahrzeug",200],["vKz","Kennzeichen Sicherungsfahrzeug",161],["vFin","Fahrgestellnummer Sicherungsfahrzeug",180]],
+  rueckgabe:[["rAbw","Abweichungen",250],["rMarke","Reifenmarke",144],["rOrt","Ort der Rückgabe",143,"ort"],["rBem","Bemerkungen",523,20],["sOrtFz","Ort am Fahrzeug",156,"sch"],["sArt","Art des Schadens",151,"sch"],["sOrt","Ort der Feststellung",99,"ort"],["sBesch","Beschreibung",445,50]]};
+function papierPruefen(){const l=[],felder=PAPIER_FELDER[SICHT]||[];
+  document.querySelectorAll(".papHin").forEach(e=>e.classList.add("versteckt"));
+  felder.forEach(([id,wort,b,art])=>{const e=$(id);if(!e)return;let t=String(e.value||"").trim(),rot="";if(!t&&id!=="sBesch")return;
+    if(id==="kfz2"&&!mitFz(gw("k_art")))return;if(id[0]==="v"&&id!=="vonD"&&$("svSlot").classList.contains("versteckt"))return;if(/^s[OAB]/.test(id)&&gw("r_auff")!=="ja")return;
+    if(id==="sBesch"){const aOk=passtEinzeilig($("sArt").value.trim(),151),oOk=passtEinzeilig($("sOrtFz").value.trim(),156);t=schadenBesch({ortFz:$("sOrtFz").value.trim(),art:$("sArt").value.trim(),besch:t},aOk,oOk);if(!passtMehrzeilig(t,b,art))rot="Passt auch mit 7 pt nicht ins Feld. Der ganze Wortlaut kommt auf ein Zusatzblatt, das der Kunde von Hand unterschreibt."}
+    else if(art==="ort"){if(!ortFassungen(t).some(x=>passtEinzeilig(x,b)))rot="Passt nicht ins Feld. Der ganze Wortlaut kommt auf ein Zusatzblatt, das der Kunde von Hand unterschreibt."}
+    else if(art==="sch"){if(!passtEinzeilig(t,b))rot="Passt nicht lesbar ins Feld. Der ganze Wortlaut kommt in die Beschreibung, im Feld steht „siehe Beschreibung“."}
+    else if(typeof art==="number"){if(!(id==="rBem"?passtMehrzeilig(t,b,art+1.5,MIN_PT,1.18):passtMehrzeilig(t,b,art)))rot="Passt auch mit 7 pt nicht ins Feld. Der ganze Wortlaut kommt auf ein Zusatzblatt, das der Kunde von Hand unterschreibt."}
+    else if(!passtEinzeilig(t,b))rot="Passt nicht ins Feld. Der ganze Wortlaut kommt auf ein Zusatzblatt, das der Kunde von Hand unterschreibt.";
+    if(!rot)return;l.push([id,wort]);const anker=id==="modell"?$("autoZeile"):e;let h=anker.nextElementSibling;if(!h||!h.classList.contains("papHin")){h=document.createElement("div");h.className="hinweis papHin";h.style.cssText="color:var(--rot);font-weight:700;margin-top:5px";anker.insertAdjacentElement("afterend",h)}h.textContent=rot;h.classList.remove("versteckt")});
+  return l}
+let ZUS_GESEHEN="";
+function zusatzGesehen(){const l=papierPruefen();if(!l.length)return true;const k=SICHT+l.map(x=>x[1]).join("|");if(k===ZUS_GESEHEN)return true;ZUS_GESEHEN=k;hinZu(l[0][0]);meldungRot("Passt nicht aufs Papier: "+l.map(x=>x[1]).join(", ")+". Der ganze Wortlaut steht in der Beschreibung oder auf einem Zusatzblatt zum Unterschreiben von Hand. Zum Weitermachen nochmal tippen.");return false}
+document.addEventListener("input",e=>{if(e.target&&e.target.closest&&e.target.closest("#s_vertrag,#s_uebergabe,#s_rueckgabe"))papierPruefen()});
+// Datum neben einer vorhandenen Unterschrift bleibt der Tag der Unterschrift (A6, E9). „Geändert am“ steht nur in der App, nie auf dem Papier.
+const PAPIER_OHNE=["ortDatum","geaendertAm","unterschriftVermieter"];
+const papierVergleich=o=>JSON.stringify(Object.keys(o||{}).filter(k=>!PAPIER_OHNE.includes(k)).sort().map(k=>[k,o[k]]));
+function papierStand(alt,neu){alt=alt||{};const a=alt.unterschrift||(alt.verweigert||{}).am||"",n=neu.unterschrift||(neu.verweigert||{}).am||"",bleibt=!!n&&a===n,h=heuteDe();
+  neu.ortDatum=bleibt?(alt.ortDatum||h):h;if(alt.geaendertAm&&bleibt)neu.geaendertAm=alt.geaendertAm;if(bleibt&&alt.ortDatum&&alt.ortDatum!==h&&papierVergleich(alt)!==papierVergleich(neu))neu.geaendertAm=h;return neu}
+function papierkorbFassung(v,text){const pk=lies("mietixPapierkorb",[]);pk.push({id:"mietixVorgaenge:"+v.nr+":"+Date.now(),ablage:"mietixVorgaenge",schluessel:v.nr,eintrag:JSON.parse(JSON.stringify(v)),zeit:new Date().toISOString(),text});localStorage.setItem("mietixPapierkorb",JSON.stringify(pk))}
+function sAnerkanntZeigen(){const e=$("sAnerkannt");if(!e)return;e.textContent=PAD.padS&&PAD.padS.wert()?"✓ „Erkennt an“ ist mit der Unterschrift angekreuzt.":VERW.padS?"„Erkennt an“ bleibt leer, weil der Kunde die Unterschrift verweigert.":"„Erkennt an“ wird mit der Unterschrift angekreuzt."}
+function gesperrtMeldung(f){if(f.some(x=>x[0]==="modell"))$("autoZeile").classList.add("fehlt");f.forEach(x=>{const g=gruppe(x[0]);if(g)g.classList.add("fehlt")});hinZu(f[0][0]);meldungRot("Noch fehlt: "+f.map(x=>x[1]).join(", "))}
 function padsAusEntwurf(){const d=protAlle()[WAHL+"|"+SICHT];if(d&&d.p)Object.entries(d.p).forEach(([k,x])=>{if(x&&PAD[k]&&!PAD[k].wert())PAD[k].setzen(x)})}
 function hauptText(){const k=$("haupt");k.classList.remove("aus");if(gesperrt(SICHT))return;
   if(SICHT==="vertrag"){   // 1.11.2026 Baran: keine Dauer-Anzeige „Noch fehlt“, erst beim Tippen roter Hinweis
@@ -1929,6 +2036,15 @@ function vertragSpeichern(){if($("haupt").textContent==="Wird gespeichert …")r
   const b=belegtDurch(v);if(b.length&&!confirm("ACHTUNG, "+v.auto+" ist in dem Zeitraum schon vergeben:\n\n"+b.join("\n")+"\n\nTrotzdem weiter?"))return;
   const neu=!nrVonHand&&!vorgaenge().some(x=>x.nr===v.nr&&x.name===v.name);
   if(neu&&!navigator.onLine&&!confirm("Kein Internet: Die Nummer "+v.nr+" ist nur vorläufig.\n\nBitte am anderen Handy nicht gleichzeitig einen neuen Mietvertrag anlegen, sonst gibt es die Nummer doppelt.\n\nOK = trotzdem weiter"))return;
+  const altV=vorgaenge().find(x=>x.nr===v.nr);
+  if(altV){if(altV.unterschrift&&altV.unterschrift===v.unterschrift&&altV.datum){v.datum=altV.datum;if(altV.datum!==heuteDe()&&ungespeichert())v.geaendertAm=heuteDe()}   // Datum bleibt der Tag der Unterschrift (A6, E9)
+    const zr=(altV.zahlung||{}).rest||{};if(zr.art==="Kaution"&&!v.zahlung.rest.art&&v.zahlung.rest.am===zr.am)v.zahlung.rest.art="Kaution";   // Verrechnung mit der Kaution hat keinen Knopf im Formular
+    // Kaution von Fahrzeug auf Geld: Fahrzeugdaten und Überlassung gehören nicht mehr aufs Papier, nachfragen (B8)
+    if(v.kautionArt==="geld"&&mitFz(altV.kautionArt)&&(altV.sv||altV.kfz)){if(!confirm("Die Kaution steht jetzt nur noch auf Geld. Bei Mietvertrag "+v.nr+" gibt es noch Fahrzeugdaten"+(altV.sv?" und eine Überlassungserklärung":"")+".\n\nOK = löschen, sie liegen danach im Papierkorb\nAbbrechen = Kaution bleibt beim Fahrzeug")){kautSetzen(altV.kautionArt);meldungRot("Kaution bleibt beim Fahrzeug, nichts geändert.");return}
+      papierkorbFassung(altV,"Überlassungserklärung zu Mietvertrag "+v.nr+": "+(altV.name||"")+" (ganzer Mietvertrag vor dem Löschen)");v.kfz="";$("kfz").value="";$("kfz2").value="";v.sv=null}
+    // SB oder Kaution geändert, im Schaden steht noch der alte Wert: fragen, ob er mitzieht (C1)
+    if(altV.schaden){const s=altV.schaden,kn=v.zahlung.kaut.betrag,sbNeu=v.sb!==altV.sb&&v.sb!==s.sb,kNeu=mitGeld(s.kaution)&&kn!==((altV.zahlung||{}).kaut||{}).betrag&&kn!==s.betrag;
+      if((sbNeu||kNeu)&&confirm("Die Schadensanerkennung steht noch auf "+[sbNeu?"Selbstbeteiligung "+(s.sb||"leer")+" €":"",kNeu?"Kaution "+(s.betrag||"leer")+" €":""].filter(Boolean).join(" und ")+".\n\nOK = Schaden zieht mit\nAbbrechen = Schaden bleibt, wie er ist"))v.schaden=Object.assign({},s,sbNeu?{sb:v.sb}:{},kNeu?{betrag:kn}:{})}}
   let schonFertig=false;
   const fertig=()=>{if(schonFertig)return;schonFertig=true;merke(v);
     if(!vorgaenge().some(x=>x.nr===v.nr)){meldung("Nicht gespeichert, bitte Baran Bescheid geben");return}try{if(+v.nr>(+(localStorage.getItem("mietixHoechsteNr")||0)||0))localStorage.setItem("mietixHoechsteNr",String(+v.nr))}catch(x){}ANFRAGE=null;nrVonHand=true;$("nr").value=v.nr;NEU=false;GELADEN={};standMerken();altWeg(v.nr);
@@ -1952,23 +2068,27 @@ $("haupt").onclick=()=>{
   if(SICHT==="mappe"){const v=aktuell();if(MAPPE_NX&&v){if(MAPPE_NX==="vertrag")vertragLaden(v);zeige(MAPPE_NX)}else{leeren();zeige("vertrag")}return}   // nie in einen alten Mietvertrag speichern, solange ein neuer offen ist
   if(SICHT==="heute"||SICHT==="vertraege"||SICHT==="unterwegs"||SICHT==="abgeschlossen"){nbAuf();return}   // 01.11.2026 Fassung 2: „+ Neue Buchung“ öffnet direkt das Formular
   if(["buchung","neu","iban","reserviert"].includes(SICHT)){buHaupt();return}
-  if(SICHT==="vertrag"){const f=fehltNoch();if(f.length){gesperrtMeldung(f);return}
-    vertragSpeichern();return}
+  if(SICHT==="vertrag"){const f=fehltNoch();if(!f.length&&PAD.padV.wert())f.push(...fehltMietvertragFertig());if(f.length){gesperrtMeldung(f);return}
+    if(!zusatzGesehen())return;vertragSpeichern();return}
   if(!aktuell()){meldung("Erst oben unter „Neuer Mietvertrag“ einen Mietvertrag anlegen.");return}
-  if(SICHT==="uebergabe"&&!(aktuell()||{}).ueb){padsAusEntwurf();const f=fehltProtokoll();if(f.length){gesperrtMeldung(f);return}}
-  if(SICHT==="uebergabe"){if(!$("svSlot").classList.contains("versteckt"))svSpeichern();const v=aendere(v=>{v.ueb=Object.assign(protokollLesen("u"),{km:$("uKm").value.trim(),datum:$("uD").value,
-      uhr:$("uU").value,ort:$("uOrt").value.trim(),bem:$("uBem").value.trim(),ortDatum:heuteDe(),unterschrift:PAD.padU.wert(),unterschriftVermieter:PAD.padU.wert()?vermieterUnterschrift():""});v.ort=v.ueb.ort||v.ort;if(v.ueb.km)v.km=v.ueb.km});
+  if(SICHT==="uebergabe"){if(!(aktuell()||{}).ueb)padsAusEntwurf();const f=fehltProtokoll();if(f.length){gesperrtMeldung(f);return}if(!zusatzGesehen())return}
+  if(SICHT==="uebergabe"){if(!$("svSlot").classList.contains("versteckt"))svSpeichern();const v=aendere(v=>{v.ueb=papierStand(v.ueb,Object.assign(protokollLesen("u"),{km:$("uKm").value.trim(),datum:$("uD").value,
+      uhr:$("uU").value,ort:$("uOrt").value.trim(),bem:$("uBem").value.trim(),unterschrift:PAD.padU.wert(),unterschriftVermieter:PAD.padU.wert()?vermieterUnterschrift():""}));v.ort=v.ueb.ort||v.ort;if(v.ueb.km)v.km=v.ueb.km});
     lerneAuto(v.auto,{km:v.ueb.km,reifen:v.ueb.reifen,felgen:v.ueb.felgen,reserve:v.ueb.reserve,marke:v.ueb.marke,profil:v.ueb.profil});
     protWeg(v.nr,"uebergabe");GELADEN={};zeige("mappe");
     if(v.ueb.unterschrift)erfolg("Übergeben. Gute Fahrt!","Zurück am "+de(v.bisD)+(v.bisU?" um "+v.bisU+" Uhr":""));
     else meldung("✓ Übergeben. Zurück am "+de(v.bisD)+(v.bisU?" um "+v.bisU+" Uhr":"")+". Ohne Unterschrift des Mieters!");return}
-  if(SICHT==="rueckgabe"&&(aktuell()||{}).status!=="zurück"){padsAusEntwurf();const f=fehltProtokoll();if(f.length){gesperrtMeldung(f);return}}
+  if(SICHT==="rueckgabe"){if((aktuell()||{}).status!=="zurück")padsAusEntwurf();const f=fehltProtokoll();if(f.length){gesperrtMeldung(f);return}if(!zusatzGesehen())return}
   if(SICHT==="rueckgabe"){if(!$("rKm").value.trim()){gesperrtMeldung([["rKm","Kilometerstand"]]);return}
     {const vv=aktuell()||{},kr=zahl($("rKm").value),ku=zahl($("rKmAb").value)!==null?zahl($("rKmAb").value):zahl((vv.ueb||{}).km);   // Vertippt: sonst still 0 km und keine Abrechnung (04.11.2026)
       if(vv.status!=="zurück"&&kr!==null&&ku!==null&&kr<ku&&!confirm("Kilometerstand "+kmText(kr)+" ist kleiner als bei der Übergabe ("+kmText(ku)+"). Trotzdem so speichern?"))return}
+    // Auffällig nein, es gibt aber schon eine Schadensanerkennung: nachfragen, sonst widerspricht sich das Papier (B5)
+    {const vs=aktuell()||{};if(gw("r_auff")==="nein"&&vs.schaden){if(!confirm("Für Mietvertrag "+vs.nr+" gibt es eine Schadensanerkennung, jetzt steht aber „Auffällig: nein“.\n\nOK = Schadensanerkennung löschen, sie liegt danach im Papierkorb\nAbbrechen = Auffällig bleibt ja")){gs("r_auff","ja");schadenZeigen();schritte();hauptText();meldungRot("Auffällig steht wieder auf ja, die Schadensanerkennung bleibt.");return}
+      papierkorbFassung(vs,"Schadensanerkennung zu Mietvertrag "+vs.nr+": "+(vs.name||"")+" (ganzer Mietvertrag vor dem Löschen)");aendere(x=>{delete x.schaden});
+      const k=kunden(),nm=window.mietixKunden&&window.mietixKunden.norm,sn=(nm&&Object.keys(k).find(n=>nm(n)===nm(vs.name)))||vs.name;if(k[sn]&&k[sn].schadenOffen){delete k[sn].schadenOffen;schreib("mietixKunden",k)}}}
     if(gw("r_auff")==="ja")schadenSpeichern();
-    const v=aendere(v=>{v.rueck=Object.assign(protokollLesen("r"),{km:$("rKm").value.trim(),gefahren:$("rGef").value.trim(),mehrkm:$("rMehr").value.trim(),
-      datum:$("rD").value,uhr:$("rU").value,ort:$("rOrt").value.trim(),auff:gw("r_auff"),bem:$("rBem").value.trim(),ortDatum:heuteDe(),unterschrift:PAD.padR.wert(),unterschriftVermieter:(PAD.padR.wert()||verwOk("padR"))?vermieterUnterschrift():"",verweigert:verwOk("padR")?{am:VERW.padR}:null});
+    const v=aendere(v=>{v.rueck=papierStand(v.rueck,Object.assign(protokollLesen("r"),{km:$("rKm").value.trim(),gefahren:$("rGef").value.trim(),mehrkm:$("rMehr").value.trim(),
+      datum:$("rD").value,uhr:$("rU").value,ort:$("rOrt").value.trim(),auff:gw("r_auff"),bem:$("rBem").value.trim(),unterschrift:PAD.padR.wert(),unterschriftVermieter:(PAD.padR.wert()||verwOk("padR"))?vermieterUnterschrift():"",verweigert:verwOk("padR")?{am:VERW.padR}:null}));
       if($("rKmAb").value.trim()){v.ueb=v.ueb||{};v.ueb.km=$("rKmAb").value.trim()}v.status="zurück";
       const e=eWerte(),eAlt=v.endabrechnung||{};v.endabrechnung={mehrkm:e.mehr,satz:e.satz,kmB:e.kmB,aufWahl:$("eAuf").value,auf:e.auf,liter:e.liter,tank:e.tank,versp:e.versp,extra:e.extra,summe:e.summe};if(eAlt.bezahlt&&+eAlt.summe===e.summe)v.endabrechnung.bezahlt=eAlt.bezahlt;
       if(gw("r_auff")!=="ja"&&!v.schaden)kautVerrechnen(v,E_ZURUECK);E_ZURUECK=null});
@@ -1986,12 +2106,11 @@ $("haupt").onclick=()=>{
       {t:"Endabrechnung per WhatsApp an den Kunden",wa:true,voll:true,text:()=>endText(),tel:()=>v.telefon,f:()=>endWa(),bleibt:true}]:[]).concat(kAkt));
     else if(kAkt.length)nachSheet(v.schaden?"Auto zurück":"Sauber zurück!",v.name+", "+v.auto+". "+tagesStand(),kAkt);
     else erfolg(v.schaden?"Auto zurück, Schaden festgehalten":"Sauber zurück!",tagesStand());return}
-  if(SICHT==="schaden"){const v=aendere(v=>{v.schaden={km:$("sKm").value.trim(),datum:$("sD").value,uhr:$("sU").value,ort:$("sOrt").value.trim(),
-      ortFz:$("sOrtFz").value.trim(),art:$("sArt").value.trim(),besch:$("sBesch").value.trim(),fotos:gw("s_fotos"),besichtigt:gw("s_besichtigt"),
-      sb:betrag("sSb"),weiter:gw("s_weiter"),kaution:gw("s_kaution"),betrag:betrag("sKaution"),ortDatum:heuteDe(),unterschrift:PAD.padS.wert(),unterschriftVermieter:(PAD.padS.wert()||verwOk("padS"))?vermieterUnterschrift():"",verweigert:verwOk("padS")?{am:VERW.padS}:null,anerkannt:an("sAnerkannt")}});
+  if(SICHT==="schaden"){if(PAD.padS.wert()||verwOk("padS")){const f=[];fehltSchaden(f);if(f.length){gesperrtMeldung(f);return}}
+    const v=aendere(v=>{v.schaden=schadenLesen(v)});
     GELADEN={};zeige("mappe");meldung("✓ Schaden festgehalten"+(v.schaden.anerkannt?", vom Mieter anerkannt":", noch nicht vom Mieter bestätigt"));return}
-  if(SICHT==="ueberlassung"){const v=aendere(v=>{v.sv={modell:$("vModell").value.trim(),kz:$("vKz").value.trim(),fin:$("vFin").value.trim(),
-      wert:betrag("vWert"),schein:an("vSchein"),brief:an("vBrief"),schluessel:$("vSchluessel").value.trim(),ortDatum:heuteDe(),unterschrift:PAD.padSV.wert(),unterschriftVermieter:PAD.padSV.wert()?vermieterUnterschrift():"",bestaetigt:an("svBestaetigt")||!!PAD.padSV.wert()};
+  if(SICHT==="ueberlassung"){const v=aendere(v=>{const vsvAlt=v.sv;v.sv={modell:$("vModell").value.trim(),kz:$("vKz").value.trim(),fin:$("vFin").value.trim(),
+      wert:betrag("vWert"),schein:an("vSchein"),brief:an("vBrief"),schluessel:$("vSchluessel").value.trim(),unterschrift:PAD.padSV.wert(),unterschriftVermieter:PAD.padSV.wert()?vermieterUnterschrift():"",bestaetigt:an("svBestaetigt")||!!PAD.padSV.wert()};v.sv=papierStand(vsvAlt,v.sv);
       if(v.kautionArt!=="beides")v.kautionArt="fahrzeug";const kf=[v.sv.modell,v.sv.kz].filter(Boolean).join(", ");if(kf)v.kfz=kf});
     GELADEN={};zeige(v.ueb?"mappe":"uebergabe");meldung("✓ Überlassungserklärung steht. Im Mietvertrag: Fahrzeug als Sicherheit");return}};
 // Sicherheitsnetz (31.10.2026): Bricht ein Schritt mit einem Fehler ab, kommt immer eine laute Meldung, nie still nichts
@@ -2028,18 +2147,19 @@ const allesName=v=>"Alles drucken: "+allesTeile(v).join(" + ");
 async function docsZusammen(teile){const neu=await PDFLib.PDFDocument.create();
   for(const t of teile){const d=await PDFLib.PDFDocument.load(await t);(await neu.copyPages(d,d.getPageIndices())).forEach(p=>neu.addPage(p))}return neu.save()}
 async function alleDocs(v){const neu=await PDFLib.PDFDocument.create();
-  const teile=[fuelleVertrag(v)].concat(v.sv?[fuelleUeberlassung(v)]:[],(v.rueck||v.status==="zurück")?[fuelleRueckgabe(v)]:[],v.schaden?[fuelleSchaden(v)]:[]);
-  for(const t of teile){const d=await PDFLib.PDFDocument.load(await t);(await neu.copyPages(d,d.getPageIndices())).forEach(p=>neu.addPage(p))}return neu.save()}
+  // Nacheinander: jedes Blatt hat seine eigene Schrift (FONT), gleichzeitig zeichnet sonst eines mit der Schrift des anderen
+  const teile=[fuelleVertrag].concat(v.sv?[fuelleUeberlassung]:[],(v.rueck||v.status==="zurück")?[fuelleRueckgabe]:[],v.schaden?[fuelleSchaden]:[]);
+  for(const t of teile){const d=await PDFLib.PDFDocument.load(await t(v));(await neu.copyPages(d,d.getPageIndices())).forEach(p=>neu.addPage(p))}return neu.save()}
 function druckDocs(v){return [[allesName(v),"alles",true],["Nur Mietvertrag","vertrag",true],["Übergabeprotokoll","uebergabe",!!v.ueb],
   ["Überlassungserklärung","ueberlassung",!!v.sv],["Rückgabeprotokoll","rueckgabe",!!v.rueck||v.status==="zurück"],["Schadensanerkennung","schaden",!!v.schaden]].filter(d=>d[2])}
 // Dokumente als ruhige Liste: oben "Alles drucken", darunter je Blatt eine Zeile mit Status und "Drucken" (30.10.2026)
-function druckReihe(v){const docs=druckDocs(v).filter(d=>d[1]!=="alles"),sig=x=>({vertrag:v.unterschrift,uebergabe:(v.ueb||{}).unterschrift,ueberlassung:(v.sv||{}).unterschrift,rueckgabe:(v.rueck||{}).unterschrift,schaden:(v.schaden||{}).unterschrift})[x];
+function druckReihe(v){const docs=druckDocs(v).filter(d=>d[1]!=="alles"),sig=x=>({vertrag:v.unterschrift,uebergabe:(v.ueb||{}).unterschrift,ueberlassung:(v.sv||{}).unterschrift,rueckgabe:(v.rueck||{}).unterschrift,schaden:(v.schaden||{}).unterschrift})[x],geaend=x=>({vertrag:v.geaendertAm,uebergabe:(v.ueb||{}).geaendertAm,ueberlassung:(v.sv||{}).geaendertAm,rueckgabe:(v.rueck||{}).geaendertAm,schaden:(v.schaden||{}).geaendertAm})[x];
   const name={vertrag:"Mietvertrag",uebergabe:"Übergabeprotokoll",ueberlassung:"Überlassungserklärung",rueckgabe:"Rückgabeprotokoll",schaden:"Schadensanerkennung"};
   return '<div class="doks"><h2>Dokumente</h2>'+
     '<div class="dAlle" data-dr="alles"><b>Alles drucken</b><i>'+allesTeile(v).join(", ")+'</i></div>'+
-    docs.map(([t,x])=>'<div class="dZeile"><div><b>'+(name[x]||t)+'</b><i class="'+(sig(x)?"ok":"")+'">'+(sig(x)?"✓ unterschrieben":"ohne Unterschrift")+'</i></div><a href="#" class="dKnopf" data-dr="'+x+'">Drucken</a></div>').join("")+
+    docs.map(([t,x])=>'<div class="dZeile"><div><b>'+(name[x]||t)+'</b><i class="'+(sig(x)?"ok":"")+'">'+(sig(x)?"✓ unterschrieben"+(geaend(x)?", geändert am "+geaend(x):""):"ohne Unterschrift")+'</i></div><a href="#" class="dKnopf" data-dr="'+x+'">Drucken</a></div>').join("")+
     '<div class="dTipp">'+(DIREKT?"Öffnet gleich das Druckfenster.":"Öffnet das PDF. Dann unten auf Teilen und Drucken tippen.")+'</div></div>'}
-function druckeDoc(v,x){const m={alles:()=>alleDocs(v),beide:()=>fuelleVertrag(v),vertrag:()=>seite(()=>fuelleVertrag(v),0),uebergabe:()=>seite(()=>fuelleVertrag(v),1),
+function druckeDoc(v,x){const m={alles:()=>alleDocs(v),beide:()=>fuelleVertrag(v),vertrag:()=>seite(()=>fuelleVertrag(v,0),0),uebergabe:()=>seite(()=>fuelleVertrag(v,1),1),
   rueckgabe:()=>fuelleRueckgabe(v),schaden:()=>fuelleSchaden(v),ueberlassung:()=>fuelleUeberlassung(v)}[x];if(m)oeffnen(m)}
 // Angefangener Mietvertrag (noch nicht gespeichert) steht ganz oben im Reiter Mietverträge (30.10.2026)
 function zeichneEntwurfKarte(e){const el=$("vEntwurf");if(!el)return;if(!e){el.innerHTML="";return}
@@ -2097,6 +2217,7 @@ function vertragLaden(v){entwurfAus=true;leeren();NEU=false;$("nr").value=v.nr;n
   ["name","anschrift","geb","gebort","telefon","email","kz","fin","km","preis1","zf","preis2","vonD","vonU","bisD","bisU","freikm","mvRab","mehrkm","paketKm","paketPreis","kfz","sb"].forEach(k=>{if(v[k]!==undefined&&v[k]!==null)$(k).value=v[k]});
   AUTO=v.auto;$("modell").value=v.auto;zeichneAutos();
   const z=v.zahlung||{};[["anz","anzB","z_anz","anzAm"],["rest","restB","z_rest","restAm"],["kaut","kautB","z_kaut","kautAm"]].forEach(([k,b,g,d])=>{const x=z[k]||{};$(b).value=x.betrag==null?"":x.betrag;gs(g,x.art||"");$(d).value=x.am||""});
+  if(!v.unterschrift){const fz=fahrzeugListe().find(a=>a.name===v.auto)||{},pr=autoPreis(v.auto)||{};if(!$("fin").value&&fz.fin)$("fin").value=fz.fin;if(!$("sb").value&&fz.sb)$("sb").value=fz.sb;if(!$("mehrkm").value&&pr.kmPreis)$("mehrkm").value=eur(pr.kmPreis)}   // Vorschlag aus den Fahrzeugdaten, gespeichert wird erst beim Fertig (B2)
   $("vOrt").value=v.ort||(v.ueb||{}).ort||ORT;ortZeigen();
   gs("k_art",v.kautionArt||"geld");PAD.padV.setzen(v.unterschrift||"");setzeAn("avbHaken",!!v.avb||!!v.unterschrift);
   preisAuto=false;kmAuto=false;ABG_OFFEN=true;ABG_K=null;PAKET_FEST=$("paketKm").value?{auto:$("modell").value.trim(),preis:$("paketPreis").value}:null;restVonHand=true;summe();tipps();entwurfAus=false;$("stamm").textContent="";standMerken();altHolen(v);
@@ -2128,7 +2249,7 @@ function wegHTML(v,st){const unter={vertrag:["unterschrieben","Unterschrift fehl
     return (i?'<div class="l'+(st[i-1][2]?" ok":"")+'"></div>':"")+'<div class="s '+kl+'" data-s="'+x+'"><span class="k">'+(ok&&!jetzt?"✓":"✕")+'</span><span><b>'+t+'</b><i>'+u+'</i></span></div>'}).join("")+'</div>'}
 function wt2(d){d=String(d||"");if(!d)return"";const x=new Date(d+"T12:00");return ["So","Mo","Di","Mi","Do","Fr","Sa"][x.getDay()]+" "+d.slice(8,10)+"."+d.slice(5,7)+"."}
 let GESP_ZEIT="";
-function schritteStand(){const li=$("sLi"),gsE=$("sGs"),hk=$("sHaken");if(!li)return;const v=SICHT==="vertrag"?(bearbeitet()?aktuell():null):aktuell();
+function schritteStand(){sAnerkanntZeigen();const li=$("sLi"),gsE=$("sGs"),hk=$("sHaken");if(!li)return;const v=SICHT==="vertrag"?(bearbeitet()?aktuell():null):aktuell();
   const pad=k=>!!(PAD[k]&&PAD[k].wert()),wert=i=>!!($(i)&&String($(i).value||"").trim());let l=[];
   if(SICHT==="vertrag"){const f=fehltNoch();li.textContent=v?"Mietvertrag "+v.nr:"";
     l=[["Mieter",wert("name")],["Auto",wert("modell")],["Zeitraum",wert("vonD")&&wert("bisD")],["Preis",wert("preis1")],["Unterschrift",pad("padV")||!!(v&&v.unterschrift)]]}
@@ -2150,7 +2271,7 @@ document.addEventListener("click",e=>{if(e.target.closest&&e.target.closest("#s_
 document.addEventListener("click",e=>{if(e.target.closest&&e.target.closest("#sNeuZur")){e.preventDefault();window.mxZurueck()}});   // der angefangene Mietvertrag bleibt als Entwurf
 function schritte(){const el=$("schritte");if(!el)return;
   const formular=["vertrag","uebergabe","rueckgabe","schaden","ueberlassung"].includes(SICHT);
-  $("wahlKarte").classList.toggle("versteckt",!formular);if(!formular)return;
+  $("wahlKarte").classList.toggle("versteckt",!formular);if(!formular)return;papierPruefen();
   const v=SICHT==="vertrag"?(bearbeitet()?aktuell():null):aktuell();
   $("wahl").classList.toggle("versteckt",SICHT==="vertrag"||!vorgaenge().length||(!!v&&!WAHL_OFFEN));   // Auswahl nur auf Wunsch, oben steht der Mietvertrag schon
   $("wahlLeer").classList.toggle("versteckt",SICHT==="vertrag"||vorgaenge().length>0);
@@ -2176,13 +2297,14 @@ function schritte(){const el=$("schritte");if(!el)return;
   const sm=$("sMappe");if(sm)sm.onclick=weg("mappe");const sx=$("sX");if(sx)sx.onclick=weg("vertraege")}
 
 /* ---------- Kaution-Auto in der Übergabe, Schaden in der Rückgabe (30.10.2026, Baran: einfacher, gut verbunden) ---------- */
-function svSpeichern(){aendere(v=>{v.sv={modell:$("vModell").value.trim(),kz:$("vKz").value.trim(),fin:$("vFin").value.trim(),
-    wert:betrag("vWert"),schein:an("vSchein"),brief:an("vBrief"),schluessel:$("vSchluessel").value.trim(),ortDatum:heuteDe(),unterschrift:PAD.padSV.wert(),unterschriftVermieter:PAD.padSV.wert()?vermieterUnterschrift():"",bestaetigt:an("svBestaetigt")||!!PAD.padSV.wert()};
+function svSpeichern(){aendere(v=>{v.sv=papierStand(v.sv,{modell:$("vModell").value.trim(),kz:$("vKz").value.trim(),fin:$("vFin").value.trim(),
+    wert:betrag("vWert"),schein:an("vSchein"),brief:an("vBrief"),schluessel:$("vSchluessel").value.trim(),unterschrift:PAD.padSV.wert(),unterschriftVermieter:PAD.padSV.wert()?vermieterUnterschrift():"",bestaetigt:an("svBestaetigt")||!!PAD.padSV.wert()});
   if(v.kautionArt!=="beides")v.kautionArt="fahrzeug";const kf=[v.sv.modell,v.sv.kz].filter(Boolean).join(", ");if(kf)v.kfz=kf})}
-function schadenSpeichern(){if(!$("sKm").value.trim())$("sKm").value=$("rKm").value;
-  aendere(v=>{v.schaden={km:$("sKm").value.trim()||$("rKm").value.trim(),datum:$("sD").value,uhr:$("sU").value,ort:$("sOrt").value.trim(),
+function schadenLesen(v){const u=PAD.padS.wert(),vw=verwOk("padS")?{am:VERW.padS}:null;return papierStand(v.schaden,{km:$("sKm").value.trim()||$("rKm").value.trim(),datum:$("sD").value,uhr:$("sU").value,ort:$("sOrt").value.trim(),
     ortFz:$("sOrtFz").value.trim(),art:$("sArt").value.trim(),besch:$("sBesch").value.trim(),fotos:gw("s_fotos"),besichtigt:gw("s_besichtigt"),
-    sb:betrag("sSb"),weiter:gw("s_weiter"),kaution:gw("s_kaution"),betrag:betrag("sKaution"),ortDatum:heuteDe(),unterschrift:PAD.padS.wert(),unterschriftVermieter:(PAD.padS.wert()||verwOk("padS"))?vermieterUnterschrift():"",verweigert:verwOk("padS")?{am:VERW.padS}:null,anerkannt:an("sAnerkannt")}});
+    sb:betrag("sSb"),weiter:gw("s_weiter"),kaution:gw("s_kaution"),betrag:betrag("sKaution"),unterschrift:u,unterschriftVermieter:(u||vw)?vermieterUnterschrift():"",verweigert:vw,anerkannt:!!u&&!vw})}
+function schadenSpeichern(){if(!$("sKm").value.trim())$("sKm").value=$("rKm").value;
+  aendere(v=>{v.schaden=schadenLesen(v)});
   // auf der Startseite unter Schäden sichtbar (30.10.2026)
   const v=aktuell(),hoehe=v&&v.schaden?(zahl(v.schaden.sb)||zahl(v.schaden.betrag)||0):0;
   if(v&&hoehe){const k=kunden(),nm=window.mietixKunden&&window.mietixKunden.norm,s=(nm&&Object.keys(k).find(n=>nm(n)===nm(v.name)))||v.name;
@@ -2220,7 +2342,7 @@ function rOffenZeigen(){const k=$("rOffen"),v=aktuell();if(!k)return;if(!v||v.st
     n.posten.map(x=>z1(x.t,x.b)).join("")+z1("Gesamt noch zu zahlen",n.summe,true)}
 
 /* ---------- Entwurf Übergabe/Rückgabe: Getipptes bleibt beim Neuladen oder Schließen (30.10.2026) ---------- */
-const PROT_EW="mietixEntwurfProtokolle",PROT_PADS={uebergabe:["padU","padSV"],rueckgabe:["padR","padS"]},PROT_AN=["uReserve","rReserve","vSchein","vBrief","sAnerkannt","svBestaetigt"];
+const PROT_EW="mietixEntwurfProtokolle",PROT_PADS={uebergabe:["padU","padSV"],rueckgabe:["padR","padS"]},PROT_AN=["uReserve","rReserve","vSchein","vBrief","svBestaetigt"];
 let protTimer=null,protLaedt=false;const PROT_GEMELDET={};
 // Am Mac angefangen, am iPad weiter (31.10.2026): Entwürfe liegen im gemeinsamen Stand unter "entwuerfe", nicht mehr nur auf dem Gerät
 const stand=()=>lies("mietixStand",{});
@@ -2233,13 +2355,13 @@ function protSchnappschuss(sicht){const sec=$("s_"+sicht),f={},c={},a={},p={};
   sec.querySelectorAll("input[id],textarea[id],select[id]").forEach(e=>f[e.id]=e.value);
   sec.querySelectorAll("[data-gruppe]").forEach(g=>c[g.dataset.gruppe]=chipWert(g));
   PROT_AN.forEach(i=>{if(sec.contains($(i)))a[i]=$(i).classList.contains("an")});
-  (PROT_PADS[sicht]||[]).forEach(k=>{if(PAD[k])p[k]=PAD[k].wert()});return{f,c,a,p,zeit:Date.now(),geraet:GERAET}}
+  (PROT_PADS[sicht]||[]).forEach(k=>{if(PAD[k])p[k]=PAD[k].wert()});const d={f,c,a,p,zeit:Date.now(),geraet:GERAET};if(sicht==="rueckgabe")d.v={padR:VERW.padR,padS:VERW.padS};return d}
 function protMerken(){if(protLaedt||!["uebergabe","rueckgabe"].includes(SICHT)||!aktuell())return;const sicht=SICHT,nr=WAHL;
   PROT_LOKAL=Date.now();clearTimeout(protTimer);protTimer=setTimeout(()=>{const d=protSchnappschuss(sicht);PROT_GELADEN[nr+"|"+sicht]=d.zeit;protSetzen(e=>{e[nr+"|"+sicht]=d})},400)}
 function protWeg(nr,sicht){clearTimeout(protTimer);if(protAlle()[nr+"|"+sicht])protSetzen(e=>{delete e[nr+"|"+sicht]})}
 function protHolen(){const v=aktuell();if(!v||!["uebergabe","rueckgabe"].includes(SICHT))return;const d=protAlle()[v.nr+"|"+SICHT];if(!d)return;
   PROT_GELADEN[v.nr+"|"+SICHT]=d.zeit||0;protLaedt=true;try{Object.entries(d.f||{}).forEach(([i,x])=>{if($(i))$(i).value=x});Object.entries(d.c||{}).forEach(([g,x])=>gs(g,x));
-    Object.entries(d.a||{}).forEach(([i,x])=>setzeAn(i,x));Object.entries(d.p||{}).forEach(([k,x])=>{if(PAD[k]&&x)PAD[k].setzen(x)});
+    Object.entries(d.a||{}).forEach(([i,x])=>setzeAn(i,x));Object.entries(d.v||{}).forEach(([k,x])=>verwSetzen(k,x));Object.entries(d.p||{}).forEach(([k,x])=>{if(PAD[k]&&x)PAD[k].setzen(x)});
     if(SICHT==="rueckgabe"){schadenZeigen();try{rRechne(false)}catch(e){}}}finally{protLaedt=false}
   if(!PROT_GEMELDET[v.nr+"|"+SICHT]){PROT_GEMELDET[v.nr+"|"+SICHT]=1;meldung("Weiter, wo du warst: Getipptes ist wieder da")}}
 // Kommt vom anderen Gerät ein neuerer Stand derselben Übergabe oder Rückgabe, und hier wurde seitdem nichts getippt: übernehmen
@@ -2287,7 +2409,7 @@ function verlSpeichern(){const v0=aktuell();if(!v0)return;const neu=$("verlBis")
   const text="*Ihre Verlängerung ist bestätigt*\n\nFahrzeug: "+v.auto+"\nNeue Rückgabe: "+de(v.bisD)+", "+(v.bisU||"")+" Uhr\nAufpreis: "+eur(auf+zfa)+" €"+(zfa?" (davon Zusatzfahrer "+eur(zfa)+" €)":"")+"\nInklusive Kilometer jetzt: "+(v.freikm||"")+" km"+(kmPlus?" (+"+kmText(kmPlus)+" km für die Verlängerung)":"")+"\n\nVielen Dank und weiterhin gute Fahrt!";
   nachSheet("✓ Verlängert bis "+de(v.bisD),v.name+", "+v.auto+". Aufpreis "+eur(auf+zfa)+" €, inklusive jetzt "+(v.freikm||"")+" km.",[
     {t:"Bestätigung per WhatsApp an den Kunden",voll:true,wa:true,text:()=>text,tel:()=>v.telefon,f:()=>waOeffnen(v,text),bleibt:true},
-    {t:"Geänderten Mietvertrag drucken",f:()=>oeffnen(()=>seite(()=>fuelleVertrag(aktuell()),0)),bleibt:true}])}
+    {t:"Geänderten Mietvertrag drucken",f:()=>oeffnen(()=>seite(()=>fuelleVertrag(aktuell(),0),0)),bleibt:true}])}
 function offenBetrag(v){return ((!((v.zahlung||{}).rest||{}).am)?(zahl(((v.zahlung||{}).rest||{}).betrag)||0):0)+verlOffen(v)}
 function verlOffen(v){return (v.verlaengerungen||[]).filter(x=>!x.bezahlt).reduce((s,x)=>s+(x.aufpreis||0),0)}
 function verlBezahlt(){const a=aktuell()||{},offen=(a.verlaengerungen||[]).filter(x=>!x.bezahlt).reduce((s,x)=>s+(x.aufpreis||0),0);
@@ -2657,6 +2779,10 @@ $("uSvOeffnen").onclick=()=>zeige("ueberlassung");$("svZurueck").onclick=()=>zei
 [["z_anz","anzAm"],["z_rest","restAm"],["z_kaut","kautAm"]].forEach(([g,d])=>gruppe(g).addEventListener("wahl",()=>{if(gw(g)&&!$(d).value){$(d).value=iso(new Date());$(d).dispatchEvent(new Event("input",{bubbles:true}))}}));
 /* ---------- Kaution Geld oder Fahrzeug verbinden ---------- */
 [...$("kautWahl").children].forEach(c=>c.onclick=()=>kautSetzen(c.dataset.ka));
+// Text bei Abweichungen stellt die Wahl auf Abweichung, „vollständig“ fragt, ob der Text weg soll: nie zwei Kästchen (B6)
+["u","r"].forEach(p=>{$(p+"Abw").addEventListener("input",()=>{if($(p+"Abw").value.trim()&&gw(p+"_gegen")!=="nein"){gs(p+"_gegen","nein");gruppe(p+"_gegen").classList.remove("fehlt")}});
+  gruppe(p+"_gegen").addEventListener("wahl",()=>{if(gw(p+"_gegen")==="ja"&&$(p+"Abw").value.trim()){if(confirm("Text bei Abweichungen löschen?\n\n„"+$(p+"Abw").value.trim()+"“"))$(p+"Abw").value="";else gs(p+"_gegen","nein")}})});
+gruppe("s_besichtigt").addEventListener("wahl",()=>{S_BES_HAND=true});
 gruppe("r_auff").addEventListener("wahl",()=>{if(gw("r_auff")==="ja"&&!$("sKm").value.trim())$("sKm").value=$("rKm").value;setTimeout(schritte,0)});
 $("rKm").addEventListener("input",()=>{if(gw("r_auff")==="ja")$("sKm").value=$("rKm").value});
 // Schadensanerkennung folgt der Rückgabe: km, Datum, Uhrzeit, Ort, bis dort selbst etwas getippt wird (1.11.2026)
@@ -3464,9 +3590,11 @@ async function ablageAbgleichen(k,c,h,zeilen,geholt){
       const daten=await bilderRein(m[p]);if(daten===null){ohneBild++;continue}   // nie eine Kennung statt Unterschrift hochschicken
       hoch.push({[c.pk]:p,daten,geaendert:jetzt})}
     // Löschen: viele auf einmal warten auf Baran
-    const frei=h.frei||[];delete h.frei;if(h.halt){h.halt=h.halt.filter(p=>!(p in m));if(!h.halt.length)delete h.halt}
-    const weg=Object.keys(h.hash).filter(p=>!(p in m)&&h.hash[p]!=="weg"&&!frei.includes(p)&&!(h.halt||[]).includes(p));
-    if(k!=="mietixPapierkorb"&&k!=="mietixStand"&&(weg.length>HANDVOLL||(weg.length>=3&&!Object.keys(m).length))){h.halt=(h.halt||[]).concat(weg)}
+    const frei=h.frei||[];delete h.frei;if(k==="mietixAufgaben")delete h.halt;if(h.halt){h.halt=h.halt.filter(p=>!(p in m));if(!h.halt.length)delete h.halt}
+    // Einträge ohne Kennung zählen nie als gelöscht; Aufgaben kommen aus der Excel und fragen nie nach (Baran 05.11.2026)
+    const ohneKennung=c.liste&&(liesAblage(k).w||[]).some(x=>x&&x[c.pk]===undefined);
+    const weg=ohneKennung?[]:Object.keys(h.hash).filter(p=>!(p in m)&&h.hash[p]!=="weg"&&!frei.includes(p)&&!(h.halt||[]).includes(p));
+    if(k!=="mietixPapierkorb"&&k!=="mietixStand"&&k!=="mietixAufgaben"&&(weg.length>HANDVOLL||(weg.length>=3&&!Object.keys(m).length))){h.halt=(h.halt||[]).concat(weg)}
     else weg.concat(frei).forEach(p=>{if(!(p in m)&&h.hash[p]!=="weg")hoch.push({[c.pk]:p,daten:{_weg:true},geaendert:jetzt})});
     const streit=await hochladen(k,c,h,hoch);
     if(!streit.length)return{m,ohneBild};
@@ -3617,14 +3745,13 @@ function zeigen(){const el=document.getElementById("abgleich");if(!el)return;
   if(!sitzung){el.innerHTML='<div class="abgl rot"><b>Nicht angemeldet</b><div class="abgl-text">Einmal anmelden, dann ist alles gesichert.</div>'+
     '<input id="ablMail" type="email" inputmode="email" autocomplete="username" placeholder="E-Mail">'+
     '<input id="ablPw" type="password" autocomplete="current-password" placeholder="Passwort">'+
-    '<button id="ablLos" type="button">Anmelden</button><div class="abgl-fehler" id="ablFehler">'+linkFehler+'</div>'+
-    '<a href="#" id="ablNeuZugang" class="abgl-link">Noch keinen Zugang? Hier anlegen</a></div>';
+    '<button id="ablLos" type="button">Anmelden</button><div class="abgl-fehler" id="ablFehler">'+linkFehler+'</div></div>';
     const mail=()=>document.getElementById("ablMail").value.trim(),pw=()=>document.getElementById("ablPw").value,f=document.getElementById("ablFehler");
     document.getElementById("ablLos").onclick=async()=>{f.textContent="";
       try{sichern(await auth("token?grant_type=password",{email:mail(),password:pw()}));
         zeigen();abgleichen()}catch(e){f.textContent=/Invalid login/i.test(e.message)?"E-Mail oder Passwort stimmt nicht.":e.message===KEINE_VERBINDUNG?"Keine Verbindung. Bitte Internet prüfen und noch einmal tippen.":e.message}};
     // Zugang selbst anlegen: geht nur, solange Baran die Registrierung in Supabase kurz freigibt
-    document.getElementById("ablNeuZugang").onclick=async e=>{e.preventDefault();f.textContent="";
+    const neuZ=document.getElementById("ablNeuZugang");if(neuZ)neuZ.onclick=async e=>{e.preventDefault();f.textContent="";
       if(!mail()||pw().length<8){f.textContent="Oben E-Mail und ein eigenes Passwort (mindestens 8 Zeichen) eintragen, dann hier tippen.";return}
       try{const j=await auth("signup",{email:mail(),password:pw()});
         if(j.access_token){sichern(j);zeigen();abgleichen()}else f.textContent="Zugang angelegt. Bitte die Mail bestätigen und dann anmelden."}
@@ -3815,10 +3942,12 @@ zeigen();abgleichen();auslagernBald();
     ".mxStart,.abgl a,.abgl-link,#ablNeuZugang,#ablPwNeu,#ablAus,.sZur,.buZurueck,#bZurueck,#sAlle,#mLoesch,#vOrtAendern,#mVerlBez,#mKautWeg,#mEndWeg,#mEndBez,.kurz>a,a.zu,.buVerw,.zurueckA,#kZu,a.loeschen,.aend,.n a.pdf,#entwurfLeeren,#entwurfZurueck,#weiterSpaeter,.mini,.mehr>span,.mehr>a,.unten>a,.pbTipp a[data-pb],#mVerlInfo .vz>a,#uKopf>a,.mxKlein>summary{background:#E9E9EE!important;border:0!important;border-radius:10px!important;padding:6px 12px!important;text-decoration:none!important;display:inline-flex!important;align-items:center;gap:3px;line-height:1.25!important;width:auto!important;max-width:100%;box-shadow:none!important;cursor:pointer;-webkit-tap-highlight-color:transparent}"+
     ".buVerw,.sZur,.buZurueck,#uKopf>a{display:flex!important;width:max-content!important}.buVerw{margin-left:auto!important;margin-right:auto!important}"+
     ".mxStart{color:#C4161C!important;font-size:16px!important;font-weight:700!important;letter-spacing:0!important;padding:6px 12px 6px 9px!important}.mxStart b{margin-top:-1px;font-size:18px!important}"+
+    /* ‹ Start überall gleich groß (05.11.2026), auch wo look.py nicht gilt */
+    "html body header .mxStart,html body .topbar .mxStart{float:none!important;margin:0 10px 0 0!important;border:0!important;padding:5px 12px 5px 9px!important;background:#E9E9EE!important;border-radius:10px!important;color:#C4161C!important;opacity:1!important;font-size:16px!important;font-weight:600!important;gap:3px!important;line-height:1.2!important;min-height:44px!important;box-sizing:border-box;display:inline-flex!important;align-items:center!important}html body .mxStart b{font-size:20px!important;font-weight:400!important;line-height:16px!important;margin-top:-2px!important}"+
     /* PC und Mac (1.11.2026, Baran: auf allen Geräten gleich): Kopfzeile und Inhalt in einer 680-px-Spalte in der Mitte.
        Muss ganz am Ende stehen: header{padding-left:16px!important} weiter oben (und look.py davor im head) würde sonst gewinnen */
     (istStart||art==="kalender"||art==="schaeden"?"":"@media(min-width:760px){header,.topbar{padding-left:max(16px,calc((100% - 680px)/2))!important;padding-right:max(16px,calc((100% - 680px)/2))!important}"+
-      "main{max-width:680px!important;margin-left:auto!important;margin-right:auto!important;box-sizing:border-box}header .plus{right:max(16px,calc((100% - 680px)/2))!important}}");
+      "main{max-width:680px!important;margin-left:auto!important;margin-right:auto!important;box-sizing:border-box;padding-left:16px!important;padding-right:16px!important}header .plus{right:max(16px,calc((100% - 680px)/2))!important}}");
   document.head.appendChild(st);
 
   // ‹ Start und Symbol in der Kopfzeile
@@ -3845,15 +3974,25 @@ zeigen();abgleichen();auslagernBald();
       if(history.length>1&&document.referrer.indexOf(location.origin)===0)history.back();else location.href="https://barankohler.github.io/mietix-zentrale/"},{passive:true})}
 
   // Neue Version: die Seite aus dem Netz mit der geladenen vergleichen (ohne Daten, nur der Text der Seite)
+  // Seit 05.11.2026: nur die Kopfzeile abfragen (Stand der Seite im Netz gegen Stand der geladenen Seite), nicht jedes Mal die ganze Seite. Kennt der Server keinen Stand, wie bisher über den Text.
   let alt=null;
-  async function pruefen(){try{const r=await fetch(location.pathname,{cache:"no-store"});if(!r.ok)return;const t=await r.text(),h=t.length+":"+t.slice(-400);
-    if(alt===null){const c=await fetch(location.pathname,{cache:"force-cache"}).then(x=>x.text()).catch(()=>null);alt=c?c.length+":"+c.slice(-400):h}
-    if(h!==alt){let b=document.getElementById("mxNeu");if(!b){b=document.createElement("div");b.id="mxNeu";b.innerHTML="Neue Version da. <b>Tippen zum Aktualisieren</b>";b.onclick=()=>location.reload();
+  async function pruefen(){try{let neu=false;const k=await fetch(location.pathname,{method:"HEAD",cache:"no-store"}).catch(()=>null);
+    const lm=k&&k.ok?k.headers.get("last-modified"):null,tN=lm?Date.parse(lm):NaN,tD=Date.parse(document.lastModified);
+    if(!isNaN(tN)&&!isNaN(tD))neu=tN>tD+1000;
+    else{const r=await fetch(location.pathname,{cache:"no-store"});if(!r.ok)return;const t=await r.text(),h=t.length+":"+t.slice(-400);
+      if(alt===null){const c=await fetch(location.pathname,{cache:"force-cache"}).then(x=>x.text()).catch(()=>null);alt=c?c.length+":"+c.slice(-400):h}
+      neu=h!==alt}
+    if(neu){let b=document.getElementById("mxNeu");if(!b){b=document.createElement("div");b.id="mxNeu";b.innerHTML="Neue Version da. <b>Tippen zum Aktualisieren</b>";b.onclick=()=>location.reload();
       const kopf=document.querySelector("header,.topbar");if(kopf)kopf.after(b);else document.body.prepend(b)}b.classList.add("an")}}catch(e){}}
   setTimeout(pruefen,3000);document.addEventListener("visibilitychange",()=>{if(!document.hidden)pruefen()});
 
   // Ohne Internet: Seite aus dem Speicher (sw.js liegt im Ordner der Seite)
   if("serviceWorker" in navigator&&location.protocol==="https:")navigator.serviceWorker.register("sw.js").catch(()=>{});
+
+  // Startseite: wichtige Seiten einmal in den Speicher, damit sie auch ohne Internet aufgehen, selbst wenn sie auf diesem Gerät noch nie offen waren (05.11.2026)
+  if(istStart&&"serviceWorker" in navigator&&"caches" in window&&location.protocol==="https:"&&location.hostname==="barankohler.github.io")setTimeout(async()=>{try{if(!navigator.onLine)return;const c=await caches.open("mietix-seiten-1");
+    for(const p of ["mietix-vertrag/","mietix-anfragen/","mietix-belegung/","mietix-belegung/angebot.html","mietix-autos/","mietix-geld/","mietix-zentrale/kunden.html","mietix-zentrale/nachrichten.html","mietix-zentrale/umsatzbringer.html"]){const u=location.origin+"/"+p;
+      try{if(!await c.match(u))await c.add(u);const o=p.split("/")[0]+"/";if(o!=="mietix-zentrale/")await navigator.serviceWorker.register("/"+o+"sw.js",{scope:"/"+o})}catch(e){}}}catch(e){}},6000);
 
   // Startseite: die meistgenutzten Seiten schon vorladen, dann öffnen sie ohne Wartezeit
   if(istStart)setTimeout(()=>["mietix-vertrag/","mietix-anfragen/","mietix-belegung/","mietix-autos/"].forEach(p=>{const l=document.createElement("link");l.rel="prefetch";l.href="https://barankohler.github.io/"+p;document.head.appendChild(l)}),2500);
