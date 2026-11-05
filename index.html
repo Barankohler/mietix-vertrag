@@ -586,9 +586,9 @@ input[type=date],input[type=time]{min-width:0;max-width:100%}
 /* Preis-Block: ein Hinweis-Text für alle Seiten (01.11.2026) */
 (function(){if(window.pbTipp)return;
   const E=n=>Math.round(n).toLocaleString("de-DE")+" €";
-  window.pbTipp=function(el,vorschlag,rab,preis,hand,uebernehmen){if(!el)return;
+  window.pbTipp=function(el,vorschlag,rab,preis,hand,uebernehmen,genau){if(!el)return;
     if(vorschlag==null||!(vorschlag>0)){el.innerHTML="";return}
-    rab=Math.max(0,+rab||0);const mit=Math.round(vorschlag*(1-rab/100));
+    rab=Math.max(0,+rab||0);const mit=genau!=null?genau:Math.round(vorschlag*(1-rab/100));   // genau: einmal am Ende gerundet (05.11.2026)
     let h="Vorschlag aus dem Preisrechner: <b>"+E(vorschlag)+"</b>"+(rab?", mit "+String(rab).replace(".",",")+" % Rabatt <b>"+E(mit)+"</b>":"")+". Was du selbst tippst, bleibt stehen.";
     const weicht=hand&&preis>0&&Math.round(preis)!==mit;
     if(weicht)h+=' <a href="#" data-pb="1">Vorschlag übernehmen</a>';
@@ -1273,19 +1273,22 @@ function wochenmiete(a,start,dauer){if(dauer===1&&start>=4)return a.frSa||a.gp*D
 function tage(){const a=$("vonD").value,b=$("bisD").value;if(!a||!b)return 0;return Math.max(1,Math.round((new Date(b)-new Date(a))/86400000))}
 function autoPreis(name){return D&&D.cars?D.cars.find(x=>(x.anzeige||x.n)===name):null}
 // Preis und Freikilometer stehen sofort drin (wie Preisrechner, 150 km pro Tag). Tippst du selbst etwas ein, bleibt das.
-let preisAuto=true,kmAuto=true,ABGEMACHT=null;   // ABGEMACHT: Preis und km aus dem Kalender-Angebot der Anfrage
-$("preis1").addEventListener("input",()=>preisAuto=false);$("freikm").addEventListener("input",()=>kmAuto=false);
+let preisAuto=true,kmAuto=true,ABGEMACHT=null,ABG_OFFEN=false,ABG_K=null,PAKET_FEST=null;   // ABGEMACHT: Preis und km aus dem Kalender-Angebot der Anfrage
+$("preis1").addEventListener("input",()=>{preisAuto=false;ABG_K=null});$("freikm").addEventListener("input",()=>kmAuto=false);
 $("preis1").addEventListener("change",()=>tipps());$("mvRab").addEventListener("input",()=>{preisAuto=true;tipps()});   // neuer Rabatt rechnet den Preis neu, wie überall
 function mvRab(){return Math.min(90,Math.max(0,+String($("mvRab").value||"").replace(",",".")||0))}
 function tipps(){zeitraumMarken();   // Auswahl sichtbar (1.11.2026): passender Zeitraum-Knopf bleibt markiert
   const t=tage(),p=autoPreis($("modell").value.trim());
   $("preisTipp").innerHTML="";$("kmTipp").innerHTML="";
   if(p&&t&&$("vonD").value){const start=(new Date($("vonD").value).getDay()+6)%7;
-    const m=Math.round(wochenmiete(p,start,t)*(1-D.rabatt[Math.min(t,D.days)-1])),rab=mvRab(),mR=Math.round(m*(1-rab/100));   // ganze Euro (1.11.2026, Baran: keine Cent)
-    if(preisAuto){$("preis1").value=eur(mR);summe()}
+    const roh=wochenmiete(p,start,t)*(1-D.rabatt[Math.min(t,D.days)-1]),m=Math.round(roh),rab=mvRab(),mR=Math.round(roh*(1-rab/100)),schl=$("modell").value.trim()+"|"+$("vonD").value+"|"+$("bisD").value+"|"+rab;   // einmal am Ende runden (05.11.2026)
+    // Barans Regel 05.11.2026: Preis und km, die nicht von Hand getippt sind, gehen beim Ändern mit. Abgemachter Betrag bleibt, solange sich nichts ändert.
+    if(ABG_OFFEN){ABG_OFFEN=false;if(Math.abs(mR-(zahl($("preis1").value)||0))<=1){preisAuto=true;ABG_K=schl}if((zahl($("freikm").value)||0)===D.freiKm*t+(+($("paketKm").value||0)))kmAuto=true}
+    if(preisAuto&&ABG_K!==schl){ABG_K=null;$("preis1").value=eur(mR);summe()}
     // derselbe Hinweis wie überall (stil/preisblock.py); Getipptes bleibt, „Vorschlag übernehmen“ holt den Rechner zurück
-    pbTipp($("preisTipp"),m,rab,zahl($("preis1").value)||0,!preisAuto,()=>{preisAuto=true;tipps();entwurfMerken()});
+    pbTipp($("preisTipp"),m,rab,zahl($("preis1").value)||0,!preisAuto,()=>{preisAuto=true;ABG_K=null;tipps();entwurfMerken()},mR);
     if(!preisAuto&&ABGEMACHT&&ABGEMACHT.preis===$("preis1").value)$("preisTipp").insertAdjacentHTML("afterbegin","<b>Abgemachter Preis aus dem Angebot.</b> ")}
+  else if(D&&!p&&preisAuto&&$("modell").value.trim()&&$("preis1").value){$("preis1").value="";summe()}   // Auto ohne Preis: kein Preis vom vorigen Auto
   if(D&&t){const km=D.freiKm*t+(+($("paketKm").value||0));
     if(kmAuto){$("freikm").value=kmText(km);$("kmTipp").innerHTML='<div class="klein">'+D.freiKm+' km pro Tag × '+t+(t===1?' Tag':' Tage')+'</div>'}
     else if(ABGEMACHT&&ABGEMACHT.km===$("freikm").value)$("kmTipp").innerHTML='<div class="klein">abgemacht im Angebot</div>';
@@ -1293,15 +1296,16 @@ function tipps(){zeitraumMarken();   // Auswahl sichtbar (1.11.2026): passender 
       $("kmTipp").firstChild.onclick=()=>{kmAuto=true;tipps()}}}
   paketZeichnen()}
 // Kilometerpaket je Auto aus der Preisliste (kmStufen und km-Preise), daneben was es als Mehrkilometer kosten würde
-function paketZeichnen(){const p=autoPreis($("modell").value.trim()),st=(D&&D.kmStufen)||[50,100,150,200,300];
-  if(!p||!p.km||p.km.length<2){$("paketZeile").classList.add("versteckt");return}
+function paketPr(p,km){const st=(D&&D.kmStufen)||[50,100,150,200,300],pr=(p.km||[]).slice(1),kp=+p.kmPreis||0,i=st.indexOf(km);if(i>=0&&pr[i]!=null)return pr[i];let r=0;for(let j=0;j<st.length;j++)if(st[j]<km&&pr[j]!=null)r=1-pr[j]/(st[j]*kp);return Math.round(km*kp*(1-r))}   // wie im Angebot: dazwischen der Rabatt der nächstkleineren Stufe
+function paketZeichnen(){const mod=$("modell").value.trim(),p=autoPreis(mod),st=(D&&D.kmStufen)||[50,100,150,200,300];
+  if(!p||!p.km||p.km.length<2){if(D&&mod&&$("paketKm").value){$("paketKm").value="";$("paketPreis").value="";summe()}$("paketZeile").classList.add("versteckt");return}
   $("paketZeile").classList.remove("versteckt");const akt=+($("paketKm").value||0),i=st.indexOf(akt);
-  if(akt&&i>=0)$("paketPreis").value=eur(p.km[i+1]);   // anderes Auto gewählt: Paketpreis dieses Autos
+  if(akt){const pW=PAKET_FEST&&PAKET_FEST.auto===mod?PAKET_FEST.preis:eur(paketPr(p,akt));if($("paketPreis").value!==pW){$("paketPreis").value=pW;summe()}}   // anderes Auto gewählt: Paketpreis dieses Autos, zurück: wieder der abgemachte
   $("paketChips").innerHTML='<div class="chip'+(akt?"":" an")+'" data-pk="0">Kein Paket</div>'+st.map((k,j)=>'<div class="chip'+(akt===k?" an":"")+'" data-pk="'+k+'" data-pp="'+p.km[j+1]+'">+'+kmText(k)+' km für '+eur(p.km[j+1])+' €'+
     '<small style="display:block;font-weight:600;opacity:.75">statt '+eur(k*p.kmPreis)+' € danach</small></div>').join("");
   $("paketInfo").textContent=akt?"Im Mietvertrag steht beim Mietpreis "+eur((zahl($("preis1").value)||0)+(zahl($("paketPreis").value)||0))+" € (Miete plus Paket). Der Kunde spart "+eur(akt*p.kmPreis-(zahl($("paketPreis").value)||0))+" € gegenüber Mehrkilometern.":"";
-  [...$("paketChips").children].forEach(c=>c.onclick=()=>{const alt=+($("paketKm").value||0),neu=+c.dataset.pk;
-    $("paketKm").value=neu||"";$("paketPreis").value=neu?eur(+c.dataset.pp):"";
+  [...$("paketChips").children].forEach(c=>c.onclick=()=>{const alt=+($("paketKm").value||0),neu=+c.dataset.pk;if(neu===alt)return;
+    PAKET_FEST=null;$("paketKm").value=neu||"";$("paketPreis").value=neu?eur(+c.dataset.pp):"";
     if(!kmAuto)$("freikm").value=kmText(Math.max(0,(zahl($("freikm").value)||0)-alt+neu));
     tipps();summe();$("s_vertrag").dispatchEvent(new Event("input"))})}
 // Schnellwahl Mietzeitraum: spart den Datumswähler
@@ -1400,6 +1404,10 @@ function zeichneAnfragen(){   // 31.10.2026: Knopf mit Suchfenster statt langer 
   $("uKnopf").onclick=()=>{$("uSuche").value="";zeichne();mxAuf("fUeb")};
   zeichne()}
 let ANFRAGE=null;
+// Abgemacht aus Angebot oder Buchung: Miete und Kilometerpaket bleiben getrennte Posten (05.11.2026)
+function abgemachtLaden(ab,spaet){const pk=+ab.paketKm||0,pp=pk?Math.round(zahl(ab.paketPreis)||0):0,mi=+ab.miete?+ab.miete:(zahl(ab.preis)||0)-pp;
+  $("preis1").value=eur(mi);preisAuto=false;$("paketKm").value=pk||"";$("paketPreis").value=pk?eur(pp):"";PAKET_FEST=pk?{auto:$("modell").value.trim(),preis:eur(pp)}:null;
+  if(ab.rabatt&&(!spaet||!$("mvRab").value))$("mvRab").value=String(ab.rabatt).replace(".",",");if(ab.freikm!=null&&(!spaet||kmAuto)){$("freikm").value=kmText(ab.freikm);kmAuto=false}ABGEMACHT={preis:$("preis1").value,km:$("freikm").value};ABG_OFFEN=true;ABG_K=null;summe();tipps()}
 function uebernehmeAnfrage(x){ANFRAGE=x.id||null;
   $("name").value=x.name||"";$("telefon").value=x.nummer||"";
   if(x.von)$("vonD").value=x.von;if(x.bis)$("bisD").value=x.bis;
@@ -1408,11 +1416,11 @@ function uebernehmeAnfrage(x){ANFRAGE=x.id||null;
   if((x.anschrift||x.ort)&&!$("anschrift").value.trim())$("anschrift").value=x.anschrift||x.ort;   // Anschrift aus der Buchung, sonst Wohnort
   if(x.geb&&!$("geb").value)$("geb").value=x.geb;if(x.gebort&&!$("gebort").value.trim())$("gebort").value=x.gebort;
   // Im Kalender abgemachter Preis und Kilometer (30.10.2026): nicht nochmal tippen
-  if(ab.preis&&ab.auto===x.auto&&ab.von===x.von&&ab.bis===x.bis){$("preis1").value=eur(ab.preis);preisAuto=false;if(ab.rabatt)$("mvRab").value=ab.rabatt;if(ab.freikm){$("freikm").value=kmText(ab.freikm);kmAuto=false}ABGEMACHT={preis:$("preis1").value,km:$("freikm").value};summe()}
+  if(ab.preis&&ab.auto===x.auto&&ab.von===x.von&&ab.bis===x.bis)abgemachtLaden(ab);
   else if(ab.freikm&&ab.auto===x.auto&&ab.von===x.von&&ab.bis===x.bis){$("freikm").value=kmText(ab.freikm);kmAuto=false}
   tipps();
   // Zusatzfahrer aus der Buchung im Kalender (31.10.2026): Ja wählen, Name eintragen, Preis rechnet sich wie sonst
-  if(x.zusatzfahrer){const j=[...$("zfJn").children].find(c=>c.dataset.jn==="ja");if(j)j.click();$("zf").value=x.zusatzfahrer}
+  if(x.zusatzfahrer){const j=[...$("zfJn").children].find(c=>c.dataset.jn==="ja");if(j)j.click();$("zf").value=x.zusatzfahrer;zfPreis()}
   if(x.anzahlung&&x.anzahlung.betrag){$("anzB").value=eur(x.anzahlung.betrag);if(x.anzahlung.art)gs("z_anz",x.anzahlung.art);if(x.anzahlung.am)$("anzAm").value=x.anzahlung.am;summe()}   // Anzahlung aus dem Anfragen-Buch
   meldung("Übernommen: "+(x.name||"Anfrage"));setTimeout(entwurfMerken,0);setTimeout(hauptText,0)}   // auch ohne Tippen als Entwurf gesichert (30.10.2026)
 function kundenListe(){}   // seit 28.10.2026: Kundensuche (kundensuche.js) statt Vorschlagsliste
@@ -1457,7 +1465,7 @@ function entwurfFortsetzen(e){
     const setzen=()=>Object.keys(e.f).forEach(id=>{const el=$(id);if(el&&e.f[id]!==undefined)el.value=e.f[id]});setzen();
     if(e.auto){const f=fahrzeugListe().find(f=>f.name===e.auto);if(f){waehleAuto(f);setzen()}else{AUTO=e.auto;$("modell").value=e.auto}}
     Object.keys(e.chips||{}).forEach(g=>{if(gruppe(g))gs(g,e.chips[g])});(e.an||[]).forEach(i=>setzeAn(i,true));
-    if((e.f.preis1||"").trim())preisAuto=false;if((e.f.km||"").trim())kmAuto=false;nrVonHand=true;stammFuellen();summe();tipps();
+    if((e.f.preis1||"").trim()){preisAuto=false;ABG_OFFEN=true;ABG_K=null}if((e.f.freikm||"").trim())kmAuto=false;if($("paketKm").value)PAKET_FEST={auto:$("modell").value.trim(),preis:$("paketPreis").value};nrVonHand=true;stammFuellen();summe();tipps();
     if(e.u&&PAD.padV)PAD.padV.setzen(e.u);if(e.anfrage)ANFRAGE=e.anfrage;   // Unterschrift und Anfrage kommen mit zurück (30.10.2026)
     entwurfAus=false;$("entwurf").classList.add("versteckt");zeige("vertrag");meldung("Entwurf geladen, nichts verloren")}
 // Verwerfen legt den Entwurf in den Papierkorb (Kasten Mietverträge), dort holt "Wiederherstellen" ihn zurück (30.10.2026)
@@ -1699,7 +1707,10 @@ function merke(v){entwurfWeg();werMerken(v);
   const k=kunden(),nm=window.mietixKunden&&window.mietixKunden.norm,schl=(nm&&Object.keys(k).find(n=>nm(n)===nm(v.name)))||v.name,kn=Object.assign({},k[schl]||{});
   ["telefon","anschrift","geb","gebort","email"].forEach(f=>{if(v[f])kn[f]=v[f]});k[schl]=kn;schreib("mietixKunden",k);
   lerneAuto(v.auto,{kz:v.kz,fin:v.fin,sb:v.sb,km:v.km});kundenListe();WAHL=v.nr;
-  if(ANFRAGE){const a=lies("mietixAnfragen",[]),x=a.find(x=>x.id===ANFRAGE);if(x){x.status="gebucht";x.vertrag=v.nr;schreib("mietixAnfragen",a)}}}
+  // Anfrage zieht mit: Termin und Auto wie im Mietvertrag, damit kein zweiter entsteht (05.11.2026)
+  {const a=lies("mietixAnfragen",[]),x=a.find(x=>x.id===ANFRAGE)||a.find(x=>x.vertrag===v.nr);if(x){const pm=Math.round(zahl(v.preis1)||0),pp=Math.round(zahl(v.paketPreis)||0),pk=+v.paketKm||0,fk=Math.round(zahl(v.freikm)||0),alt=x.angebot||{};
+    if(x.id===ANFRAGE||x.von!==v.vonD||x.bis!==v.bisD||x.auto!==v.auto||x.vonU!==v.vonU||x.bisU!==v.bisU||Math.round(zahl(alt.preis)||0)!==pm+pp){x.status="gebucht";x.vertrag=v.nr;Object.assign(x,{auto:v.auto,von:v.vonD,bis:v.bisD,vonU:v.vonU,bisU:v.bisU});
+      x.angebot=Object.assign({},alt,{auto:v.auto,von:v.vonD,bis:v.bisD,vonU:v.vonU,bisU:v.bisU,preis:pm+pp,miete:pm,paketKm:pk,paketPreis:pp,kmExtra:pk,freikm:fk,kmInkl:Math.max(0,fk-pk)});schreib("mietixAnfragen",a)}}}}
 // Excel (Mietix Zentrale, Reiter Buchungen): Zeile ab Spalte Kunde bis Bezahlt, wird beim Speichern kopiert
 function alter(geb){if(!geb)return"";const g=new Date(geb),h=new Date();let a=h.getFullYear()-g.getFullYear();
   if(h.getMonth()<g.getMonth()||(h.getMonth()===g.getMonth()&&h.getDate()<g.getDate()))a--;return a>0&&a<100?String(a):""}
@@ -1894,6 +1905,7 @@ function hauptText(){const k=$("haupt");k.classList.remove("aus");if(gesperrt(SI
 let nrVonHand=false;$("nr").addEventListener("input",()=>nrVonHand=true);
 // Doppelbelegung: ein anderer Mietvertrag (nicht zurück), eine gebuchte Anfrage oder eine Sperre mit demselben Auto im Zeitraum
 const nameGleich=(a,b)=>String(a||"").toLowerCase().replace(/\s+/g,"")===String(b||"").toLowerCase().replace(/\s+/g,"");
+window.addEventListener("mietix-nummer-neu",e=>{const d=e.detail||{};if(WAHL===d.alt&&(!$("name").value||nameGleich($("name").value,d.name))){WAHL=d.neu;$("nr").value=d.neu;nrVonHand=true}});   // Abgleich hat wegen gleicher Nummer neu nummeriert: offenes Formular zieht mit (05.11.2026)
 // Übergeben und überzogen: das Auto ist nicht da, bis die Rückgabe gemacht ist (04.11.2026)
 function bisWirklich(x){const h=iso(new Date());return x.ueb&&x.status!=="zurück"&&x.bisD<=h?plusTage(h,1):x.bisD}
 function belegtDurch(v){const ueber=(a1,b1,a2,b2)=>a1<b2&&b1>a2,t=[];
@@ -2087,7 +2099,7 @@ function vertragLaden(v){entwurfAus=true;leeren();NEU=false;$("nr").value=v.nr;n
   const z=v.zahlung||{};[["anz","anzB","z_anz","anzAm"],["rest","restB","z_rest","restAm"],["kaut","kautB","z_kaut","kautAm"]].forEach(([k,b,g,d])=>{const x=z[k]||{};$(b).value=x.betrag==null?"":x.betrag;gs(g,x.art||"");$(d).value=x.am||""});
   $("vOrt").value=v.ort||(v.ueb||{}).ort||ORT;ortZeigen();
   gs("k_art",v.kautionArt||"geld");PAD.padV.setzen(v.unterschrift||"");setzeAn("avbHaken",!!v.avb||!!v.unterschrift);
-  preisAuto=false;kmAuto=false;restVonHand=true;summe();tipps();entwurfAus=false;$("stamm").textContent="";standMerken();altHolen(v);
+  preisAuto=false;kmAuto=false;ABG_OFFEN=true;ABG_K=null;PAKET_FEST=$("paketKm").value?{auto:$("modell").value.trim(),preis:$("paketPreis").value}:null;restVonHand=true;summe();tipps();entwurfAus=false;$("stamm").textContent="";standMerken();altHolen(v);
   $("vSenden").classList.remove("versteckt");$("vSenden").onclick=e=>{e.preventDefault();teilen(aktuell()||v)}}
 // Nicht gespeicherte Änderungen: Stand beim Laden/Speichern merken, beim Tippen vergleichen, in der Schrittleiste zeigen
 let STAND="";
@@ -2323,7 +2335,8 @@ function jnZeigen(){
   const sb=JN.sauberJn||($("eAuf").value?"nein":"ja");jnSetzen("sauberJn",sb);$("eAufW").classList.toggle("versteckt",sb!=="nein")}
 // Zusatzfahrer: Preis pro Tag aus der Preisdatei mal Miettage
 let ZF_HAND=false;
-function zfPreis(){const p=autoPreis($("modell").value.trim()),t=tage();const satz=p&&p.zf?p.zf[1]:0;
+$("zf").addEventListener("input",()=>{if(JN.zfJn==="ja")zfPreis()});
+function zfPreis(){const p=autoPreis($("modell").value.trim()),t=tage();const zfN=Math.min(5,String($("zf").value||"").split(/,|;|&|\+|\bund\b/).filter(s=>s.trim()).length||1),satz=p&&p.zf?p.zf[zfN]:0;   // zwei Namen = Excel-Zeile für zwei Fahrer (05.11.2026)
   $("zfInfo").textContent=satz?("Preis: "+eur(satz)+" € pro Tag × "+t+(t===1?" Tag":" Tage")+", rechnet sich selbst. Überschreiben geht."):"Preis bitte eintragen.";
   if(!ZF_HAND&&satz&&t&&JN.zfJn==="ja"){$("preis2").value=eur(satz*t);summe()}}
 $("preis2").addEventListener("input",()=>ZF_HAND=true);
@@ -2454,7 +2467,7 @@ let NEU=true;   // true = das Formular ist ein neuer Mietvertrag; false = ein ge
 function leeren(){NEU=true;NEU_FREI=false;GELADEN={};$("s_vertrag").querySelectorAll("input,textarea").forEach(e=>e.value="");
   $("vonU").value="10:00";$("bisU").value="10:00";$("mehrkm").value="";MEHR_HAND=false;$("kautB").value="1.950";$("sb").value="7.500";
   ["z_anz","z_rest","z_kaut"].forEach(g=>gs(g,""));gs("k_art","geld");$("stamm").textContent="";
-  PAD.padV.setzen("");setzeAn("avbHaken",true);$("vOrt").value=ORT;ortZeigen();$("vSenden").classList.add("versteckt");AUTO=null;ANFRAGE=null;ABGEMACHT=null;restVonHand=false;nrVonHand=false;preisAuto=true;kmAuto=true;$("mvRab").value="";$("nr").value=neueNr();zeichneAutos();summe();tipps()}
+  PAD.padV.setzen("");setzeAn("avbHaken",true);$("vOrt").value=ORT;ortZeigen();$("vSenden").classList.add("versteckt");AUTO=null;ANFRAGE=null;ABGEMACHT=null;ABG_OFFEN=false;ABG_K=null;PAKET_FEST=null;restVonHand=false;nrVonHand=false;preisAuto=true;kmAuto=true;$("mvRab").value="";$("nr").value=neueNr();zeichneAutos();summe();tipps()}
 /* Bezahlt mit einem Tipp (Liste Punkte 14 und 15): Zahlart wählen, heute wird eingetragen, sofort gespeichert */
 const ZARTEN=[["bar","Bar"],["ec","EC-Karte"],["kredit","Kreditkarte"],["ueberweisung","Überweisung"]];
 function zahlChips(ziel,fertig){ziel.innerHTML='<div class="chips" style="margin-top:8px">'+ZARTEN.map(([k,t])=>'<div class="chip" data-za="'+k+'">'+t+'</div>').join("")+'</div>';
@@ -2703,9 +2716,9 @@ function buTagKopf(d,vor){const h=iso(new Date());if(!d)return"Ohne Datum";
   return vor?vor+" "+t:t.charAt(0).toUpperCase()+t.slice(1)}
 // Preis wie im Mietvertrag: abgemacht im Angebot (gleiches Auto und gleicher Zeitraum), sonst Preisrechner. Ganze Euro.
 function buRechner(auto,von,bis){const p=autoPreis(auto),t=buTage(von,bis);if(!p||!t||!D||!D.rabatt)return null;const start=(new Date(von).getDay()+6)%7;
-  return{preis:Math.round(wochenmiete(p,start,t)*(1-D.rabatt[Math.min(t,D.days)-1])),km:(D.freiKm||150)*t}}
+  const roh=wochenmiete(p,start,t)*(1-D.rabatt[Math.min(t,D.days)-1]);return{preis:Math.round(roh),roh,km:(D.freiKm||150)*t}}
 function buPreis(x){const ab=x.angebot||{},p=Math.round(zahl(ab.preis)||0);
-  if(p&&ab.auto===x.auto&&ab.von===x.von&&ab.bis===x.bis)return{preis:p,km:Math.round(zahl(ab.freikm||ab.kmInkl)||0),quelle:"abgemacht"};
+  if(p&&ab.auto===x.auto&&ab.von===x.von&&ab.bis===x.bis)return{preis:p,km:Math.round(zahl(ab.freikm!=null?ab.freikm:ab.kmInkl)||0),quelle:"abgemacht"};
   const r=buRechner(x.auto,x.von,x.bis);return r?Object.assign(r,{quelle:"rechner"}):null}
 const buAnz=x=>x&&x.anzahlung&&x.anzahlung.am?Math.round(zahl(x.anzahlung.betrag)||0):0;
 // Roter Hinweis über einem offenen Fenster (die Meldung liegt sonst darunter)
@@ -2953,31 +2966,45 @@ document.querySelectorAll(".buZurueck").forEach(a=>a.onclick=e=>{e.preventDefaul
 let NB_ANFRAGE=null;   // Buchung aus einer Anfrage: die Anfrage wird zur Buchung, keine zweite (1.11.2026, ein Formular für alle Wege)
 let NB_MODUS="anfordern",NB_PREIS_HAND=false,NB_KM_HAND=false,NB_ANZ_HAND=false,NB_SPERRE=0,NB_AUTO="";
 const NB_K="mietixEntwurfBuchung";
-function nbWerte(){return{name:$("nbName").value,tel:$("nbTel").value,auto:NB_AUTO,von:$("nbVonD").value,bis:$("nbBisD").value,vonU:$("nbVonU").value,bisU:$("nbBisU").value,
+function nbWerte(){return{pk:NB_PAKET,abg:NB_ABG,anf:NB_ANFRAGE,name:$("nbName").value,tel:$("nbTel").value,auto:NB_AUTO,von:$("nbVonD").value,bis:$("nbBisD").value,vonU:$("nbVonU").value,bisU:$("nbBisU").value,
   preis:$("nbPreis").value,km:$("nbKm").value,rab:$("nbRab").value,ph:NB_PREIS_HAND,kh:NB_KM_HAND,ah:NB_ANZ_HAND,modus:NB_MODUS,anzB:$("nbAnzB").value,art:(($("nbArt").querySelector(".chip.an")||{}).dataset||{}).za||"",zeit:Date.now()}}
 function nbMerken(){if(NB_EDIT)return;const w=nbWerte();try{if(w.name.trim()||w.tel.trim()||w.auto||w.von)localStorage.setItem(NB_K,JSON.stringify(w));else localStorage.removeItem(NB_K)}catch(e){}}
 function nbHolen(){let w=null;try{w=JSON.parse(localStorage.getItem(NB_K)||"null")}catch(e){}if(!w||Date.now()-(w.zeit||0)>7*864e5)return false;
-  $("nbName").value=w.name||"";$("nbTel").value=w.tel||"";NB_AUTO=w.auto||"";$("nbVonD").value=w.von||"";$("nbBisD").value=w.bis||"";$("nbVonU").value=w.vonU||"10:00";$("nbBisU").value=w.bisU||"10:00";
+  NB_PAKET=w.pk||{km:0,preis:0};NB_ABG=w.abg||null;if(w.anf)NB_ANFRAGE=w.anf;$("nbName").value=w.name||"";$("nbTel").value=w.tel||"";NB_AUTO=w.auto||"";$("nbVonD").value=w.von||"";$("nbBisD").value=w.bis||"";$("nbVonU").value=w.vonU||"10:00";$("nbBisU").value=w.bisU||"10:00";
   $("nbPreis").value=w.preis||"";$("nbKm").value=w.km||"";$("nbRab").value=w.rab||"";NB_PREIS_HAND=!!w.ph;NB_KM_HAND=!!w.kh;NB_ANZ_HAND=!!w.ah;NB_MODUS=w.modus||"anfordern";$("nbAnzB").value=w.anzB||"";zahlartChips($("nbArt"),w.art||"");return true}
 function nbLeeren(){["nbName","nbTel","nbVonD","nbBisD","nbPreis","nbKm","nbRab","nbAnzB"].forEach(i=>{$(i).value="";$(i).classList.remove("fehlt")});$("nbVonU").value="10:00";$("nbBisU").value="10:00";
-  NB_AUTO="";NB_MODUS="anfordern";NB_PREIS_HAND=NB_KM_HAND=NB_ANZ_HAND=false;zahlartChips($("nbArt"),"");["nbAutoZ","nbZeitZ"].forEach(i=>$(i).classList.remove("fehlt"));try{localStorage.removeItem(NB_K)}catch(e){}}
+  NB_AUTO="";NB_MODUS="anfordern";NB_PREIS_HAND=NB_KM_HAND=NB_ANZ_HAND=false;NB_PAKET={km:0,preis:0};NB_ABG=null;zahlartChips($("nbArt"),"");["nbAutoZ","nbZeitZ"].forEach(i=>$(i).classList.remove("fehlt"));try{localStorage.removeItem(NB_K)}catch(e){}}
 // Angefangene Buchung verwerfen: Rückfrage, dann in den Papierkorb, dort „Wiederherstellen“ (02.11.2026, Baran: „kann sie nicht löschen“)
+function nbEntwurfAblegen(w){let pk=[];try{pk=JSON.parse(localStorage.getItem("mietixPapierkorb")||"[]")||[]}catch(e){}
+  pk.push({id:"mietixEntwurfBuchung:"+Date.now(),ablage:"mietixEntwurfBuchung",schluessel:"entwurf",eintrag:w,zeit:new Date().toISOString(),text:"Angefangene Buchung: "+([String(w.name||"").trim(),w.auto].filter(Boolean).join(", ")||"ohne Namen")});
+  try{localStorage.setItem("mietixPapierkorb",JSON.stringify(pk))}catch(e){}}
 function nbVerwerfen(){let w=null;try{w=JSON.parse(localStorage.getItem(NB_K)||"null")}catch(e){}if(SICHT==="neu")w=nbWerte();
   if(!w||!(String(w.name||"").trim()||String(w.tel||"").trim()||w.auto||w.von)){nbLeeren();if(SICHT==="neu")zeige(BU_REITER);return}
   if(!confirm("Die angefangene Buchung"+(String(w.name||"").trim()?" von "+w.name.trim():"")+" verwerfen? Sie liegt danach im Papierkorb."))return;
-  let pk=[];try{pk=JSON.parse(localStorage.getItem("mietixPapierkorb")||"[]")||[]}catch(e){}
-  pk.push({id:"mietixEntwurfBuchung:"+Date.now(),ablage:"mietixEntwurfBuchung",schluessel:"entwurf",eintrag:w,zeit:new Date().toISOString(),text:"Angefangene Buchung: "+([String(w.name||"").trim(),w.auto].filter(Boolean).join(", ")||"ohne Namen")});
-  try{localStorage.setItem("mietixPapierkorb",JSON.stringify(pk))}catch(e){}
-  nbLeeren();meldung("Verworfen, liegt im Papierkorb");if(SICHT==="neu")zeige(BU_REITER);else zeichneBuchungen()}
+  nbEntwurfAblegen(w);nbLeeren();meldung("Verworfen, liegt im Papierkorb");if(SICHT==="neu")zeige(BU_REITER);else zeichneBuchungen()}
 $("nbVerw").onclick=e=>{e.preventDefault();nbVerwerfen()};
 function nbAuf(){if(!$("nbName").value&&!$("nbTel").value&&!NB_AUTO&&!$("nbVonD").value)nbHolen();zeige("neu");if(!$("nbName").value)setTimeout(()=>{try{$("nbName").focus()}catch(e){}},300)}
 // Preis aus dem Preisrechner, bis jemand selbst etwas tippt (ganze Euro); Inklusive-km als Gesamtzahl
 function nbRab(){return Math.min(90,Math.max(0,+String($("nbRab").value||"").replace(",",".")||0))}
-function nbRechnen(){const v=$("nbVonD").value,b=$("nbBisD").value,ok=v&&b&&b>=v,r0=NB_AUTO&&ok?buRechner(NB_AUTO,v,b):null,rab=nbRab(),
-  r=r0?Object.assign({},r0,{preis:Math.round(r0.preis*(1-rab/100))}):null;   // Vorschlag mit Rabatt; von Hand Getipptes bleibt (NB_PREIS_HAND)
-  if(r&&!NB_PREIS_HAND)$("nbPreis").value=String(r.preis);if(!r&&!NB_PREIS_HAND&&!ok)$("nbPreis").value="";
-  if(!NB_KM_HAND)$("nbKm").value=ok?String(((D&&D.freiKm)||150)*buTage(v,b)):"";
-  pbTipp($("nbPreisTipp"),r0?r0.preis:null,rab,Math.round(zahl($("nbPreis").value)||0),NB_PREIS_HAND,()=>{NB_PREIS_HAND=false;nbZeichnen();nbMerken()});   // derselbe Hinweis wie überall (stil/preisblock.py)
+// Abgemacht aus Angebot oder Buchung: genau wie vom Rechner dann Vorschlag, der beim Ändern mitgeht, sonst von Hand (Barans Regel 05.11.2026)
+var NB_PAKET={km:0,preis:0},NB_ABG=null,NB_ABG_WART=null;
+function nbAbgemacht(a,auto,von,bis){const pk=+a.paketKm||0,pp=pk?Math.round(zahl(a.paketPreis)||0):0;NB_PAKET={km:pk,preis:pp,auto,orig:pp};NB_ABG=null;
+  const p=Math.round(zahl(a.preis)||0),kmW=a.freikm!=null?a.freikm:a.kmInkl,km=kmW!=null?Math.round(zahl(kmW)||0):null;
+  if(p){$("nbPreis").value=String(p);NB_PREIS_HAND=true}if(km!==null){$("nbKm").value=String(km);NB_KM_HAND=true}
+  NB_ABG_WART={p,km,auto,von,bis};nbAbgPruefen()}
+// Erst wenn die Preise da sind, lässt sich sagen, ob der Betrag vom Rechner stammt (langsames Netz, Neuladen)
+function nbAbgPruefen(){const w=NB_ABG_WART;if(!w||!D||!D.rabatt)return;NB_ABG_WART=null;const r=w.auto&&w.von&&w.bis?buRechner(w.auto,w.von,w.bis):null;if(!r)return;const rab=nbRab();
+  if(w.p&&$("nbPreis").value===String(w.p)&&Math.abs(Math.round(r.roh*(1-rab/100))+NB_PAKET.preis-w.p)<=1){NB_PREIS_HAND=false;NB_ABG={k:[w.auto,w.von,w.bis,rab].join("|"),p:w.p}}
+  if(w.km!==null&&$("nbKm").value===String(w.km)&&w.km===r.km+NB_PAKET.km)NB_KM_HAND=false}
+function nbPaketFuers(auto){if(!NB_PAKET.km)return;if(auto===NB_PAKET.auto)NB_PAKET.preis=NB_PAKET.orig;else{const p=auto?autoPreis(auto):null;if(p&&p.km&&p.km.length>1)NB_PAKET.preis=paketPr(p,NB_PAKET.km)}}
+// Getippter Gesamtpreis bleibt die Summe: das Paket ist nie größer als der Preis, die Miete nie negativ
+function nbPosten(preis){const pp=Math.min(NB_PAKET.preis,Math.max(0,preis));return{miete:preis-pp,paketPreis:pp,paketKm:NB_PAKET.km,kmExtra:NB_PAKET.km}}
+function nbRechnen(){nbAbgPruefen();nbPaketFuers(NB_AUTO);const v=$("nbVonD").value,b=$("nbBisD").value,ok=v&&b&&b>=v,r0=NB_AUTO&&ok?buRechner(NB_AUTO,v,b):null,rab=nbRab(),
+  mit=r0?Math.round(r0.roh*(1-rab/100)):null,r=r0?Object.assign({},r0,{preis:mit+NB_PAKET.preis}):null;   // Vorschlag mit Rabatt und Paket, einmal gerundet; von Hand Getipptes bleibt (NB_PREIS_HAND)
+  if(r&&!NB_PREIS_HAND)$("nbPreis").value=String(NB_ABG&&NB_ABG.k===[NB_AUTO,v,b,rab].join("|")?NB_ABG.p:r.preis);if(!r&&!NB_PREIS_HAND&&D)$("nbPreis").value="";   // Auto ohne Preis: Feld leer, kein Preis vom vorigen Auto
+  if(!NB_KM_HAND)$("nbKm").value=ok?String(((D&&D.freiKm)||150)*buTage(v,b)+NB_PAKET.km):"";
+  pbTipp($("nbPreisTipp"),r0?r0.preis:null,rab,Math.round(zahl($("nbPreis").value)||0)-NB_PAKET.preis,NB_PREIS_HAND,()=>{NB_PREIS_HAND=false;NB_ABG=null;nbZeichnen();nbMerken()},mit);
+  if(NB_PAKET.km&&r0)$("nbPreisTipp").insertAdjacentHTML("beforeend"," Dazu Kilometerpaket +"+NB_PAKET.km+" km für "+NB_PAKET.preis+" €.");   // derselbe Hinweis wie überall (stil/preisblock.py)
   if(NB_MODUS==="erhalten"&&!NB_ANZ_HAND){const p=Math.round(zahl($("nbPreis").value)||0);$("nbAnzB").value=p?String(Math.round(p*0.3)):""}}
 function nbZeichnen(){nbRechnen();const v=$("nbVonD").value,b=$("nbBisD").value,t=buTage(v,b),p=Math.round(zahl($("nbPreis").value)||0),km=Math.round(zahl($("nbKm").value)||0);
   const{t:bel}=buBelegt(NB_AUTO,v,b,"",""),kz=(fahrzeugListe().find(f=>f.name===NB_AUTO)||{}).kz||"";
@@ -3027,9 +3054,9 @@ $("nbAnzB").addEventListener("input",()=>{NB_ANZ_HAND=$("nbAnzB").value.trim()!=
 [...$("nbWahl").querySelectorAll(".buWahl")].forEach(w=>w.onclick=()=>{NB_MODUS=w.dataset.m;nbZeichnen();nbMerken()});
 zahlartChips($("nbArt"),"");$("nbArt").onwahl=()=>nbMerken();
 $("nbDirekt").onclick=e=>{e.preventDefault();if(!buFormFrei())return;
-  const v=$("nbVonD").value,b=$("nbBisD").value,km=Math.round(zahl($("nbKm").value)||0),pr=Math.round(zahl($("nbPreis").value)||0);
+  const v=$("nbVonD").value,b=$("nbBisD").value,kmS=String($("nbKm").value||"").trim(),km=kmS===""?undefined:Math.round(zahl(kmS)||0),pr=Math.round(zahl($("nbPreis").value)||0);
   const x={id:null,name:$("nbName").value.trim(),nummer:$("nbTel").value.trim(),auto:NB_AUTO,von:v,bis:b,vonU:$("nbVonU").value,bisU:$("nbBisU").value,
-    angebot:NB_AUTO&&v&&b?{auto:NB_AUTO,von:v,bis:b,vonU:$("nbVonU").value,bisU:$("nbBisU").value,preis:pr||undefined,freikm:km||undefined,rabatt:Math.round(nbRab())}:{}};
+    angebot:NB_AUTO&&v&&b?Object.assign({auto:NB_AUTO,von:v,bis:b,vonU:$("nbVonU").value,bisU:$("nbBisU").value,preis:pr||undefined,freikm:km,rabatt:nbRab()},nbPosten(pr)):{}};
   leeren();uebernehmeAnfrage(x);nbLeeren();zeige("vertrag")};
 /* Buchung ändern (02.11.2026, Baran-Lückenliste 2): dasselbe Formular, vorbefüllt; speichert nur Kunde, Auto, Zeitraum, Preis, km, Rabatt
    in dieselbe Buchung. Anzahlung, Status und Bestätigung bleiben. Ein angefangener neuer Entwurf bleibt unberührt. */
@@ -3038,20 +3065,21 @@ function nbFelderLeer(){NB_EDIT_ENTWURF=localStorage.getItem(NB_K);nbLeeren();tr
 function nbBearbeiten(id){const x=buAnfrage(id);if(!x)return;nbFelderLeer();NB_EDIT=id;const a=x.angebot||{};
   $("nbName").value=x.name||"";$("nbTel").value=x.nummer||"";NB_AUTO=x.auto||a.auto||"";$("nbVonD").value=x.von||a.von||"";$("nbBisD").value=x.bis||a.bis||"";
   $("nbVonU").value=x.vonU||a.vonU||"10:00";$("nbBisU").value=x.bisU||a.bisU||"10:00";
-  if(a.preis){$("nbPreis").value=String(Math.round(a.preis));NB_PREIS_HAND=true}if(a.freikm||a.kmInkl){$("nbKm").value=String(a.freikm||a.kmInkl);NB_KM_HAND=true}if(a.rabatt)$("nbRab").value=a.rabatt;
+  if(a.rabatt)$("nbRab").value=String(a.rabatt).replace(".",",");nbAbgemacht(a,NB_AUTO,$("nbVonD").value,$("nbBisD").value);
   NB_EDIT_BILD=null;zeige("neu");NB_EDIT_BILD=nbEditBild();
-  try{const g=JSON.parse(sessionStorage.getItem("mietixNbEdit")||"null");if(g&&g.id===id){const w=JSON.parse(g.b);NB_AUTO=w[0];["nbName","nbTel","nbVonD","nbBisD","nbVonU","nbBisU","nbPreis","nbKm","nbRab"].forEach((i,k)=>{$(i).value=w[k+1]});nbZeichnen()}}catch(e){}}
-["input","change"].forEach(t=>document.addEventListener(t,e=>{if(NB_EDIT&&e.target.closest&&e.target.closest("#s_neu,#fNbZeit"))try{sessionStorage.setItem("mietixNbEdit",JSON.stringify({id:NB_EDIT,b:nbEditBild()}))}catch(x){}}));
+  try{const g=JSON.parse(sessionStorage.getItem("mietixNbEdit")||"null");if(g&&g.id===id){const w=JSON.parse(g.b);NB_AUTO=w[0];["nbName","nbTel","nbVonD","nbBisD","nbVonU","nbBisU","nbPreis","nbKm","nbRab"].forEach((i,k)=>{$(i).value=w[k+1]});NB_ABG_WART=null;if(g.h){NB_PREIS_HAND=g.h[0];NB_KM_HAND=g.h[1];NB_ABG=g.h[2]||null}nbZeichnen()}}catch(e){}}
+["input","change"].forEach(t=>document.addEventListener(t,e=>{if(NB_EDIT&&e.target.closest&&e.target.closest("#s_neu,#fNbZeit"))setTimeout(()=>{if(NB_EDIT)try{sessionStorage.setItem("mietixNbEdit",JSON.stringify({id:NB_EDIT,b:nbEditBild(),h:[NB_PREIS_HAND,NB_KM_HAND,NB_ABG]}))}catch(x){}},0)}));
 function nbEditEnde(){NB_EDIT=null;NB_EDIT_BILD=null;try{sessionStorage.removeItem("mietixNbEdit")}catch(e){}nbLeeren();try{if(NB_EDIT_ENTWURF)localStorage.setItem(NB_K,NB_EDIT_ENTWURF)}catch(e){}NB_EDIT_ENTWURF=null}
+function nbKmWert(v,b){const s=String($("nbKm").value||"").trim();return s===""?((D&&D.freiKm)||150)*buTage(v,b)+NB_PAKET.km:Math.max(0,Math.round(zahl(s)||0))}   // getippte 0 km bleiben 0 km
 function nbAenderungSpeichern(){const w=i=>String($(i).value||"").trim(),f=[];
   if(!w("nbName"))f.push(["nbName","Name"]);if(!w("nbTel"))f.push(["nbTel","WhatsApp"]);if(!NB_AUTO)f.push(["nbAutoZ","Auto"]);
   const v=$("nbVonD").value,b=$("nbBisD").value;if(!v||!b||b<v)f.push(["nbZeitZ","Zeitraum"]);
   if(f.length){f.forEach(([i])=>$(i).classList.add("fehlt"));buRot("Noch fehlt: "+f.map(x=>x[1]).join(", "));return}
   const id=NB_EDIT,{t}=buBelegt(NB_AUTO,v,b,"",id);
   if(t.length){$("nbAutoZ").classList.add("fehlt");nbZeichnen();buRot(NB_AUTO+" ist in dem Zeitraum schon belegt: "+t.join(", ")+". Nicht geändert.");return}
-  const vonU=$("nbVonU").value||"10:00",bisU=$("nbBisU").value||"10:00",km=Math.max(0,Math.round(zahl($("nbKm").value)||0))||((D&&D.freiKm)||150)*buTage(v,b),r=buRechner(NB_AUTO,v,b),pt=zahl($("nbPreis").value),preis=String($("nbPreis").value).trim()!==""&&pt!==null?Math.round(pt):(r?r.preis:0);
+  const vonU=$("nbVonU").value||"10:00",bisU=$("nbBisU").value||"10:00",km=nbKmWert(v,b),r=buRechner(NB_AUTO,v,b),pt=zahl($("nbPreis").value),preis=String($("nbPreis").value).trim()!==""&&pt!==null?Math.round(pt):(r?r.preis:0);
   buAendern(id,y=>{Object.assign(y,{name:w("nbName"),nummer:w("nbTel"),auto:NB_AUTO,von:v,bis:b,vonU,bisU});
-    y.angebot=Object.assign({},y.angebot||{},{auto:NB_AUTO,von:v,bis:b,vonU,bisU,preis,kmInkl:km,freikm:km,rabatt:Math.round(nbRab())});
+    y.angebot=Object.assign({},y.angebot||{},{auto:NB_AUTO,von:v,bis:b,vonU,bisU,preis,kmInkl:Math.max(0,km-NB_PAKET.km),freikm:km,rabatt:nbRab()},nbPosten(preis));
     if(y.anzahlungAngefordert&&!(y.anzahlung&&y.anzahlung.am))y.anzahlungAngefordert.betrag=preis?Math.round(preis*0.3):y.anzahlungAngefordert.betrag;
     (y.verlauf=y.verlauf||[]).push({am:new Date().toISOString(),was:"geändert"})});
   nbEditEnde();meldung("✓ Buchung geändert");BU_ID=id;zeige("buchung")}
@@ -3068,12 +3096,12 @@ function nbSpeichern(){if(NB_EDIT){nbAenderungSpeichern();return}if(Date.now()-N
   if(doppel){buRot(name+" hat für "+auto+" in diesem Zeitraum schon "+doppel+". Es wird keine zweite angelegt.");return}
   if(t.length){$("nbAutoZ").classList.add("fehlt");nbZeichnen();buRot(auto+" ist in dem Zeitraum schon belegt: "+t.join(", ")+". Nicht gespeichert.");return}
   // Aufbau genau wie eine Buchung aus dem Kalender (belegung), nur so übernimmt der Mietvertrag Preis, Kilometer und Anzahlung
-  const hJ=new Date(),heute=iso(hJ),vonU=$("nbVonU").value||"10:00",bisU=$("nbBisU").value||"10:00",km=Math.max(0,Math.round(zahl($("nbKm").value)||0))||((D&&D.freiKm)||150)*buTage(v,b);
+  const hJ=new Date(),heute=iso(hJ),vonU=$("nbVonU").value||"10:00",bisU=$("nbBisU").value||"10:00",km=nbKmWert(v,b);
   const r=buRechner(auto,v,b),pt=zahl($("nbPreis").value),preis=String($("nbPreis").value).trim()!==""&&pt!==null?Math.round(pt):(r?r.preis:0);   // getippte 0 € bleiben 0 €
   const x={id:String(Date.now())+Math.random().toString(36).slice(2,6),tag:heute,uhr:pad(hJ.getHours())+":"+pad(hJ.getMinutes()),
     name,alter:"",ort:"",nummer:w("nbTel"),anschrift:"",geb:"",gebort:"",auto,von:v,bis:b,vonU,bisU,
     notiz:"Buchung aus Buchungen",status:NB_MODUS==="anfordern"?"angebot":"gebucht",zusatzfahrer:"",quelle:"buchung",
-    angebot:{auto,von:v,bis:b,vonU,bisU,preis,kmInkl:km,freikm:km,kmExtra:0,rabatt:Math.round(nbRab()),am:hJ.toISOString()}};
+    angebot:Object.assign({auto,von:v,bis:b,vonU,bisU,preis,kmInkl:Math.max(0,km-NB_PAKET.km),freikm:km,rabatt:nbRab(),am:hJ.toISOString()},nbPosten(preis))};
   if(NB_MODUS==="anfordern")x.anzahlungAngefordert={am:heute,betrag:preis?Math.round(preis*0.3):0};
   if(NB_MODUS==="erhalten")x.anzahlung={betrag:anzB,quote:preis&&anzB===Math.round(preis*0.3)?30:0,art:art.dataset.za,am:heute};
   if(NB_MODUS==="ohne")x.ohneAnzahlung=true;
@@ -3087,18 +3115,19 @@ function nbSpeichern(){if(NB_EDIT){nbAenderungSpeichern();return}if(Date.now()-N
 $("nr").value=neueNr();$("heuteText").textContent=heuteDe();$("kautB").value="1.950";$("sb").value="7.500";
 zeichneAutos();zeichneAnfragen();kundenListe();entwurfLaden();kautAnzeigen();if(!entwurfHolen())setzeAn("avbHaken",true);
 fetch("https://barankohler.github.io/mietix-preise/preise.json",{cache:"no-store"}).then(r=>r.ok?r.json():null)
-  .then(p=>{if(p&&p.cars){D=p;zeichneAutos();
+  .then(p=>{if(p&&p.cars){D=p;zeichneAutos();if(SICHT==="neu")nbZeichnen();
     if(AUTO){const k=autoPreis(AUTO);if(k&&k.kaution&&$("kautB").value==="1.950")$("kautB").value=wie(k.kaution)}   // Kaution je Auto, auch wenn die Preisdatei später kam
     tipps()}}).catch(()=>{});
 // Aus dem Anfragen-Buch: ...mietix-vertrag/?anfrage=ID öffnet den Mietvertrag schon ausgefüllt
 (()=>{const id=new URLSearchParams(location.search).get("anfrage");if(!id||new URLSearchParams(location.search).get("neu"))return;   // ?neu=1 geht ins Formular Neue Buchung
   const x=lies("mietixAnfragen",[]).find(x=>x.id===id);history.replaceState(null,"",location.pathname);
+  if(x&&x.vertrag&&vorgaenge().some(v=>v.nr===x.vertrag&&!v._weg)){location.replace("?nr="+encodeURIComponent(x.vertrag)+"&zeige=mappe");return}   // hat schon einen Mietvertrag: den öffnen, keinen zweiten
   if(x){leeren();uebernehmeAnfrage(x);zeige("vertrag")}})();
 // Kommt die Anzahlung (oder der abgemachte Preis) erst nach dem Öffnen von einem anderen Handy an, wird sie still nachgetragen,
 // solange der Mietvertrag noch nicht gespeichert ist und die Felder leer bzw. unberührt sind (30.10.2026)
 window.addEventListener("mietix-abgleich",e=>{if(!ANFRAGE||!(e.detail||[]).includes("mietixAnfragen"))return;
   const x=lies("mietixAnfragen",[]).find(y=>y.id===ANFRAGE);if(!x)return;const ab=x.angebot||{};
-  if(preisAuto&&ab.preis&&ab.auto===x.auto&&ab.von===$("vonD").value&&ab.bis===$("bisD").value){$("preis1").value=eur(ab.preis);preisAuto=false;if(ab.rabatt)$("mvRab").value=ab.rabatt;if(ab.freikm&&kmAuto){$("freikm").value=kmText(ab.freikm);kmAuto=false}ABGEMACHT={preis:$("preis1").value,km:$("freikm").value};summe()}
+  if(preisAuto&&!ABGEMACHT&&!$("mvRab").value&&ab.preis&&ab.auto===x.auto&&ab.von===$("vonD").value&&ab.bis===$("bisD").value)abgemachtLaden(ab,true);
   if(x.anzahlung&&x.anzahlung.betrag&&!$("anzB").value.trim()){$("anzB").value=eur(x.anzahlung.betrag);if(x.anzahlung.art)gs("z_anz",x.anzahlung.art);if(x.anzahlung.am)$("anzAm").value=x.anzahlung.am;summe()}});
 // Von der Belegungstafel: ...mietix-vertrag/?auto=NAME&von=JJJJ-MM-TT&bis=JJJJ-MM-TT öffnet einen neuen Mietvertrag mit Auto und Zeitraum (29.10.2026)
 (()=>{const q=new URLSearchParams(location.search),a=q.get("auto");if(!a&&!q.get("von"))return;if(q.get("nr")||q.get("anfrage")||q.get("kunde")||q.get("neu"))return;
@@ -3116,13 +3145,14 @@ setTimeout(zeichneHeute,0);   // erst wenn der Abgleich-Baustein geladen ist
 // öffnet „Neue Buchung“ vorausgefüllt, aus Startseite, Kalender und Anfragen
 (()=>{const q=new URLSearchParams(location.search);if(!q.get("neu"))return;history.replaceState(null,"",location.pathname);
   setTimeout(()=>{   // nach dem Start der Seite, sonst schaltet sie wieder auf Kommend
+  {let w=null;try{w=JSON.parse(localStorage.getItem(NB_K)||"null")}catch(e){}if(w&&(String(w.name||"").trim()||String(w.tel||"").trim()||w.auto||w.von))nbEntwurfAblegen(w)}   // angefangene Buchung geht nicht verloren (05.11.2026)
   nbLeeren();const a=q.get("anfrage")?lies("mietixAnfragen",[]).find(y=>y.id===q.get("anfrage")):null,ab=(a&&a.angebot)||{};
   if(a){NB_ANFRAGE=a.id;$("nbName").value=a.name||"";$("nbTel").value=a.nummer||""}
   const auto=q.get("auto")||(a&&a.auto)||"",von=q.get("von")||(a&&a.von)||"",bis=q.get("bis")||(a&&a.bis)||"";
   if(auto&&fahrzeugListe().some(f=>f.name===auto))NB_AUTO=auto;if(von)$("nbVonD").value=von;if(bis)$("nbBisD").value=bis;
   const vu=q.get("vonU")||(a&&(a.vonU||ab.vonU)),bu=q.get("bisU")||(a&&(a.bisU||ab.bisU));if(vu)$("nbVonU").value=vu;if(bu)$("nbBisU").value=bu;
-  if(ab.rabatt)$("nbRab").value=ab.rabatt;
-  if(ab.preis&&ab.auto===NB_AUTO&&ab.von===von&&ab.bis===bis){$("nbPreis").value=String(Math.round(ab.preis));NB_PREIS_HAND=true;if(ab.freikm){$("nbKm").value=String(ab.freikm);NB_KM_HAND=true}}
+  if(ab.rabatt)$("nbRab").value=String(ab.rabatt).replace(".",",");
+  if(ab.preis&&ab.auto===NB_AUTO&&ab.von===von&&ab.bis===bis)nbAbgemacht(ab,NB_AUTO,von,bis);
   zeige("neu");nbZeichnen()},600)})();
 // Seite neu geladen oder von iOS geräumt: dieselbe Ansicht wieder öffnen, das Getippte kommt aus dem Entwurf (04.11.2026)
 (()=>{const st=history.state;if(!st||!st.mxS||location.search)return;const form=["mappe","uebergabe","rueckgabe","schaden","ueberlassung"].includes(st.mxS);
@@ -3246,7 +3276,9 @@ window.dispatchEvent(new Event("mietix-kunden-bereit"));
      schickt sie hoch und holt neue Stände der anderen Geräte (beim Start, beim Zurückkehren zur Seite, jede Minute).
    - Ohne Internet oder ohne Anmeldung läuft alles wie vorher, der Abgleich holt später nach.
    - Gelöschte Einträge (Anfragen-Buch) gehen als {_weg:true} hoch, damit sie auch auf den anderen Geräten verschwinden.
-   - Anmeldung: E-Mail und Passwort, einmal pro Gerät. Gilt für alle Mietix-Werkzeuge auf barankohler.github.io. */
+   - Anmeldung: E-Mail und Passwort, einmal pro Gerät. Gilt für alle Mietix-Werkzeuge auf barankohler.github.io.
+   - Seit 05.11.2026: Hochladen nur, wenn der Eintrag oben noch so ist wie beim Holen. Sonst neu holen und zusammenführen.
+     Beschädigte Listen gehen nie hoch, viele Löschungen auf einmal nur nach Rückfrage. SQL dazu: aenderung_2026_11_05.sql */
 (function(){
 const URL_="https://zbeqrwvlmiulxvhryiku.supabase.co";
 const KEY="sb_publishable_LVkvpgXMpBbq_OXgwOfTqg_ZRcRkFyQ";   // öffentlich gedacht, Schutz über Anmeldung und Regeln in der Datenbank
@@ -3256,9 +3288,14 @@ const SPEICHER={mietixVorgaenge:{tab:"vorgaenge",pk:"nr",liste:true},mietixAnfra
   mietixAufgaben:{tab:"aufgaben",pk:"id",liste:true},mietixZustand:{tab:"zustand",pk:"id",liste:true},mietixAutos:{tab:"autos",pk:"name",liste:false},mietixStand:{tab:"stand",pk:"id",liste:false},mietixPapierkorb:{tab:"papierkorb",pk:"id",liste:true}};
 const roh=Storage.prototype.setItem;
 const lies=(k,d)=>{try{return JSON.parse(localStorage.getItem(k)||"")||d}catch(e){return d}};
+// Eine Ablage lesen und dabei unterscheiden (05.11.2026): fehlt = gar nichts da, kaputt = da, aber nicht lesbar. Beides darf nie als „alles gelöscht“ hochgehen.
+function liesAblage(k){const c=SPEICHER[k],leer=c.liste?[]:{},r=localStorage.getItem(k);if(r===null||r==="")return{w:leer,fehlt:true};
+  try{const w=JSON.parse(r);if(w===null)return{w:leer,fehlt:true};if(c.liste?Array.isArray(w):(w&&typeof w==="object"&&!Array.isArray(w)))return{w}}catch(e){}
+  return{w:leer,kaputt:true}}
 const merk=(k,v)=>{try{roh.call(localStorage,k,JSON.stringify(v));return true}catch(e){if(window.mxFehler)mxFehler("Nicht gespeichert: Der Speicher auf diesem Gerät ist voll. Seite offen lassen, sonst geht etwas verloren.");return false}};   // Hinweis auch hier (1.11.2026)
 // Jede Anfrage an den Speicher höchstens 20 Sekunden (31.10.2026): sonst hing der Abgleich bei schlechtem Netz für immer
-const holeMit=(u,o)=>{const c=new AbortController(),t=setTimeout(()=>c.abort(),20000);return fetch(u,Object.assign({},o,{signal:c.signal})).finally(()=>clearTimeout(t))};
+const KEINE_VERBINDUNG="Keine Verbindung, wird nachgeholt";   // statt „Failed to fetch“ und „signal is aborted“ (05.11.2026)
+const holeMit=(u,o)=>{const c=new AbortController(),t=setTimeout(()=>c.abort(),20000);return fetch(u,Object.assign({},o,{signal:c.signal})).catch(()=>{throw new Error(KEINE_VERBINDUNG)}).finally(()=>clearTimeout(t))};
 const hash=s=>{let h=5381;for(let i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))|0;return String(h)};
 /* ---------- Unterschriften im eigenen Gerätespeicher (31.10.2026, Baran: auch bei 100 Mietverträgen flüssig, iPad, Handy, Laptop) ----------
    localStorage hat in Safari nur 5 MB. Bilder (data:image…) liegen darum in IndexedDB (viel größer), in localStorage steht nur "bild:<Kennung>".
@@ -3316,6 +3353,9 @@ async function auslagern(){if(ausLauf){auslagernBald();return}ausLauf=true;
       if(k in SPEICHER)merk("mietixAbgleich",H);roh.call(localStorage,k,JSON.stringify(s))}}
   catch(e){}finally{ausLauf=false}}
 let NEU_AUFBAU=false,sitzung=lies("mietixSitzung",null),laeuft=false,nochmal=false,zuletzt=null,fehler="";
+// ungesichert: hier wurde etwas geändert, das noch nicht oben ist. FRAGEN: was Baran entscheiden muss. HINWEISE: bleibt rot stehen, bis er es wegtippt (05.11.2026)
+let ungesichert=false,aenderungen=0,FRAGEN=[],HINWEISE=lies("mietixAbgleichHinweise",[]);const LOESCH={};
+function hinweis(text){if(!HINWEISE.includes(text)){HINWEISE=HINWEISE.concat([text]).slice(-5);merk("mietixAbgleichHinweise",HINWEISE)}if(window.mxFehler)mxFehler(text)}
 
 /* ---------- Anmeldung ---------- */
 async function auth(pfad,body){const r=await holeMit(URL_+"/auth/v1/"+pfad,{method:"POST",headers:{apikey:KEY,"Content-Type":"application/json"},body:JSON.stringify(body)});
@@ -3325,7 +3365,7 @@ function sichern(j){sitzung={token:j.access_token,neu:j.refresh_token,bis:Date.n
 async function token(){if(!sitzung)return null;
   if(Date.now()>sitzung.bis){try{sichern(await auth("token?grant_type=refresh_token",{refresh_token:sitzung.neu}))}
     // Abmelden nur, wenn der Speicher die Anmeldung wirklich ablehnt, nicht bei schlechtem Netz (30.10.2026)
-    catch(e){if(e.status>=400&&e.status<500){sitzung=null;localStorage.removeItem("mietixSitzung");zeigen()}return null}}
+    catch(e){if(e.status>=400&&e.status<500){sitzung=null;localStorage.removeItem("mietixSitzung");zeigen();return null}throw e}}
   return sitzung.token}
 async function api(pfad,opt){const t=await token();if(!t)throw new Error("nicht angemeldet");
   const r=await holeMit(URL_+"/rest/v1/"+pfad,Object.assign({},opt,{headers:Object.assign({apikey:KEY,Authorization:"Bearer "+t,"Content-Type":"application/json"},(opt||{}).headers||{})}));
@@ -3343,7 +3383,9 @@ function ausMap(k,m){const c=SPEICHER[k];if(!c.liste)return m;return Object.keys
    - Geändert schlägt Gelöscht: wird ein Eintrag hier geändert und dort gelöscht, bleibt er da.
    - Beim Holen wird zwei Minuten überlappend gefragt, damit kein Eintrag wegen ungleich gehender Uhren fehlt. */
 const UEBERLAPPUNG=2*60*1000;
-const FELDWEISE={mietixVorgaenge:1,mietixAnfragen:1,mietixKunden:1,mietixFahrzeuge:1,mietixAutos:1,mietixStand:1};
+const FELDWEISE={mietixVorgaenge:1,mietixAnfragen:1,mietixKunden:1,mietixFahrzeuge:1,mietixAutos:1,mietixStand:1,mietixAusgaben:1,mietixSperren:1,mietixAufgaben:1,mietixZustand:1};
+const HANDVOLL=5;   // mehr Löschungen auf einmal gehen nur nach Rückfrage hoch (Papierkorb räumt sich selbst auf, Stand sind Entwürfe)
+const MEHRZAHL={mietixVorgaenge:"Mietverträge",mietixAnfragen:"Anfragen",mietixKunden:"Kunden",mietixFahrzeuge:"Fahrzeuge",mietixAusgaben:"Ausgaben",mietixSperren:"Sperren",mietixAufgaben:"Aufgaben",mietixZustand:"Zustände",mietixAutos:"Autos",mietixStand:"Entwürfe",mietixPapierkorb:"Papierkorb"};
 // Inhalt unabhängig von der Reihenfolge der Felder (die Datenbank sortiert Felder um)
 const ordne=x=>istBild(x)?marke(x):Array.isArray(x)?x.map(ordne):x&&typeof x==="object"?Object.keys(x).sort().reduce((o,n)=>{o[n]=ordne(x[n]);return o},{}):x;
 const fp=x=>hash(JSON.stringify(ordne(x))===undefined?"":JSON.stringify(ordne(x)));
@@ -3364,6 +3406,7 @@ function zusammen(k,p,lokal,server,basisHash,basisFelder){
   const lokalGeaendert=lokal===undefined?(basisHash!==undefined&&basisHash!=="weg"):!gleichBasis(lokal,basisHash);
   if(server&&server._weg){if(lokal===undefined)return undefined;
     if(basisHash!==undefined&&lokalGeaendert)return lokal;          // hier geändert, dort gelöscht: bleibt da
+    if(basisHash===undefined&&!NEU_AUFBAU)andereFassung(k,p,lokal);   // hier neu, dort gelöscht: nicht still weg (05.11.2026)
     return undefined}
   if(lokal===undefined){if(basisHash!==undefined&&basisHash!=="weg"&&gleichBasis(server,basisHash))return undefined; // hier gelöscht, dort unverändert
     return server}
@@ -3389,53 +3432,97 @@ function zusammen(k,p,lokal,server,basisHash,basisFelder){
     if(streit)andereFassung(k,p,server);
     return out}
   andereFassung(k,p,server);return lokal}
+/* Gleiche Nummer, anderer Name (05.11.2026, zwei Geräte ohne Netz): zwei verschiedene Mietverträge. Beide bleiben, der spätere bekommt eine neue Nummer. */
+const nameGleich=(a,b)=>String(a||"").toLowerCase().replace(/\s+/g,"")===String(b||"").toLowerCase().replace(/\s+/g,"");
+const andererKunde=(a,b)=>!!(a&&b&&!b._weg&&String(a.name||"").trim()&&String(b.name||"").trim()&&!nameGleich(a.name,b.name));
+function freieNummer(m){let max=+(localStorage.getItem("mietixHoechsteNr")||0)||0;const nimm=s=>{if(/^\d{6}$/.test(String(s))&&+s>max)max=+s};
+  Object.keys(m).forEach(nimm);lies("mietixPapierkorb",[]).forEach(x=>{if(x&&x.ablage==="mietixVorgaenge")nimm(x.schluessel)});return String(max+1).padStart(6,"0")}
+function nummerGewechselt(m,alt,eintrag,neu){m[neu]=Object.assign({},eintrag,{nr:neu});
+  try{if(+neu>(+(localStorage.getItem("mietixHoechsteNr")||0)||0))roh.call(localStorage,"mietixHoechsteNr",String(+neu))}catch(e){}
+  hinweis("Die Nummer "+alt+" gab es zweimal. "+(eintrag.name||"Dieser Mietvertrag")+" hat jetzt Mietvertrag "+neu+". Schon ausgedruckt oder verschickt? Bitte neu ausgeben.");
+  window.dispatchEvent(new CustomEvent("mietix-nummer-neu",{detail:{alt,neu,name:eintrag.name||""}}))}
+// Holen, zusammenführen, hochladen. Geht ein Eintrag oben nicht mehr auf den geholten Stand, wird nur er neu geholt und die Runde wiederholt.
+async function ablageAbgleichen(k,c,h,zeilen,geholt){
+  for(let runde=0;;runde++){let anders=false;const l0=liesAblage(k);if(l0.kaputt)throw new Error(MEHRZAHL[k]+" auf diesem Gerät sind beschädigt, nichts davon wurde hochgeladen");const m2=alsMap(k,l0.w),doppelt=[];
+    zeilen.forEach(z=>{const p=String(z[c.pk]);if(z.geaendert>h.zeit)h.zeit=z.geaendert;h.ver[p]=z.geaendert;
+      if(k==="mietixVorgaenge"&&h.hash[p]===undefined&&andererKunde(m2[p],z.daten)&&fp(m2[p])!==fp(z.daten)){doppelt.push([p,m2[p]]);delete m2[p];anders=true}
+      const gleichB=x=>x===undefined?undefined:JSON.stringify(durch(x,y=>istBild(y)?marke(y):y));   // Bild und sein Verweis "bild:…" gelten als gleich (1.11.2026: sonst Dauerschleife, Seite sprang)
+      const vorher=p in m2?gleichB(m2[p]):undefined;
+      const ergebnis=zusammen(k,p,m2[p],z.daten,h.hash[p],h.felder[p]);
+      if(ergebnis===undefined){if(p in m2){delete m2[p];anders=true}}
+      else if(gleichB(ergebnis)!==vorher){m2[p]=ergebnis;anders=true}
+      // Grundlage für das nächste Mal ist jetzt der gemeinsame Stand
+      if(z.daten&&z.daten._weg){h.hash[p]="weg";delete h.felder[p]}
+      else{h.hash[p]=fp(z.daten);if(FELDWEISE[k])h.felder[p]=felderVon(z.daten)}});
+    for(const [alt,eintrag] of doppelt){let neu=await window.mietixNeueNummer();if(!neu||neu in m2)neu=freieNummer(m2);nummerGewechselt(m2,alt,eintrag,neu)}
+    if(anders){let w=ausMap(k,m2);try{w=await sicherRaus(k,w,{[k]:h})}catch(e){}
+      if(!merk(k,w))throw new Error("Speicher auf diesem Gerät voll");if(!geholt.includes(k))geholt.push(k)}
+    // hoch: alles, was hier anders ist als der gemeinsame Stand (auch Gelöschtes). Die Zeit nie hinter dem gehen, was schon oben steht: So fällt ein Gerät mit falscher Uhr auch ohne Datenbank-Regel nicht durchs Raster.
+    const m=alsMap(k,liesAblage(k).w),jetzt=new Date(Math.max(Date.now(),h.zeit?new Date(h.zeit).getTime()+1:0)).toISOString(),hoch=[];
+    let ohneBild=0;
+    for(const p of Object.keys(m)){if(gleichBasis(m[p],h.hash[p])){h.hash[p]=fp(m[p]);continue}
+      const daten=await bilderRein(m[p]);if(daten===null){ohneBild++;continue}   // nie eine Kennung statt Unterschrift hochschicken
+      hoch.push({[c.pk]:p,daten,geaendert:jetzt})}
+    // Löschen: viele auf einmal warten auf Baran
+    const frei=h.frei||[];delete h.frei;if(h.halt){h.halt=h.halt.filter(p=>!(p in m));if(!h.halt.length)delete h.halt}
+    const weg=Object.keys(h.hash).filter(p=>!(p in m)&&h.hash[p]!=="weg"&&!frei.includes(p)&&!(h.halt||[]).includes(p));
+    if(k!=="mietixPapierkorb"&&k!=="mietixStand"&&(weg.length>HANDVOLL||(weg.length>=3&&!Object.keys(m).length))){h.halt=(h.halt||[]).concat(weg)}
+    else weg.concat(frei).forEach(p=>{if(!(p in m)&&h.hash[p]!=="weg")hoch.push({[c.pk]:p,daten:{_weg:true},geaendert:jetzt})});
+    const streit=await hochladen(k,c,h,hoch);
+    if(!streit.length)return{m,ohneBild};
+    if(runde>=3){nochmal=true;throw new Error("Ein anderes Gerät speichert gerade, wird nachgeholt")}
+    zeilen=[];for(const p of streit){const z=await api(c.tab+"?select="+c.pk+",daten,geaendert&"+c.pk+"=eq."+encodeURIComponent(p),{method:"GET"})||[];
+      if(z[0])zeilen.push(z[0]);else delete h.ver[p]}}}
+// Neu: nur einfügen, wenn es den Eintrag oben noch nicht gibt. Vorhanden: nur ändern, wenn er oben noch den geholten Stand hat. Zurück kommt, was nicht hochging.
+async function hochladen(k,c,h,hoch){const streit=[],gelungen=(z,ver)=>{const p=z[c.pk];h.ver[p]=ver;
+    if(z.daten._weg){h.hash[p]="weg";delete h.felder[p]}else{h.hash[p]=fp(z.daten);if(FELDWEISE[k])h.felder[p]=felderVon(z.daten)}};
+  const neu=hoch.filter(z=>!h.ver[z[c.pk]]);
+  for(let i=0;i<neu.length;i+=200){const teil=neu.slice(i,i+200),r=await api(c.tab+"?on_conflict="+c.pk+"&select="+c.pk+",geaendert",{method:"POST",headers:{Prefer:"resolution=ignore-duplicates,return=representation"},body:JSON.stringify(teil)})||[];
+    const da={};r.forEach(x=>da[String(x[c.pk])]=x.geaendert);teil.forEach(z=>{const p=z[c.pk];if(p in da)gelungen(z,da[p]);else streit.push(p)})}
+  for(const z of hoch){const p=z[c.pk],ver=h.ver[p];if(!ver||neu.includes(z))continue;
+    const r=await api(c.tab+"?"+c.pk+"=eq."+encodeURIComponent(p)+"&geaendert=eq."+encodeURIComponent(ver)+"&select="+c.pk+",geaendert",{method:"PATCH",headers:{Prefer:"return=representation"},body:JSON.stringify({daten:z.daten,geaendert:z.geaendert})})||[];
+    if(r[0])gelungen(z,r[0].geaendert);else streit.push(p)}
+  return streit}
 async function abgleichen(){
-  if(!sitzung||!navigator.onLine)return;if(laeuft){nochmal=true;return}laeuft=true;fehler="";zeigen();
-  const H=lies("mietixAbgleich",{}),geholt=[];
+  if(!sitzung||!navigator.onLine)return;if(laeuft){nochmal=true;return}laeuft=true;const stand0=aenderungen;zeigen();
+  const H=lies("mietixAbgleich",{}),geholt=[],kaputt=[];let warnung="";
   // Einmal je Gerät (31.10.2026, iPad mit vollem Speicher): Mietverträge, Papierkorb und Unterschriften frisch vom gemeinsamen Stand übernehmen.
   // Nur hier Liegendes, das noch nie hochging, bleibt und geht hoch. Kein Doppel in den Papierkorb.
   if(!lies("mietixNeuAufbau1",false)){NEU_AUFBAU=true;["mietixVorgaenge","mietixPapierkorb","mietixStand"].forEach(k=>H[k]={zeit:"",hash:{},felder:{}})}
   try{
-    for(const k of Object.keys(SPEICHER)){const c=SPEICHER[k],h=H[k]=H[k]||{zeit:"",hash:{}};if(!h.felder)h.felder={};
+    for(const k of Object.keys(SPEICHER)){const c=SPEICHER[k],l=liesAblage(k);let h=H[k]=H[k]||{zeit:"",hash:{}};if(!h.felder)h.felder={};
+      // Beschädigt: nichts hochladen, nichts darüber schreiben. Baran entscheidet (Knopf „Neu holen“).
+      if(l.kaputt){kaputt.push(k);warnung=MEHRZAHL[k]+" auf diesem Gerät sind beschädigt, nichts davon wurde hochgeladen";continue}
+      // Ganze Liste weg, obwohl schon abgeglichen: Das ist kein Löschen. Alles frisch vom gemeinsamen Stand holen.
+      if(l.fehlt&&Object.keys(h.hash).some(p=>h.hash[p]!=="weg")){h=H[k]={zeit:"",hash:{},felder:{},ver:{}};hinweis(MEHRZAHL[k]+" fehlten auf diesem Gerät und wurden neu geholt.")}
+      // Erstes Mal mit dieser Fassung: einmal alles holen, damit der Stand jedes Eintrags bekannt ist
+      if(!h.ver){h.ver={};h.zeit=""}
+      if(k in LOESCH){const ja=LOESCH[k];delete LOESCH[k];if(h.halt){if(ja)h.frei=h.halt;else{h.halt.forEach(p=>{delete h.hash[p];delete h.felder[p];delete h.ver[p]});h.zeit=""}delete h.halt}}
       // 1) runter: was die anderen Geräte geschickt haben, Eintrag für Eintrag zusammengeführt
       const ab=h.zeit?new Date(new Date(h.zeit).getTime()-UEBERLAPPUNG).toISOString():"";
       const seit=ab?"&geaendert=gt."+encodeURIComponent(ab):"";
       const zeilen=await api(c.tab+"?select="+c.pk+",daten,geaendert&order=geaendert.asc"+seit,{method:"GET"})||[];
-      let anders=false;const m2=alsMap(k,lies(k,c.liste?[]:{}));
-      zeilen.forEach(z=>{const p=String(z[c.pk]);if(z.geaendert>h.zeit)h.zeit=z.geaendert;
-        const gleichB=x=>x===undefined?undefined:JSON.stringify(durch(x,y=>istBild(y)?marke(y):y));   // Bild und sein Verweis "bild:…" gelten als gleich (1.11.2026: sonst Dauerschleife, Seite sprang)
-        const vorher=p in m2?gleichB(m2[p]):undefined;
-        const ergebnis=zusammen(k,p,m2[p],z.daten,h.hash[p],h.felder[p]);
-        if(ergebnis===undefined){if(p in m2){delete m2[p];anders=true}}
-        else if(gleichB(ergebnis)!==vorher){m2[p]=ergebnis;anders=true}
-        // Grundlage für das nächste Mal ist jetzt der gemeinsame Stand
-        if(z.daten&&z.daten._weg){h.hash[p]="weg";delete h.felder[p]}
-        else{h.hash[p]=fp(z.daten);if(FELDWEISE[k])h.felder[p]=felderVon(z.daten)}});
-      if(anders){let w=ausMap(k,m2);try{w=await sicherRaus(k,w,H)}catch(e){}
-        if(!merk(k,w))throw new Error("Speicher auf diesem Gerät voll");geholt.push(k)}
-      // 2) hoch: alles, was hier anders ist als der gemeinsame Stand (auch Gelöschtes)
-      const m=alsMap(k,lies(k,c.liste?[]:{})),jetzt=new Date().toISOString(),hoch=[];
-      let ohneBild=0;
-      for(const p of Object.keys(m)){if(gleichBasis(m[p],h.hash[p])){h.hash[p]=fp(m[p]);continue}
-        const daten=await bilderRein(m[p]);if(daten===null){ohneBild++;continue}   // nie eine Kennung statt Unterschrift hochschicken
-        hoch.push({[c.pk]:p,daten,geaendert:jetzt})}
-      if(ohneBild)fehler="Unterschrift fehlt auf diesem Gerät ("+ohneBild+"x), bitte Baran Bescheid geben";
-      Object.keys(h.hash).forEach(p=>{if(!(p in m)&&h.hash[p]!=="weg")hoch.push({[c.pk]:p,daten:{_weg:true},geaendert:jetzt})});
-      for(let i=0;i<hoch.length;i+=200)await api(c.tab+"?on_conflict="+c.pk,{method:"POST",headers:{Prefer:"resolution=merge-duplicates,return=minimal"},body:JSON.stringify(hoch.slice(i,i+200))});
-      hoch.forEach(z=>{const p=z[c.pk];if(z.daten._weg){h.hash[p]="weg";delete h.felder[p]}else{h.hash[p]=fp(z.daten);if(FELDWEISE[k])h.felder[p]=felderVon(z.daten)}});
-      if(k==="mietixVorgaenge"){const max=Math.max(0,...Object.keys(m).filter(n=>/^\d{6}$/.test(n)).map(Number));
+      // 2) zusammenführen und hoch
+      const e=await ablageAbgleichen(k,c,h,zeilen,geholt);
+      if(e.ohneBild)warnung="Unterschrift fehlt auf diesem Gerät ("+e.ohneBild+"x), bitte Baran Bescheid geben";
+      if(k==="mietixVorgaenge"){const max=Math.max(0,...Object.keys(e.m).filter(n=>/^\d{6}$/.test(n)).map(Number));
         if(max)await api("rpc/vertragsnummer_mindestens",{method:"POST",body:JSON.stringify({n:max})})}
       merk("mietixAbgleich",H)}
-    if(fehler)throw new Error(fehler);
+    if(warnung)throw new Error(warnung);
+    fehler="";if(aenderungen===stand0)ungesichert=false;   // Fehler und „Wird gesichert“ erst nach Erfolg weg (05.11.2026)
     zuletzt=new Date();if(NEU_AUFBAU){merk("mietixNeuAufbau1",true);NEU_AUFBAU=false}
-    if(geholt.length)window.dispatchEvent(new CustomEvent("mietix-abgleich",{detail:geholt}));
   }catch(e){fehler=e.message||"Abgleich fehlgeschlagen"}
+  FRAGEN=kaputt.map(k=>({art:"kaputt",k})).concat(Object.keys(SPEICHER).filter(k=>H[k]&&H[k].halt&&H[k].halt.length).map(k=>({art:"loeschen",k,n:H[k].halt.length})));
+  if(geholt.length)window.dispatchEvent(new CustomEvent("mietix-abgleich",{detail:geholt}));
   laeuft=false;zeigen();auslagernBald();if(nochmal){nochmal=false;setTimeout(abgleichen,500)}}
+// Knöpfe der roten Zeile: viele Löschungen freigeben oder zurückholen, beschädigte Liste neu holen
+window.mietixAbgleichWahl=function(art,k,ja){if(art==="kaputt"){const r=localStorage.getItem(k);if(r)dbRein([["kaputt:"+k+":"+Date.now(),r]]).catch(()=>{});localStorage.removeItem(k)}
+  else LOESCH[k]=!!ja;FRAGEN=FRAGEN.filter(f=>f.k!==k);zeigen();return abgleichen()};
 // Jede Änderung an den vier Speichern löst kurz danach einen Abgleich aus
 let warte=null;
 Storage.prototype.setItem=function(k,v){const alt=(this===localStorage&&SPEICHER[k])?localStorage.getItem(k):null;roh.call(this,k,v);
   if(this===localStorage&&(SPEICHER[k]||k==="mietixEntwurfProtokolle")&&typeof v==="string"&&v.indexOf('"data:image/')>=0)auslagernBald();
-  if(this===localStorage&&SPEICHER[k]){clearTimeout(warte);warte=setTimeout(abgleichen,800);if(k!=="mietixStand"&&k!=="mietixPapierkorb")sicherheitsnetz(k,alt,v)}};
+  if(this===localStorage&&SPEICHER[k]){aenderungen++;if(!ungesichert){ungesichert=true;if(sitzung&&!pwSetzen)zeigen()}clearTimeout(warte);warte=setTimeout(abgleichen,800);if(k!=="mietixStand"&&k!=="mietixPapierkorb")sicherheitsnetz(k,alt,v)}};
 
 /* ---------- Sicherheitsnetz (28.10.2026, Baran: "Verklicken darf nichts verlieren") ----------
    1. Rückgängig: jede Änderung an einer Ablage zeigt 8 Sekunden lang einen Knopf, der den Stand davor zurückholt.
@@ -3459,7 +3546,7 @@ function sicherheitsnetz(k,alt,neu){
       if(sitzung){clearTimeout(warte);warte=setTimeout(abgleichen,800)}}}catch(e){}}
   if(rueckLaeuft)return;
   // Rückgängig: Änderungen innerhalb von 0,7 Sekunden gehören zusammen (z. B. Mietvertrag + Kunde + Fahrzeug)
-  const jetzt=Date.now();if(!burst||jetzt-burstZeit>700)burst={};burstZeit=jetzt;if(!(k in burst))burst[k]=alt;
+  const jetzt=Date.now();if(!burst||jetzt-burstZeit>700)burst={};burstZeit=jetzt;if(!(k in burst))burst[k]={alt,neu};else burst[k].neu=neu;
   rueckZeigen(Object.keys(burst).map(x=>NAMEN[x]||x).filter((x,i,a)=>a.indexOf(x)===i).join(", "))}
 let rueckLaeuft=false,rueckTimer=null;
 // Rückgängig steht neben dem Titel, nie über einem Knopf (Baustein in stil/schutz.py, 04.11.2026)
@@ -3467,9 +3554,18 @@ function rueckZeigen(text){if(window.mxRueckZeig)window.mxRueckZeig("mietixRueck
 function rueckgaengig(){if(!burst)return;
   if("mietixVorgaenge" in burst&&!confirm("Die letzte Änderung am Mietvertrag wird zurückgenommen. Was gerade in einem offenen Formular steht, bleibt dort stehen. Weiter?"))return;
   const b=burst;burst=null;rueckLaeuft=true;
-  try{Object.keys(b).forEach(k=>{if(b[k]===null)localStorage.removeItem(k);else roh.call(localStorage,k,b[k])})}finally{rueckLaeuft=false}
+  // Nur die eigene Änderung zurücknehmen (05.11.2026): Was inzwischen von anderen Geräten kam, bleibt stehen
+  try{Object.keys(b).forEach(k=>{const l=liesAblage(k);if(l.kaputt){if(window.mxFehler)mxFehler("Rückgängig ging nicht: "+MEHRZAHL[k]+" auf diesem Gerät sind beschädigt.");return}
+    const leer=SPEICHER[k].liste?[]:{},roh2=s=>alsMap(k,JSON.parse(s||"null")||leer),a=roh2(b[k].alt),n=roh2(b[k].neu),m=alsMap(k,l.w);
+    new Set([...Object.keys(a),...Object.keys(n)]).forEach(p=>{if(fp(a[p])===fp(n[p]))return;
+      if(!(p in a)){delete m[p];return}                                  // hier neu angelegt
+      if(!(p in n)||!(p in m)||!istObj(a[p])||!istObj(n[p])){m[p]=a[p];return}   // hier gelöscht
+      const o=Object.assign({},m[p]);new Set([...Object.keys(a[p]),...Object.keys(n[p])]).forEach(f=>{   // Feld für Feld: nur was hier geändert wurde und seitdem niemand sonst
+        if(fp(a[p][f])!==fp(n[p][f])&&fp(o[f])===fp(n[p][f])){if(f in a[p])o[f]=a[p][f];else delete o[f]}});
+      m[p]=o});
+    merk(k,ausMap(k,m))})}finally{rueckLaeuft=false}
   const el=document.getElementById("mietixRueck");if(el){el.textContent="✓ Zurückgeholt";el.onclick=null;clearTimeout(el.mxT);el.mxT=setTimeout(()=>el.classList.remove("an"),1500)}
-  window.dispatchEvent(new CustomEvent("mietix-abgleich",{detail:Object.keys(b)}));clearTimeout(warte);warte=setTimeout(abgleichen,800)}
+  ungesichert=true;zeigen();window.dispatchEvent(new CustomEvent("mietix-abgleich",{detail:Object.keys(b)}));clearTimeout(warte);warte=setTimeout(abgleichen,800)}
 window.mietixWiederherstellen=function(id){const pk=lies("mietixPapierkorb",[]),e=pk.find(x=>x.id===id);if(!e)return false;
   if(e.ablage==="mietixEntwurfVertrag"){merk("mietixPapierkorb",pk.filter(x=>x.id!==id));   // angefangener Mietvertrag: liegt nur auf dem Gerät, frisch für 48 Stunden
     roh.call(localStorage,"mietixEntwurfVertrag",JSON.stringify(Object.assign({},e.eintrag,{zeit:new Date().toISOString()})));
@@ -3480,8 +3576,12 @@ window.mietixWiederherstellen=function(id){const pk=lies("mietixPapierkorb",[]),
   if(e.ablage==="schadensbelege"){const st=lies("mietixStand",{}),r=Object.assign({liste:[],max:{}},st.schadensbelege||{});   // Schadensbeleg (30.10.2026)
     if(!r.liste.some(x=>x.nr===e.eintrag.nr))r.liste=r.liste.concat([e.eintrag]);st.schadensbelege=r;merk("mietixPapierkorb",pk.filter(x=>x.id!==id));
     localStorage.setItem("mietixStand",JSON.stringify(st));window.dispatchEvent(new CustomEvent("mietix-abgleich",{detail:["mietixStand","mietixPapierkorb"]}));return true}
-  const c=SPEICHER[e.ablage];if(!c)return false;const m=alsMap(e.ablage,lies(e.ablage,c.liste?[]:{}));m[e.schluessel]=e.eintrag;
-  merk("mietixPapierkorb",pk.filter(x=>x.id!==id));localStorage.setItem(e.ablage,JSON.stringify(ausMap(e.ablage,m)));
+  const c=SPEICHER[e.ablage];if(!c)return false;const m=alsMap(e.ablage,lies(e.ablage,c.liste?[]:{})),da=m[e.schluessel];
+  merk("mietixPapierkorb",pk.filter(x=>x.id!==id));
+  // Steht unter dem Schlüssel schon etwas anderes, wird es nicht überschrieben (05.11.2026): anderer Kunde = neue Nummer, sonst tauschen die Fassungen den Platz
+  if(da!==undefined&&fp(da)!==fp(e.eintrag)&&e.ablage==="mietixVorgaenge"&&andererKunde(da,e.eintrag))nummerGewechselt(m,e.schluessel,e.eintrag,freieNummer(m));
+  else{if(da!==undefined&&fp(da)!==fp(e.eintrag))andereFassung(e.ablage,e.schluessel,da);m[e.schluessel]=e.eintrag}
+  localStorage.setItem(e.ablage,JSON.stringify(ausMap(e.ablage,m)));
   window.dispatchEvent(new CustomEvent("mietix-abgleich",{detail:[e.ablage,"mietixPapierkorb"]}));return true};
 window.mietixPapierkorb=()=>lies("mietixPapierkorb",[]).slice().sort((a,b)=>a.zeit<b.zeit?1:-1);
 
@@ -3499,6 +3599,7 @@ let pwSetzen=false,linkFehler="";
   pwSetzen=/invite|recovery|signup/.test(h.get("type")||"")})();
 
 /* ---------- Anzeige: Anmeldung oder Stand ---------- */
+const esc=s=>String(s).replace(/[&<>"]/g,x=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[x]));
 function zeigen(){const el=document.getElementById("abgleich");if(!el)return;
   if(sitzung&&pwSetzen){el.innerHTML='<div class="abgl"><b>Passwort festlegen</b><div class="abgl-text">Für '+(sitzung.email||"dieses Konto")+'. Damit meldest du dich auf allen Geräten an, auch für die Brücke. Mindestens 8 Zeichen.</div>'+
     '<input id="ablNeu" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Neues Passwort (sichtbar, damit kein Tippfehler)">'+
@@ -3509,7 +3610,7 @@ function zeigen(){const el=document.getElementById("abgleich");if(!el)return;
         if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error(j.msg||j.message||"Speichern ging nicht")}
         pwSetzen=false;zeigen();abgleichen()}catch(e){f.textContent=e.message}};return}
   const pkt=document.getElementById("abgleichPunkt");
-  if(pkt)pkt.style.background=!sitzung?"#B0B0B3":fehler?"#C4161C":"#1B8A4B";
+  if(pkt)pkt.style.background=!sitzung?"#B0B0B3":fehler||FRAGEN.length||HINWEISE.length?"#C4161C":"#1B8A4B";
   // Anmelden nur auf Startseite und Einstellungen (31.10.2026), sonst eine schmale Zeile
   const haupt=/mietix-zentrale\/(index\.html|einstellungen\.html)?$/.test(location.pathname)||/\/(zentrale|einstellungen)$/.test(location.pathname);
   if(!sitzung&&!haupt){el.innerHTML='<div class="abgl klein rot"><span><b style="display:inline;margin:0">Nicht angemeldet.</b> Nichts wird gesichert.</span><a href="https://barankohler.github.io/mietix-zentrale/" style="color:#C4161C;font-weight:800;white-space:nowrap">Anmelden ›</a></div>';return}
@@ -3521,7 +3622,7 @@ function zeigen(){const el=document.getElementById("abgleich");if(!el)return;
     const mail=()=>document.getElementById("ablMail").value.trim(),pw=()=>document.getElementById("ablPw").value,f=document.getElementById("ablFehler");
     document.getElementById("ablLos").onclick=async()=>{f.textContent="";
       try{sichern(await auth("token?grant_type=password",{email:mail(),password:pw()}));
-        zeigen();abgleichen()}catch(e){f.textContent=/Invalid login/i.test(e.message)?"E-Mail oder Passwort stimmt nicht.":e.message}};
+        zeigen();abgleichen()}catch(e){f.textContent=/Invalid login/i.test(e.message)?"E-Mail oder Passwort stimmt nicht.":e.message===KEINE_VERBINDUNG?"Keine Verbindung. Bitte Internet prüfen und noch einmal tippen.":e.message}};
     // Zugang selbst anlegen: geht nur, solange Baran die Registrierung in Supabase kurz freigibt
     document.getElementById("ablNeuZugang").onclick=async e=>{e.preventDefault();f.textContent="";
       if(!mail()||pw().length<8){f.textContent="Oben E-Mail und ein eigenes Passwort (mindestens 8 Zeichen) eintragen, dann hier tippen.";return}
@@ -3531,10 +3632,17 @@ function zeigen(){const el=document.getElementById("abgleich");if(!el)return;
         /already/i.test(e.message)?"Für diese E-Mail gibt es schon einen Zugang. Bitte oben anmelden.":e.message}};return}
   // Sync-Status (31.10.2026): grün gesichert, gelb ohne Internet, rot bei Fehler. Passwort und Abmelden nur auf Startseite und Einstellungen.
   const uhr=zuletzt?String(zuletzt.getHours()).padStart(2,"0")+":"+String(zuletzt.getMinutes()).padStart(2,"0"):"";
-  const art=!navigator.onLine?"gelb":fehler?"rot":"gruen";
-  const stand=!navigator.onLine?"Ohne Internet: alles bleibt auf dem Gerät und wird nachgeholt":fehler?"Nicht gesichert: "+fehler:laeuft&&!zuletzt?"Wird gesichert …":"✓ Alles gesichert"+(uhr?", "+uhr+" Uhr":"");
-  const neuH='<div class="abgl klein status '+art+'"><span>'+stand+'</span>'+(haupt?'<span><a href="#" id="ablPwNeu">Passwort ändern</a> &nbsp; <a href="#" id="ablAus">abmelden</a></span>':'')+'</div>';
+  const wird=ungesichert||(laeuft&&!zuletzt);   // solange etwas nicht oben ist, nie „Alles gesichert“ (05.11.2026)
+  const art=!navigator.onLine?"gelb":fehler?"rot":wird?"wird":"gruen";
+  const stand=!navigator.onLine?"Ohne Internet: alles bleibt auf dem Gerät und wird nachgeholt":fehler?"Nicht gesichert: "+esc(fehler):wird?"Wird gesichert …":"✓ Alles gesichert"+(uhr?", "+uhr+" Uhr":"");
+  const knopf=(t,a,k,ja)=>'<a href="#" class="abgl-wahl" data-art="'+a+'" data-k="'+k+'" data-ja="'+(ja?1:0)+'">'+t+'</a>';
+  const rot=FRAGEN.map(f=>'<div class="abgl klein status rot abgl-frage"><span>'+(f.art==="kaputt"?MEHRZAHL[f.k]+" auf diesem Gerät sind beschädigt. Nichts davon wurde hochgeladen.":f.n+" "+MEHRZAHL[f.k]+" wurden hier auf einmal entfernt. Noch nicht überall gelöscht.")+'</span><span class="abgl-wahlen">'+
+      (f.art==="kaputt"?knopf("Neu holen","kaputt",f.k,1):knopf("Überall löschen","loeschen",f.k,1)+knopf("Zurückholen","loeschen",f.k,0))+'</span></div>').join("")+
+    HINWEISE.map((t,i)=>'<div class="abgl klein status rot abgl-frage"><span>'+esc(t)+'</span><span class="abgl-wahlen">'+knopf("Verstanden","weg",i,1)+'</span></div>').join("");
+  const neuH='<div class="abgl klein status '+art+'"><span>'+stand+'</span>'+(haupt?'<span><a href="#" id="ablPwNeu">Passwort ändern</a> &nbsp; <a href="#" id="ablAus">abmelden</a></span>':'')+'</div>'+rot;
   if(el.__mxH===neuH&&el.firstChild)return;el.__mxH=neuH;el.innerHTML=neuH;   // gleicher Text: nicht neu aufbauen (1.11.2026, Seite sprang)
+  el.querySelectorAll(".abgl-wahl").forEach(a=>a.onclick=e=>{e.preventDefault();const d=a.dataset;
+    if(d.art==="weg"){HINWEISE=HINWEISE.filter((x,i)=>i!==+d.k);merk("mietixAbgleichHinweise",HINWEISE);zeigen()}else window.mietixAbgleichWahl(d.art,d.k,d.ja==="1")});
   if(!haupt)return;
   // Angemeldet: neues Passwort setzen geht ohne das alte (für "Passwort vergessen" ohne Mail, 28.10.2026)
   document.getElementById("ablPwNeu").onclick=e=>{e.preventDefault();pwSetzen=true;zeigen()};
@@ -3550,6 +3658,7 @@ css.textContent=".abgl{background:#fff;border:1px solid #E4E4E7;border-radius:16
   ".abgl.klein{display:flex;justify-content:space-between;gap:10px;font-size:13px;color:#6F6F72;padding:10px 14px}.abgl.klein a{color:#6F6F72}"+
   ".abgl.rot{border:2px solid #C4161C}.abgl.rot b{color:#C4161C}"+
   ".abgl.status{background:none;border:0;padding:2px 4px 8px;margin-bottom:6px;font-weight:700}.abgl.status.gruen span:first-child{color:#1B8A4B}"+
+  ".abgl.status.wird span:first-child{color:#6F6F72}.abgl-frage{flex-wrap:wrap}.abgl-frage>span:first-child{flex:1 1 100%}.abgl-wahlen{display:flex;gap:6px;flex-shrink:0;align-items:center}.abgl.klein a.abgl-wahl{background:#E9E9EE;color:#1C1C1E;border-radius:10px;padding:6px 10px;font-weight:700;text-decoration:none;white-space:nowrap}"+
   ".abgl.status.gelb{background:#FFF4DB;color:#9A6700;border-radius:12px;padding:10px 14px}.abgl.status.rot{background:#FDECEC;color:#C4161C;border-radius:12px;padding:10px 14px}"+
   "";
 document.head.appendChild(css);
