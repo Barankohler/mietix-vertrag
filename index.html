@@ -384,29 +384,43 @@ body.unterSicht #reiter,body.unterSicht header .mxStart,body.unterSicht header h
 #s_neu input.fehlt,#fDa input.fehlt{background-color:#FDE8E8!important;border-color:#FF3B30!important}
 .buK2{flex:0 0 auto;border:1.5px solid #C4161C;color:#C4161C;background:#fff;font-family:inherit;font-size:15px;font-weight:600;border-radius:9px;padding:8px 12px;min-height:44px;cursor:pointer;white-space:nowrap}
 .chips.fehlt{background:#FDE8E8!important;box-shadow:inset 0 0 0 1.5px #FF3B30}
-/* ===== Buchungen „Besser“ (06.11.2026, Baran: 18 Punkte freigegeben): Uhrzeit links, Name, Stand-Zeile, Kästchen, ein Knopf rechts unten ===== */
-.buZ.buK{display:grid;grid-template-columns:48px minmax(0,1fr) auto;column-gap:10px;align-items:start;padding:12px 14px;flex-wrap:nowrap;min-height:0}
+/* ===== Buchungskarte „Klapp“ (06.11.2026 abends, Baran: Entwurf freigegeben): zu nur Uhrzeit, Name, Auto, eine Stand-Zeile, Pfeil und ein großer Knopf ===== */
+.buZ.buK{display:grid;grid-template-columns:44px minmax(0,1fr) auto;column-gap:10px;row-gap:0;align-items:start;padding:12px 14px;flex-wrap:nowrap;min-height:0}
 .buK .buUhr{grid-column:1;grid-row:1;font-size:16px;font-weight:700;color:#1C1C1E;line-height:22px;white-space:nowrap;font-variant-numeric:tabular-nums}
-.buK .buUhr.dat{font-size:14px}.buK .buUhr small{display:block;font-size:12px;font-weight:600;color:#8A8A8E;line-height:15px}
-.buK .t{grid-column:2;grid-row:1;min-width:0}.buK .t b{line-height:22px}
-.buK .buBetrag{grid-column:3;grid-row:1;line-height:22px;z-index:1}.buK.mitB .t{grid-column:2/4}.buK.mitB .t b{padding-right:84px}
-.buK .buUnten{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:7px;min-width:0}
-.buK .buWeg{display:flex;flex-wrap:nowrap;gap:5px;flex:0 1 auto;margin:0;padding:0;min-width:0}
-.buK .buWeg .bwS{font-size:12px;font-weight:600;padding:3px 8px;background:#F2F2F7;color:#8A8A8E;border-radius:7px;white-space:nowrap}
-.buK .buWeg .bwS.ok{background:#E3F4EA;color:#1E8E4E}.buK .buWeg .bwS.offen{background:#FDE8E8;color:#C4161C}
-.buK .buFuss{display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:8px;margin-left:auto}
-.buK .buFuss.gross{flex:1 0 100%;margin-left:0;justify-content:flex-start}
-.buK .buGross{display:inline-block;flex:0 0 auto;width:auto;margin:0;border:0;border-radius:10px;padding:9px 14px;font-size:15px;font-weight:700;background:#E9E9EE;color:#1C1C1E;text-align:center;white-space:nowrap;cursor:pointer;min-height:38px}
-.buK .buFuss.viel .buGross.gross{flex-basis:100%}
-.buK .buGross.gross{flex:1 1 130px;font-size:17px;padding:12px;background:#1E8E4E;color:#fff;border-radius:12px;min-height:46px}
-.buK .buGross.gross.rot{background:#C4161C}
+.buK .buUhr.dat{font-size:14px}.buK .buUhr small{display:block;font-size:12px;font-weight:600;color:#8E8E93;line-height:15px}
+.buK .t{grid-column:2;grid-row:1;min-width:0}.buK .t b{font-size:16px;line-height:22px;white-space:normal;overflow:visible;overflow-wrap:anywhere}
+.buK .t i{font-size:14px;color:#8E8E93;margin-top:1px}
+.buK .t i.gelb,.buK .t i.rot,.buK .t i.gruen{font-size:13px;margin-top:3px}.buK .t i.rot{color:#C8191E}
+.buK .buRe{grid-column:3;grid-row:1;display:flex;align-items:center;gap:8px;min-height:22px}
+.buK .buBetrag{font-size:16px;font-weight:600;line-height:22px;white-space:nowrap}
+.buPf{flex:0 0 26px;width:26px;height:26px;border-radius:50%;border:0;margin:-2px 0 0;padding:0;background:#E9E9EE;color:#1C1C1E;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.buPf svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;transition:transform .18s}
+.buK.auf .buPf svg{transform:rotate(180deg)}
+.buK .buAufK{display:none;grid-column:1/-1;margin-top:10px;border-top:.5px solid #D1D1D6;padding-top:6px;cursor:default}
+.buK.auf .buAufK{display:block}
+.buStand .buSz{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:13px;line-height:18px;padding:4px 0;color:#1C1C1E}
+.buSz span{min-width:0}.buSz em{flex:0 0 auto;font-style:normal;color:#AEAEB2;font-weight:600;white-space:nowrap}
+.buSz em.ok{color:#1F8F4E;font-weight:700}.buSz em.x,.buSz em.rot{color:#C8191E;font-weight:700}
+.buK .buKn{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.buK .buKn .buKl{font-size:12px;font-weight:700;border-radius:8px;padding:6px 10px;min-height:30px;background:#E9E9EE;color:#1C1C1E}
+.buK .buKn .buKl.rot{color:#C8191E}
+.buK .buGross.gross,#bkKnopf .buGross.gross{grid-column:1/-1;display:flex;align-items:center;justify-content:center;flex:none;width:100%;height:40px;min-height:40px;margin:10px 0 0;padding:0 12px;border:0;border-radius:10px;font-family:inherit;font-size:15px;font-weight:700;line-height:1;background:#1F8F4E;color:#fff;text-align:center;white-space:nowrap;cursor:pointer;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+.buK .buGross.gross.rot,#bkKnopf .buGross.gross.rot{background:#C8191E}
 .buKl{display:inline-flex;align-items:center;justify-content:center;gap:5px;flex:0 0 auto;border:0;margin:0;background:#E9E9EE;color:#1C1C1E;font-family:inherit;font-size:14px;font-weight:600;border-radius:10px;padding:8px 12px;min-height:38px;box-sizing:border-box;text-decoration:none;white-space:nowrap;cursor:pointer;-webkit-tap-highlight-color:transparent}
-.buKl.rot{color:#C4161C}.buKl:active,.buK .buGross:active{filter:brightness(.94)}
+.buKl.rot{color:#C4161C}.buKl:active,.buK .buGross:active,#bkKnopf .buGross:active,.buPf:active{filter:brightness(.94)}
 .buKl.an{background:#1C1C1E;color:#fff}
 .buK .buExtra{grid-column:1/-1;margin-top:2px;cursor:default}.buK .buExtra .chips{margin-top:8px}
 .buK .buExtra .kautform input{margin-top:8px}
 .buK .bezWahl{grid-column:1/-1;margin-top:8px}
-.buK .t i{margin-top:2px}
+/* Blatt von unten, auf allen Geräten gleich: Griff, Name groß, Auto, Zeitraum, Stand, Hauptknopf, Buchung öffnen */
+#fBuK{padding:8px 0 calc(16px + env(safe-area-inset-bottom))!important;max-width:680px}
+@media(min-width:700px){#fBuK{top:auto;bottom:0;transform:none;border-radius:22px 22px 0 0;width:100%;padding:8px 0 20px!important}#fBuK.auf{animation:mxHoch .22s ease-out}}
+body:has(#fBuK.auf) .mxBg{background:rgba(0,0,0,.35)}
+.buGriff{width:36px;height:5px;border-radius:3px;background:#D1D1D6;margin:0 auto 12px}
+.buShK{padding:0 20px 10px}.buShK b{display:block;font-size:22px;font-weight:700;color:#1C1C1E;line-height:1.2;overflow-wrap:anywhere}.buShK i{display:block;font-style:normal;font-size:14px;color:#8E8E93;margin-top:3px}
+#bkStand{margin:0 20px;border-top:.5px solid #D1D1D6;padding-top:6px}#bkStand .buSz{font-size:14px;padding:6px 0}
+#bkKnopf{padding:0 20px}#bkKnopf .buGross.gross{margin-top:14px}
+.buOeff{display:flex;width:calc(100% - 40px);margin:8px 20px 0;height:40px;min-height:40px;font-size:15px;font-weight:700}
 .buMehr{display:flex;flex-wrap:wrap;gap:8px;padding:12px 14px}
 .buMehr .buKl{font-size:15px}
 .buMehr .buKl svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
@@ -1074,6 +1088,9 @@ input[type=date],input[type=time]{min-width:0;max-width:100%}
 <div id="ug" class="versteckt"><div id="ugInnen"><div class="kopf"><b id="ugTitel">Unterschrift</b><div class="chips"><div class="chip" id="ugAbbr">Abbrechen</div><div class="chip" id="ugWeg">Löschen</div><div class="chip an" id="ugFertig">Fertig</div></div></div>
   <canvas id="ugCanvas"></canvas><div class="linie"></div><div class="fuss">Handy quer halten, mit dem Finger unterschreiben, dann „Fertig“.</div></div></div>
 <div class="leiste"><div class="bSum versteckt" id="bSum"></div><div class="knoepfe"><button id="haupt">+ Neue Buchung</button><div id="bPaar" class="versteckt" style="flex:1"></div></div><div class="bUnter versteckt" id="bUnter">Name, Auto, Zeitraum und Preis sind schon drin</div><a href="#" class="bLink versteckt" id="bLink"></a></div>
+<!-- Buchungskarte antippen: Blatt von unten (06.11.2026 abends, Baran) -->
+<div class="mxFenster buBlatt" id="fBuK" role="dialog" aria-label="Buchung"><div class="buGriff"></div><div class="buShK"><b id="bkName"></b><i id="bkAuto"></i><i id="bkZr"></i></div>
+  <div class="buStand" id="bkStand"></div><div id="bkKnopf"></div><button type="button" class="buKl buOeff" id="bkOeff">Buchung öffnen ›</button></div>
 <!-- Fassung 2 (01.11.2026): Anzahlung da (Entwurf c4), Auto, Zeitraum und Preis der neuen Buchung -->
 <div class="mxFenster buBlatt" id="fDa" role="dialog" aria-label="Anzahlung da"><div class="buBlattK" style="position:relative;padding-right:44px"><b id="daTitel"></b><i id="daInfo"></i><button class="mxZu" type="button" aria-label="Schließen" style="position:absolute;right:12px;top:12px">✕</button></div>
   <div class="buFeld"><label for="daBetrag">Betrag <span class="pfl">*</span></label><input id="daBetrag" inputmode="numeric" data-einheit="€"></div>
@@ -3073,11 +3090,12 @@ function buBereitAnfrage(x){if(!buFormFrei())return;leeren();uebernehmeAnfrage(x
 function buBereitVorgang(v){if(!(WAHL===v.nr&&!NEU)&&!buFormFrei())return;WAHL=v.nr;NEU_FREI=true;vertragLaden(v);zeige("vertrag");buUnterschreiben()}
 
 /* ---------- Kommend und Unterwegs ---------- */
-// Buchungskarte „Besser“ (06.11.2026, Baran: 18 Punkte freigegeben). Gleiche Karte in allen vier Reitern:
-// links Uhrzeit fett (ohne Uhrzeit das Datum), rechts Name, darunter grau Auto und Tage, eine farbige Stand-Zeile nur wenn sie etwas Eigenes sagt,
-// Kästchen Mietvertrag, Übergabe, Rückgabe (grün ✓ erledigt, grau noch nicht dran, rot ✕ nur wenn fällig und es fehlt), genau ein Hauptknopf rechts unten.
-// Groß und farbig ist der Hauptknopf nur bei heute, morgen und überfällig. Nur Anzeige: an den gespeicherten Daten ändert sich nichts.
-function buWeg(s){s=s||[];return'<span class="buWeg">'+["Mietvertrag","Übergabe","Rückgabe"].map((t,i)=>s[i]==="ok"?'<span class="bwS ok">✓ '+t+'</span>':s[i]==="offen"?'<span class="bwS offen">✕ '+t+'</span>':'<span class="bwS">'+t+'</span>').join("")+'</span>'}
+// Buchungskarte „Klapp“ (06.11.2026 abends, Baran: Entwurf freigegeben). Gleiche Karte in allen Reitern:
+// zu: links Uhrzeit fett (ohne Uhrzeit das Datum), Name, grau Auto und Tage, höchstens eine farbige Stand-Zeile, rechts oben ein runder Pfeil,
+// darunter genau ein großer Knopf über die volle Breite (grün Mietvertrag, Übergabe und andere Hauptschritte, rot Rückgabe), sonst nichts.
+// Aufgeklappt: Liste „Stand“ (✓ erledigt, rotes ✕ nur wenn fällig und es fehlt, sonst grau), darunter die kleinen grauen Knöpfe wie bisher.
+// Tippen auf die Karte öffnet ein Blatt von unten mit derselben Liste, dem Hauptknopf und „Buchung öffnen ›“ (das bisherige Antippen).
+// Nur Anzeige: an den gespeicherten Daten ändert sich nichts.
 // Übergabe oder Rückgabe eines Mietvertrags direkt aus der Liste öffnen
 function buSchritt(v,s){if(!(WAHL===v.nr&&!NEU)&&!buFormFrei())return;NEU_FREI=true;WAHL=v.nr;WAHL_OFFEN=false;GELADEN={};zeige(s)}
 // Anzahlung je Buchung: grün erhalten, gelb ohne (01.11.2026)
@@ -3085,15 +3103,26 @@ function buAnzZeile(b){return b?'<i class="gruen">✓ Anzahlung '+eur(b)+' € e
 function vBetrag(v){return Math.round(zahl(v.gesamt)||((zahl(v.preis1)||0)+(zahl(v.preis2)||0)+(zahl(v.paketPreis)||0)))}
 const BU_MON=["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
 const buZeit=()=>{const h=iso(new Date());return{h,m:plusTage(h,1),j:jetztUhr()}};
-// Hauptknopf (genau einer je Karte) und kleine graue Knöpfe daneben
-const buHk=(attr,t,gross,rot)=>'<button type="button" class="buGross'+(gross?" gross"+(rot?" rot":""):"")+'" '+attr+'>'+t+'</button>';
+// Hauptknopf (genau einer je Karte, immer gleich groß) und kleine graue Knöpfe im aufgeklappten Teil
+const buHk=(attr,t,rot)=>'<button type="button" class="buGross gross'+(rot?" rot":"")+'" '+attr+'>'+t+'</button>';
 const buKl=(attr,t,kl)=>'<button type="button" class="buKl'+(kl?" "+kl:"")+'" '+attr+'>'+t+'</button>';
 // Linke Spalte: Uhrzeit fett, ohne Uhrzeit das Datum mit Wochentag darunter
 function buLinks(u,d){if(u)return esc(u);d=String(d||"");if(!d)return"";return esc(d.slice(8,10)+"."+d.slice(5,7)+".")+'<small>'+["So","Mo","Di","Mi","Do","Fr","Sa"][new Date(d+"T12:00").getDay()]+'</small>'}
-function buKarte(o){const gross=!!o.gross&&!!o.knopf,viel=(String(o.neben||"").match(/class="buKl/g)||[]).length>1,fuss=gross?(o.knopf||"")+(o.neben||""):(o.neben||"")+(o.knopf||"");
-  return'<div class="buZ buK'+(o.betrag!=null?" mitB":"")+'" '+o.attr+'><span class="buUhr'+(/<small>/.test(o.links||"")?" dat":"")+'">'+(o.links||"")+'</span><span class="t"><b>'+esc(o.name)+'</b>'+(o.unter?'<i class="umbr">'+esc(o.unter)+'</i>':'')+(o.stand||"")+'</span>'+
-    (o.betrag!=null?'<span class="buBetrag">'+o.betrag+'</span>':'')+
-    '<span class="buUnten">'+(o.weg||"")+(fuss?'<span class="buFuss'+(gross?" gross":"")+(gross&&viel?" viel":"")+'">'+fuss+'</span>':'')+'</span>'+(o.extra||"")+'</div>'}
+// Zeitraum fürs Blatt: „06.11. 14:00 bis 08.11. 14:00“
+function buZr(von,vu,bis,bu){const t=(d,u)=>[d?de(d).slice(0,6):"",u||""].filter(Boolean).join(" ");return[t(von,vu),t(bis,bu)].filter(Boolean).join(" bis ")}
+// Tag in der Stand-Liste: heute, morgen mit Datum, sonst das Datum
+function buTagT(d){if(!d)return"offen";const h=iso(new Date());return d===h?"heute":d===plusTage(h,1)?"morgen "+de(d).slice(0,6):de(d).slice(0,6)}
+// Höchstens eine farbige Stand-Zeile auf der zugeklappten Karte: zuerst Rotes, sonst Gelbes. Der Rest steht in der Liste
+function buEine(st){return st.find(s=>/class="rot/.test(s))||st.find(s=>/class="gelb/.test(s))||""}
+// Liste „Stand“: [Bezeichnung, Art, Text]. Art ok = grüner Haken, x = rotes ✕ (fällig und fehlt), rot = roter Text (fällig), grau = grauer Text
+function buListe(L){return L.map(([t,a,w])=>'<div class="buSz"><span>'+esc(t)+'</span><em class="'+a+'">'+esc(w||(a==="ok"?"✓":a==="x"?"✕":""))+'</em></div>').join("")}
+const BU_PF='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
+const BU_AUF=new Set();   // aufgeklappte Karten, solange die Seite offen ist
+function buKarte(o){const auf=!!o.key&&BU_AUF.has(o.key);
+  return'<div class="buZ buK'+(auf?" auf":"")+'" '+o.attr+(o.key?' data-kk="'+esc(o.key)+'"':'')+(o.zr?' data-zr="'+esc(o.zr)+'"':'')+'><span class="buUhr'+(/<small>/.test(o.links||"")?" dat":"")+'">'+(o.links||"")+'</span>'+
+    '<span class="t"><b>'+esc(o.name)+'</b>'+(o.unter?'<i class="umbr unt">'+esc(o.unter)+'</i>':'')+(o.stand||"")+'</span>'+
+    '<span class="buRe">'+(o.betrag!=null?'<span class="buBetrag">'+o.betrag+'</span>':'')+'<button type="button" class="buPf" aria-label="'+(auf?"Zuklappen":"Aufklappen")+'" aria-expanded="'+auf+'">'+BU_PF+'</button></span>'+
+    '<div class="buAufK"><div class="buStand">'+buListe(o.liste||[])+'</div>'+(o.neben?'<div class="buKn">'+o.neben+'</div>':'')+(o.extra||"")+'</div>'+(o.knopf||"")+'</div>'}
 // Was nach der Rückgabe noch offen ist (06.11.2026, Punkt 2): Rückgabe nicht beendet (letzte 14 Tage), Miete offen, Kaution zurückgeben, Endabrechnung offen
 function buOffen(v,h){h=h||iso(new Date());if(!v||v._weg||v.status!=="zurück")return null;const k=(v.zahlung||{}).kaut||{},e=v.endabrechnung||{},einb=+((v.kautionRueck||{}).einbehalt)||0,r={};
   if(mappeSchritte(v)[2][3]&&(v.bisD||"")>=plusTage(h,-14))r.rz=1;
@@ -3101,26 +3130,42 @@ function buOffen(v,h){h=h||iso(new Date());if(!v||v._weg||v.status!=="zurück")r
   if(k.am&&zahl(k.betrag)&&!(v.kautionRueck&&v.kautionRueck.am))r.kaut=Math.round(v.kautionRueck?(zahl(v.kautionRueck.betrag)||0):zahl(k.betrag));
   if(+e.summe>0&&!e.bezahlt&&(!k.am||v.kautionRueck)&&+e.summe-einb>0)r.endab=Math.round(+e.summe-einb);
   return Object.keys(r).length?r:null}
+// Stand-Liste eines Mietvertrags aus denselben Daten wie die Akte (mappeSchritte, offenBetrag, buOffen)
+function buVListe(v,h,rSp,of){const zur=v.status==="zurück",fz=mitFz(v.kautionArt),abF=!!v.vonD&&v.vonD<=h,z=v.zahlung||{},a=z.anz||{},r=z.rest||{},k=z.kaut||{},L=[];
+  const termin=(d,f)=>f?["x"]:["grau",buTagT(d)];
+  L.push(["Mietvertrag"].concat(v.unterschrift||v.ueb?["ok"]:termin(v.vonD,abF)));
+  if(fz)L.push(["Überlassungserklärung"].concat(v.sv&&v.sv.unterschrift?["ok"]:termin(v.vonD,abF||!!v.ueb)));
+  L.push(["Übergabe-Protokoll"].concat(v.ueb&&v.ueb.unterschrift?["ok"]:termin(v.vonD,abF||!!v.ueb)));
+  L.push(["Rückgabe-Protokoll"].concat(zur?(v.rueck&&(v.rueck.unterschrift||v.rueck.verweigert)?["ok"]:["x"]):termin(v.bisD,rSp)));
+  if(!!v.schaden||(v.rueck&&v.rueck.auff==="ja"))L.push(["Schadensanerkennung"].concat(v.schaden&&(v.schaden.unterschrift||v.schaden.verweigert)?["ok"]:zur?["x"]:["grau","offen"]));
+  const anz=a.am?Math.round(zahl(a.betrag)||0):0,ab=Math.round(zahl(a.betrag)||0);
+  L.push(anz?["Anzahlung "+eur(anz)+" €","ok"]:ab?["Anzahlung "+eur(ab)+" €","grau","offen"]:["Anzahlung","grau","keine"]);
+  const off=Math.round(offenBetrag(v)),rb=Math.round(zahl(r.betrag)||0),rl=anz?"Rest":"Miete";
+  if(off>0)L.push([rl+" "+eur(off)+" €"].concat(zur||(!!v.vonD&&v.vonD<h)?["x"]:["grau",v.ueb?"offen":"bei Abholung"]));
+  else if(r.am&&rb)L.push([rl+" "+eur(rb)+" €","ok"]);
+  const kb=Math.round(zahl(k.betrag)||0);
+  if(mitGeld(v.kautionArt)&&(kb||k.am)){const t="Kaution"+(kb?" "+eur(kb)+" €":"");
+    L.push(v.kautionRueck&&v.kautionRueck.am?[t,"ok","zurück ✓"]:of.kaut!=null?[t,"rot","zurückgeben"]:k.am?[t,"grau","hinterlegt"]:[t,"grau",v.ueb?"nicht hinterlegt":"bei Abholung"])}
+  const e=v.endabrechnung||{};
+  if(+e.summe>0)L.push(e.bezahlt?["Endabrechnung "+eur(Math.round(+e.summe))+" €","ok"]:of.endab?["Endabrechnung "+eur(of.endab)+" €","x"]:["Endabrechnung","grau",k.am&&!v.kautionRueck?"mit Kaution":"verrechnet"]);
+  return L}
 // Karte eines Mietvertrags, egal in welchem Reiter. o.datum: links das Datum statt der Uhrzeit, o.betrag: Betrag rechts, o.alle: Reiter Alle
 function buVKarte(v,o){o=o||{};const Z=o.zeit||buZeit(),h=Z.h,m=Z.m,PA=o.PA||protAlle(),zur=v.status==="zurück",ms=mappeSchritte(v),of=zur?(buOffen(v,h)||{}):{};
-  const abF=!!v.vonD&&v.vonD<=h,rSp=!zur&&!!v.ueb&&!!v.bisD&&(v.bisD<h||(v.bisD===h&&!!v.bisU&&v.bisU<Z.j)),mvOk=!!v.unterschrift||!!v.ueb;
+  const rSp=!zur&&!!v.ueb&&!!v.bisD&&(v.bisD<h||(v.bisD===h&&!!v.bisU&&v.bisU<Z.j));
   const uebOk=ms[1][2]&&!ms[1][3];   // Übergabe erledigt wie in der Akte: mit Fahrzeugkaution auch die Überlassungserklärung (Prüfung 06.11.2026, N2)
-  const weg=buWeg([mvOk?"ok":abF?"offen":"",uebOk?"ok":v.ueb||abF?"offen":"",zur?(ms[2][3]?"offen":"ok"):rSp?"offen":""]);
   const dt=!v.ueb?v.vonD:v.bisD,ut=!v.ueb?v.vonU:v.bisU,links=o.datum||zur||!ut?buLinks("",dt):buLinks(ut,dt);
-  const st=[];let knopf="",neben="",gross=false;
+  const st=[];let knopf="",neben="";
   if(!zur&&!v.ueb){const a=(v.zahlung||{}).anz||{},ab=a.am?Math.round(zahl(a.betrag)||0):0,gelb=[];
-    if(!ab)gelb.push("ohne Anzahlung");if(!v.unterschrift&&!abF)gelb.push("Unterschrift fehlt");   // fällig: rotes ✕ am Kästchen statt Text (Punkt 8)
-    if(ab)st.push('<i class="gruen">✓ Anzahlung '+eur(ab)+' € erhalten</i>');if(gelb.length)st.push('<i class="gelb">'+gelb.join(", ")+'</i>');
+    if(!ab)gelb.push("ohne Anzahlung");if(!v.unterschrift&&!(v.vonD&&v.vonD<=h))gelb.push("Unterschrift fehlt");   // fällig: rotes ✕ in der Liste statt Text (Punkt 8)
+    if(gelb.length)st.push('<i class="gelb">'+gelb.join(", ")+'</i>');
     if(v.vonD&&v.vonD<h)st.push('<i class="rot">Abholung war '+esc(wt2(v.vonD))+'</i>');
-    gross=!!v.vonD&&v.vonD<=m;   // heute, morgen, überfällig
-    knopf=v.unterschrift?buHk('data-ueb="1"',PA[v.nr+"|uebergabe"]?"Übergabe fortsetzen ›":"Übergabe ›",gross):buHk('data-bereit="1"',"Mietvertrag fortsetzen ›",gross);   // Übergabe erst mit Unterschrift (01.11.2026)
+    knopf=v.unterschrift?buHk('data-ueb="1"',PA[v.nr+"|uebergabe"]?"Übergabe fortsetzen ›":"Übergabe ›"):buHk('data-bereit="1"',"Mietvertrag fortsetzen ›");   // Übergabe erst mit Unterschrift (01.11.2026)
     if(v.vonD===m&&!v.erinnert)neben=buKl('data-erin="1"',"Erinnerung senden")}
   else if(!zur){const offen=v.vonD&&v.vonD<h&&offenBetrag(v)>0;
     if(!uebOk){st.push('<i class="rot">'+(mitFz(v.kautionArt)&&!(v.sv&&v.sv.unterschrift)&&v.ueb.unterschrift?"Überlassungserklärung fehlt":"Übergabe nicht unterschrieben")+'</i>');neben+=buKl('data-ueb="1"',"Übergabe fortsetzen ›")}
     if(rSp){const seit=v.bisD===plusTage(h,-1)?"seit gestern":v.bisD===h?"seit heute":"seit "+wt2(v.bisD);st.push('<i class="rot">Rückgabe überfällig '+esc(seit)+'</i>')}
     if(offen)st.push('<i class="gelb">Miete '+eur(Math.round(offenBetrag(v)))+' € offen'+(v.gemahnt?", erinnert "+esc(buVor(v.gemahnt)):"")+'</i>');
-    gross=!!v.bisD&&v.bisD<=m;
-    knopf=buHk('data-rueck="1"',PA[v.nr+"|rueckgabe"]?"Rückgabe fortsetzen ›":"Rückgabe ›",gross,true);
+    knopf=buHk('data-rueck="1"',PA[v.nr+"|rueckgabe"]?"Rückgabe fortsetzen ›":"Rückgabe ›",true);
     // Überfällig: Kunde gleich erreichen (Punkt 18), WhatsApp ohne Text
     if(rSp){const tel=String(v.telefon||"").trim(),wa=waNr(tel);if(tel)neben+='<a class="buKl" data-tel="1" href="tel:'+esc(tel.replace(/[^0-9+]/g,""))+'">Anrufen</a>';if(wa)neben+='<a class="buKl" data-wa="1" href="https://wa.me/'+wa+'" target="_blank" rel="noopener">WhatsApp</a>'}
     if(offen)neben+=buKl('data-mahn="1"',"Erinnern")+buKl('data-bez="1"',"Bezahlt");   // wie bisher „Miete noch offen“: Erinnern und Bezahlt
@@ -3129,32 +3174,58 @@ function buVKarte(v,o){o=o||{};const Z=o.zeit||buZeit(),h=Z.h,m=Z.m,PA=o.PA||pro
     if(of.miete)st.push('<i class="rot">Miete '+eur(of.miete)+' € offen'+(v.gemahnt?", erinnert "+esc(buVor(v.gemahnt)):"")+'</i>');
     if(of.kaut!=null)st.push('<i class="rot">Kaution '+eur(of.kaut)+' € zurückgeben</i>');
     if(of.endab)st.push('<i class="gelb">Endabrechnung '+eur(of.endab)+' € offen</i>');
-    if(of.kaut==null&&v.kautionRueck&&v.kautionRueck.am)st.push('<i class="gruen">✓ Kaution zurück</i>');
-    if(of.rz){gross=true;knopf=(v.rueck&&(v.rueck.unterschrift||v.rueck.verweigert))?buHk('data-schad="1"',"Schadensanerkennung ›",true,true):buHk('data-rueck="1"',"Rückgabe fortsetzen ›",true,true)}
-    if(of.miete)neben+=buKl('data-mahn="1"',"Erinnern")+buKl('data-bez="1"',"Bezahlt")}
+    // Hauptschritt: Rückgabe beenden, sonst Kaution zurückgeben (Auswahl erst nach Tippen, nichts vorgewählt), sonst Miete bezahlt
+    if(of.rz)knopf=(v.rueck&&(v.rueck.unterschrift||v.rueck.verweigert))?buHk('data-schad="1"',"Schadensanerkennung ›",true):buHk('data-rueck="1"',"Rückgabe fortsetzen ›",true);
+    else if(of.kaut!=null)knopf=buHk('data-kz="1"',"Kaution zurückgeben ›");
+    else if(of.miete)knopf=buHk('data-bez="1"',"Bezahlt ✓");
+    if(of.miete)neben+=buKl('data-mahn="1"',"Erinnern")+(of.rz||of.kaut!=null?buKl('data-bez="1"',"Bezahlt"):"")}
   if(o.alle&&v.schaden)st.push('<i class="gelb">Schaden aufgenommen</i>');
-  return buKarte({attr:'data-nr="'+esc(v.nr)+'"',links,name:v.name||"ohne Namen",unter:[v.auto,buTageT(buTage(v.vonD,v.bisD))].filter(Boolean).join(", "),stand:st.join(""),weg,knopf,neben,gross,
-    betrag:o.betrag?eur(vBetrag(v))+" €":null,extra:o.extra})}
+  return buKarte({attr:'data-nr="'+esc(v.nr)+'"',key:"v"+v.nr,zr:buZr(v.vonD,v.vonU,v.bisD,v.bisU),links,name:v.name||"ohne Namen",unter:[v.auto,buTageT(buTage(v.vonD,v.bisD))].filter(Boolean).join(", "),
+    stand:buEine(st),liste:buVListe(v,h,rSp,of),knopf,neben,betrag:o.betrag?eur(vBetrag(v))+" €":null,extra:o.extra})}
 // Karte einer Buchung ohne Mietvertrag: reserviert (blockt) oder wartend auf die Anzahlung (blockt nicht)
-function buAKarte(x,o){o=o||{};const Z=o.zeit||buZeit(),h=Z.h,m=Z.m,w=buWartet(x),u=x.vonU||(x.angebot||{}).vonU||"",bu=x.bisU||(x.angebot||{}).bisU||"";
-  const abF=!!x.von&&x.von<=h,sp=!!x.bis&&(x.bis<h||(x.bis===h&&!!bu&&bu<Z.j)),st=[];
-  if(w){const a=x.anzahlungAngefordert||{};st.push('<i class="gelb">'+esc((a.betrag?eur(Math.round(zahl(a.betrag)||0))+" € ":"")+"angefordert "+buVor(a.am))+'</i>')}else st.push(buAnzZeile(buAnz(x)));
+function buAKarte(x,o){o=o||{};const Z=o.zeit||buZeit(),h=Z.h,w=buWartet(x),u=x.vonU||(x.angebot||{}).vonU||"",bu=x.bisU||(x.angebot||{}).bisU||"";
+  const abF=!!x.von&&x.von<=h,sp=!!x.bis&&(x.bis<h||(x.bis===h&&!!bu&&bu<Z.j)),st=[],aa=x.anzahlungAngefordert||{},anz=buAnz(x);
+  if(w)st.push('<i class="gelb">'+esc((aa.betrag?eur(Math.round(zahl(aa.betrag)||0))+" € ":"")+"angefordert "+buVor(aa.am))+'</i>');else if(!anz)st.push(buAnzZeile(0));
   st.push(buBelegtZeile(x));if(x.von&&x.von<h)st.push('<i class="rot">Abholung war '+esc(wt2(x.von))+'</i>');
-  const gross=!w&&!!x.von&&x.von<=m;
-  return buKarte({attr:'data-bu="'+esc(x.id)+'"',links:buLinks(o.datum||w?"":u,x.von||""),name:x.name||x.nummer||"ohne Namen",unter:[x.auto,buTageT(buTage(x.von,x.bis))].filter(Boolean).join(", "),stand:st.join(""),
-    weg:buWeg([abF?"offen":"",abF?"offen":"",sp?"offen":""]),knopf:w?buHk('data-da="1"',"✓ Anzahlung da"):buHk('data-start="1"',"Mietvertrag starten ›",gross),gross})}
+  const termin=(d,f)=>f?["x"]:["grau",buTagT(d)];
+  const L=[w?["Anzahlung"+(aa.betrag?" "+eur(Math.round(zahl(aa.betrag)||0))+" €":""),"grau","angefordert"]:anz?["Anzahlung "+eur(anz)+" €","ok"]:["Anzahlung","grau","keine"],
+    ["Mietvertrag"].concat(termin(x.von,abF)),["Übergabe-Protokoll"].concat(termin(x.von,abF)),["Rückgabe-Protokoll"].concat(termin(x.bis,sp))];
+  return buKarte({attr:'data-bu="'+esc(x.id)+'"',key:"b"+x.id,zr:buZr(x.von,u,x.bis,bu),links:buLinks(o.datum||w?"":u,x.von||""),name:x.name||x.nummer||"ohne Namen",unter:[x.auto,buTageT(buTage(x.von,x.bis))].filter(Boolean).join(", "),
+    stand:buEine(st),liste:L,knopf:w?buHk('data-da="1"',"✓ Anzahlung da"):buHk('data-start="1"',"Mietvertrag starten ›")})}
+// Blatt von unten (06.11.2026): Name, Auto, Zeitraum, Stand, Hauptknopf wie auf der Karte und „Buchung öffnen ›“
+let BK_KARTE=null,BK_OEFF=null;
+function buBlattAuf(karte,oeffnen){BK_KARTE=karte;BK_OEFF=oeffnen;const u=karte.querySelector(".t i.unt"),hk=karte.querySelector(":scope>.buGross");
+  $("bkName").textContent=(karte.querySelector(".t b")||{}).textContent||"";$("bkAuto").textContent=u?u.textContent:"";$("bkZr").textContent=karte.dataset.zr||"";
+  $("bkStand").innerHTML=(karte.querySelector(".buStand")||{}).innerHTML||"";$("bkKnopf").innerHTML=hk?hk.outerHTML:"";
+  const k2=$("bkKnopf").querySelector(".buGross");if(k2)k2.onclick=ev=>{ev.preventDefault();ev.stopPropagation();buNachZu(()=>{const key=karte.dataset.kk,neu=key?[...document.querySelectorAll(".buK[data-kk]")].filter(x=>x.dataset.kk===key&&x.offsetParent):[],k=neu[0]||karte,h=k.querySelector(":scope>.buGross");if(h&&document.contains(h))h.click()})};   // die Liste kann beim Schließen neu gezeichnet sein
+  mxAuf("fBuK")}
+// Erst das Blatt ganz schließen (sein Eintrag im Verlauf ist weg), dann weiter: Zurück führt danach sauber in den Reiter
+function buNachZu(f){mxZu();let n=0;const t=()=>{const s=history.state||{};if((s.mxSkip||s.mxF)&&n++<40){setTimeout(t,25);return}f()};setTimeout(t,0)}
+$("bkOeff").onclick=ev=>{ev.preventDefault();const f=BK_OEFF;buNachZu(()=>{if(f)f()})};
+// Wischen nach unten schließt das Blatt
+(function(){const f=$("fBuK");let y0=null,dy=0;
+  f.addEventListener("touchstart",e=>{if(f.scrollTop>0){y0=null;return}y0=e.touches[0].clientY;dy=0;f.style.transition="none"},{passive:true});
+  f.addEventListener("touchmove",e=>{if(y0==null)return;dy=Math.max(0,e.touches[0].clientY-y0);f.style.transform=dy?"translateY("+dy+"px)":""},{passive:true});
+  f.addEventListener("touchend",()=>{if(y0==null)return;f.style.transition="";f.style.transform="";if(dy>70)mxZu();y0=null})})();
+// Pfeil klappt auf und zu, ohne das Blatt zu öffnen. Zustand je Karte bleibt, solange die Seite offen ist
+function buKlapp(k,auf){const p=k.querySelector(".buPf"),key=k.dataset.kk;k.classList.toggle("auf",auf);if(key){if(auf)BU_AUF.add(key);else BU_AUF.delete(key)}
+  if(p){p.setAttribute("aria-expanded",String(auf));p.setAttribute("aria-label",auf?"Zuklappen":"Aufklappen")}}
+document.addEventListener("click",e=>{const p=e.target.closest&&e.target.closest(".buK .buPf");if(!p)return;e.preventDefault();e.stopPropagation();const k=p.closest(".buK");buKlapp(k,!k.classList.contains("auf"))},true);
 // Knöpfe in den Karten verbinden, gleich in allen Reitern. neu = neu zeichnen nach einer Änderung
+const BU_STILL=".buExtra,.bezWahl,.buKn";   // Tipp hier öffnet kein Blatt
 function buVerbinden(root,V,AN,neu){if(!root)return;const h=iso(new Date());
-  root.querySelectorAll("[data-bu]").forEach(e=>{const x=AN.find(y=>y.id===e.dataset.bu);if(!x)return;e.onclick=()=>bOeffnen(x.id);
+  root.querySelectorAll("[data-bu]").forEach(e=>{const x=AN.find(y=>y.id===e.dataset.bu);if(!x)return;e.onclick=ev=>{if(ev.target.closest(BU_STILL))return;buBlattAuf(e,()=>bOeffnen(x.id))};
     const da=e.querySelector("[data-da]");if(da)da.onclick=ev=>{ev.stopPropagation();daAuf(x.id)};
     const st=e.querySelector("[data-start]");if(st)st.onclick=ev=>{ev.stopPropagation();buStarten(x)}});
   root.querySelectorAll("[data-nr]").forEach(e=>{const v=V.find(x=>x.nr===e.dataset.nr);if(!v)return;
-    e.onclick=ev=>{if(ev.target.closest(".buExtra,.bezWahl"))return;mappeOeffnen(v.nr)};
+    e.onclick=ev=>{if(ev.target.closest(BU_STILL))return;buBlattAuf(e,()=>mappeOeffnen(v.nr))};
     e.querySelectorAll("a[data-tel],a[data-wa]").forEach(a=>a.onclick=ev=>ev.stopPropagation());
     const ub=e.querySelector("[data-bereit]");if(ub)ub.onclick=ev=>{ev.stopPropagation();buBereitVorgang(v)};
-    const ug=e.querySelector("[data-ueb]");if(ug)ug.onclick=ev=>{ev.stopPropagation();buSchritt(v,"uebergabe")};
+    e.querySelectorAll("[data-ueb]").forEach(ug=>ug.onclick=ev=>{ev.stopPropagation();buSchritt(v,"uebergabe")});
     const rg=e.querySelector("[data-rueck]");if(rg)rg.onclick=ev=>{ev.stopPropagation();buSchritt(v,"rueckgabe")};
     const sg=e.querySelector("[data-schad]");if(sg)sg.onclick=ev=>{ev.stopPropagation();buSchritt(v,"schaden")};
+    // Kaution zurückgeben: klappt die Karte auf, dort Komplett zurück oder Einbehalt, nichts vorgewählt, Rückfrage wie bisher
+    const kz=e.querySelector("[data-kz]");if(kz)kz.onclick=ev=>{ev.stopPropagation();buKlapp(e,true);const c=e.querySelector(".buExtra");if(c&&c.scrollIntoView)c.scrollIntoView({block:"nearest",behavior:"smooth"})};
     // Kunde hat verlängert (wie bisher unter Heute): Mappe mit dem Verlängern-Fenster, neues Datum frühestens heute
     const vl=e.querySelector("[data-verl]");if(vl)vl.onclick=ev=>{ev.stopPropagation();NEU_FREI=true;WAHL=v.nr;GELADEN={};zeige("mappe");verlOeffnen();
       if($("verlBis").value<h){$("verlBis").value=h;verlRechnen(false)}};
@@ -3162,9 +3233,9 @@ function buVerbinden(root,V,AN,neu){if(!root)return;const h=iso(new Date());
     const k=e.querySelector("[data-erin]");if(k)k.onclick=ev=>{ev.stopPropagation();waOeffnen(v,ERINNERUNG(v));const ll=vorgaenge(),y=ll.find(q=>q.nr===v.nr);if(y){y.erinnert=h;schreib("mietixVorgaenge",ll)}meldung("Erinnerung geöffnet");setTimeout(neu,800)};
     // Miete noch offen: Erinnern (WhatsApp mit dem Betrag) und Bezahlt (Zahlart wählen), wie bisher
     const mh=e.querySelector("[data-mahn]");if(mh)mh.onclick=ev=>{ev.stopPropagation();waOeffnen(v,MAHNUNG(v));const ll=vorgaenge(),y=ll.find(q=>q.nr===v.nr);if(y){y.gemahnt=h;schreib("mietixVorgaenge",ll)}setTimeout(neu,800)};
-    const bz=e.querySelector("[data-bez]");if(bz)bz.onclick=ev=>{ev.stopPropagation();if(e.querySelector(".bezWahl"))return;bz.classList.add("an");
+    e.querySelectorAll("[data-bez]").forEach(bz=>bz.onclick=ev=>{ev.stopPropagation();if(e.querySelector(".bezWahl"))return;bz.classList.add("an");
       const wv=document.createElement("div");wv.className="bezWahl";wv.onclick=x=>x.stopPropagation();e.appendChild(wv);
-      zahlChips(wv,a=>{alsBezahlt(v.nr,"rest",a);meldung("✓ "+v.name+": als bezahlt eingetragen");neu()})}})}
+      zahlChips(wv,a=>{alsBezahlt(v.nr,"rest",a);meldung("✓ "+v.name+": als bezahlt eingetragen");neu()})})})}
 // Abgeschlossen: alle Rückgaben nach Monat, mit Summe, pro Miete der Betrag und was noch offen ist
 // Ein Listenkopf für Reserviert, Unterwegs und Abgeschlossen (04.11.2026, Bild standard1)
 var BU_LK=null;
@@ -3233,15 +3304,16 @@ function zeichneBuchungen(){if(!$("buKommend"))return;const Z=buZeit(),h=Z.h,m=Z
   // Danach nach Abholtag: reservierte Buchungen ohne Mietvertrag und Mietverträge ohne Übergabe
   const K=sortiert(A.map(x=>({a:x,d:x.von||"",u:x.vonU||(x.angebot||{}).vonU||""})).concat(vk.map(v=>({v,d:v.vonD||"",u:v.vonU||""}))));
   const zeileK=z=>z.a?buAKarte(z.a,{zeit:Z}):buVKarte(z.v,{zeit:Z,PA});
-  const ang=(EV?buKarte({attr:'data-ev="1"',links:buLinks(EV.f.vonU||"",EV.f.vonD||""),name:String(EV.f.name||"").trim()||"ohne Namen",unter:[EV.auto,buTageT(buTage(EV.f.vonD,EV.f.bisD))].filter(Boolean).join(", "),
-      stand:'<i class="gelb">Angefangen, noch nicht gespeichert</i>',weg:buWeg(EV.f.vonD&&EV.f.vonD<=h?["offen","offen",""]:[]),neben:'<a href="#" class="buKl rot" data-weg="1">Entwurf verwerfen</a>',
-      knopf:buHk("","Mietvertrag fortsetzen ›",!!EV.f.vonD&&EV.f.vonD<=m),gross:!!EV.f.vonD&&EV.f.vonD<=m}):"")+
-    (NW?buKarte({attr:'data-nw="1"',links:buLinks(NW.vonU||"",NW.von||""),name:String(NW.name||"").trim()||"ohne Namen",unter:[NW.auto,buTageT(buTage(NW.von,NW.bis))].filter(Boolean).join(", "),
-      stand:'<i class="gelb">Angefangen, noch nicht gespeichert</i>',weg:buWeg([]),neben:'<a href="#" class="buKl rot" data-weg="1">Entwurf verwerfen</a>',knopf:buHk("","Buchung fortsetzen ›")}):"");
+  const evL=f=>[["Mietvertrag"].concat(f.vonD&&f.vonD<=h?["x"]:["grau",buTagT(f.vonD)]),["Übergabe-Protokoll"].concat(f.vonD&&f.vonD<=h?["x"]:["grau",buTagT(f.vonD)]),["Gespeichert","grau","noch nicht"]];
+  const ang=(EV?buKarte({attr:'data-ev="1"',key:"ev",zr:buZr(EV.f.vonD,EV.f.vonU,EV.f.bisD,EV.f.bisU),links:buLinks(EV.f.vonU||"",EV.f.vonD||""),name:String(EV.f.name||"").trim()||"ohne Namen",unter:[EV.auto,buTageT(buTage(EV.f.vonD,EV.f.bisD))].filter(Boolean).join(", "),
+      stand:'<i class="gelb">Angefangen, noch nicht gespeichert</i>',liste:evL(EV.f),neben:'<a href="#" class="buKl rot" data-weg="1">Entwurf verwerfen</a>',knopf:buHk('data-evk="1"',"Mietvertrag fortsetzen ›")}):"")+
+    (NW?buKarte({attr:'data-nw="1"',key:"nw",zr:buZr(NW.von,NW.vonU,NW.bis,NW.bisU),links:buLinks(NW.vonU||"",NW.von||""),name:String(NW.name||"").trim()||"ohne Namen",unter:[NW.auto,buTageT(buTage(NW.von,NW.bis))].filter(Boolean).join(", "),
+      stand:'<i class="gelb">Angefangen, noch nicht gespeichert</i>',liste:evL({vonD:NW.von}),neben:'<a href="#" class="buKl rot" data-weg="1">Entwurf verwerfen</a>',knopf:buHk('data-evk="1"',"Buchung fortsetzen ›")}):"");
   $("buKommend").innerHTML=(ang?'<div class="buGk">Angefangen</div><div class="buGr">'+ang+'</div>':'')+(K.length?gruppen(K,z=>z.d&&z.d<h?"ueber":z.d,(z,k)=>k==="ueber"?"Abholung überfällig":buTagKopf(z.d),zeileK)
     :(W.length||ang?'':buLK().aktiv()?'<div class="buLeer"><b>Nichts gefunden</b>Andere Suche oder Filter zurücksetzen.</div>':'<div class="buLeer"><b>Keine kommenden Buchungen</b>Unten auf „+ Neue Buchung“ geht es los.</div>'));
-  const ev=document.querySelector("#buKommend [data-ev]");if(ev){ev.onclick=()=>entwurfFortsetzen(EV);ev.querySelector("[data-weg]").onclick=e=>{e.preventDefault();e.stopPropagation();entwurfVerwerfen();zeichneBuchungen()}}
-  const nw=document.querySelector("#buKommend [data-nw]");if(nw){nw.onclick=()=>nbAuf();nw.querySelector("[data-weg]").onclick=e=>{e.preventDefault();e.stopPropagation();nbVerwerfen()}}   // Verwerfen mit Rückfrage, liegt dann im Papierkorb (02.11.2026, Baran)
+  const ev=document.querySelector("#buKommend [data-ev]");if(ev){ev.onclick=e=>{if(e.target.closest(BU_STILL))return;buBlattAuf(ev,()=>entwurfFortsetzen(EV))};ev.querySelector("[data-evk]").onclick=e=>{e.stopPropagation();entwurfFortsetzen(EV)};
+    ev.querySelector("[data-weg]").onclick=e=>{e.preventDefault();e.stopPropagation();entwurfVerwerfen();zeichneBuchungen()}}
+  const nw=document.querySelector("#buKommend [data-nw]");if(nw){nw.onclick=e=>{if(e.target.closest(BU_STILL))return;buBlattAuf(nw,()=>nbAuf())};nw.querySelector("[data-evk]").onclick=e=>{e.stopPropagation();nbAuf()};nw.querySelector("[data-weg]").onclick=e=>{e.preventDefault();e.stopPropagation();nbVerwerfen()}}   // Verwerfen mit Rückfrage, liegt dann im Papierkorb (02.11.2026, Baran)
   // Unterwegs: nur Autos beim Kunden, nach Rückgabetag, überfällige zuerst. Was nach der Rückgabe offen ist, steht unter Abgeschlossen „Noch offen“
   const spaet=z=>!!z.d&&(z.d<h||(z.d===h&&!!z.u&&z.u<Z.j));
   const U=sortiert(vu.map(v=>({v,d:v.bisD||"",u:v.bisU||""})));
