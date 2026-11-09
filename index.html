@@ -355,6 +355,9 @@ body.unterSicht #reiter,body.unterSicht header .mxStart,body.unterSicht header h
 .buWahl:active{background:#F6F6F7}
 .buWahl+.buWahl:before,#nbAnzW+.buWahl:before,.buWahl+#nbAnzW:before{content:"";position:absolute;left:52px;right:0;top:0;border-top:.5px solid #D1D1D6}
 #nbAnzW{position:relative;padding-left:36px}
+/* Neue Buchung: Trefferliste der Kundensuche unter dem Namen, Notiz aufklappbar (09.11.2026) */
+#nbNameF{flex-wrap:wrap}#nbNameF .ksL{flex:0 0 100%;box-sizing:border-box;margin:2px 0 6px}
+#nbNotizW{margin:14px 0 0}#nbNotizW textarea{display:block;margin-top:10px;background:#fff!important}
 .buWahl .kr{width:24px;height:24px;border-radius:50%;border:2px solid #C7C7CC;flex:0 0 auto;margin-top:1px;display:flex;align-items:center;justify-content:center;box-sizing:border-box}
 .buWahl.an .kr{border-color:#C4161C;background:#C4161C}.buWahl.an .kr:after{content:"";width:9px;height:9px;border-radius:50%;background:#fff}
 .buWahl b{display:block;font-size:17px;font-weight:600;color:#1C1C1E}.buWahl i{display:block;font-style:normal;font-size:14px;color:#8A8A8E;margin-top:2px;line-height:1.3}.buWahl i em{font-style:normal;font-weight:600}
@@ -597,6 +600,11 @@ input[type=date],input[type=time]{min-width:0;max-width:100%}
 .lkVbZ input{display:block;width:100%!important;min-width:0!important;max-width:100%!important;box-sizing:border-box;height:48px;margin:0!important;padding:0 12px!important;border:0!important;border-radius:12px;background:#F2F2F7;font-family:inherit;font-size:16px;font-weight:600;color:#1C1C1E;text-align:left;-webkit-appearance:none;appearance:none}
 .lkVbZ input::-webkit-date-and-time-value{text-align:left}
 .lkVbF{color:#C4161C;font-size:14px;font-weight:700;margin:8px 3px 0}.lkVbF:empty{display:none}
+.lkMon{display:grid;grid-template-columns:minmax(0,1fr) 76px;gap:10px}.mxKopf+.lkMon,.lkRad+.lkMon{margin-top:0}.lkRad+.lkMon{margin-top:10px}
+.lkMon button{position:relative;display:block;width:100%;margin:0;border:0;border-radius:12px;background:#F2F2F7;color:#1C1C1E;min-height:50px;padding:0 2px;font-size:16px;font-weight:600;font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.lkMon button.an{background:#1C1C1E;color:#fff;font-weight:700}.lkMon button.da::after{content:"";position:absolute;left:50%;bottom:6px;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;background:#1B8A4B}.lkMon button.an.da::after{background:#7BE0A6}
+.lkMGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.lkJahre{display:flex;flex-direction:column;gap:8px;max-height:224px;overflow:auto}
+.lkMHin{font-size:13px;color:#8A8A8E;margin:10px 2px 0}
 .lkFertig{display:block;width:100%;margin-top:14px;border:0;border-radius:14px;padding:14px;background:#C4161C;color:#fff;font-size:17px;font-weight:700;font-family:inherit;cursor:pointer}
 </style></head><body><div id="mxLaden" style="position:fixed;inset:0;z-index:300;background:#F6F6F7;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px">
 <img src="https://barankohler.github.io/mietix-zentrale/logo.png" alt="Mietix" style="width:200px;height:auto">
@@ -611,6 +619,28 @@ input[type=date],input[type=time]{min-width:0;max-width:100%}
   const freiTeile=w=>{const t=String(w||"").split("|");return t[0]==="frei"?{vd:t[1]||"",vu:t[2]||"10:00",bd:t[3]||"",bu:t[4]||"10:00"}:null};
   const freiText=w=>{const p=freiTeile(w),j=new Date().getFullYear(),k=x=>{const t=x.split("-");return Number(t[2])+"."+Number(t[1])+"."+(Number(t[0])===j?"":t[0].slice(2))};return p.vd&&p.bd?k(p.vd)+" bis "+k(p.bd):p.vd?"ab "+k(p.vd):"bis "+k(p.bd)};
   const vbZeile=(t,d,u)=>'<div class="lkVbZ"><div><label for="'+d+'">'+t+'</label><input type="date" id="'+d+'"></div><div><label for="'+u+'">Uhr</label><input type="time" id="'+u+'" value="10:00"></div></div>';
+  const MK_L=["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"],MK_K=["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"];
+  const monText=v=>/^\d{4}-\d\d$/.test(v)?MK_L[+v.slice(5,7)-1]+" "+v.slice(0,4):v;
+  const dieserMon=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")};
+  /* Monat und Jahr nebeneinander (09.11.2026, Baran): jeder Monat ist wählbar, nicht nur die mit Einträgen */
+  function monatBlatt(titel,mitAlle,alleText,mitDaten,wert,fertig){let f=document.getElementById("lkFenster");
+    if(!f){f=document.createElement("div");f.className="mxFenster";f.id="lkFenster";f.setAttribute("role","dialog");document.body.appendChild(f)}
+    const jetzt=dieserMon(),start=wert||(mitAlle?"":jetzt),da=new Set(mitDaten),j0=+jetzt.slice(0,4);
+    let J=+(start||jetzt).slice(0,4),M=start?+start.slice(5,7):0;
+    const jahre=[...new Set([j0-1,j0,j0+1,J].concat([...da].map(x=>+x.slice(0,4))))].sort((a,b)=>a-b);
+    f.setAttribute("aria-label",titel);
+    const hatDaten=(j,m)=>da.has(j+"-"+String(m).padStart(2,"0")),jahrDaten=j=>[...da].some(x=>+x.slice(0,4)===j);
+    f.innerHTML='<div class="mxKopf"><h3>'+esc(titel)+'</h3><button class="mxZu" type="button" aria-label="Schließen">✕</button></div>'+
+      (mitAlle?'<div class="lkRad"><div data-alle="1"><span>'+esc(alleText)+'</span><u></u></div></div>':"")+
+      '<div class="lkMon"><div class="lkMGrid">'+MK_K.map((t,i)=>'<button type="button" data-m="'+(i+1)+'" aria-label="'+MK_L[i]+'">'+t+'</button>').join("")+'</div><div class="lkJahre">'+jahre.map(j=>'<button type="button" data-j="'+j+'">'+j+'</button>').join("")+'</div></div>'+
+      '<div class="lkMHin">Grüner Punkt: dort gibt es Einträge.</div><button type="button" class="lkFertig">Fertig</button>';
+    const zeig=()=>{f.querySelectorAll("[data-m]").forEach(b=>{b.classList.toggle("an",+b.dataset.m===M);b.classList.toggle("da",hatDaten(J,+b.dataset.m))});
+      f.querySelectorAll("[data-j]").forEach(b=>{b.classList.toggle("an",+b.dataset.j===J);b.classList.toggle("da",jahrDaten(+b.dataset.j))});
+      const a=f.querySelector("[data-alle]");if(a)a.classList.toggle("an",!M)};
+    f.querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>{M=+b.dataset.m;zeig()});
+    f.querySelectorAll("[data-j]").forEach(b=>b.onclick=()=>{J=+b.dataset.j;if(!mitAlle&&!M)M=+jetzt.slice(5,7);zeig()});
+    const a=f.querySelector("[data-alle]");if(a)a.onclick=()=>{M=0;zeig()};
+    zeig();f.querySelector(".lkFertig").onclick=()=>{const v=M?J+"-"+String(M).padStart(2,"0"):"";window.mxZu();fertig(!mitAlle&&v===jetzt?"":v)};window.mxAuf("lkFenster")}
   function blatt(titel,werte,wert,fertig,frei){let f=document.getElementById("lkFenster");
     if(!f){f=document.createElement("div");f.className="mxFenster";f.id="lkFenster";f.setAttribute("role","dialog");document.body.appendChild(f)}
     let w=wert;f.setAttribute("aria-label",titel);
@@ -628,7 +658,7 @@ input[type=date],input[type=time]{min-width:0;max-width:100%}
     const merke=()=>{try{sessionStorage.setItem(K,JSON.stringify({q:LK.roh,w:LK.w}))}catch(e){}};
     const host=()=>document.getElementById(hostId);
     const felderZeigen=()=>{(o.felder||[]).forEach(f=>{const el=host().querySelector('[data-lk="'+f.k+'"]');if(!el)return;const v=LK.w[f.k]||"",p=(f.werte()||[]).find(x=>x[0]===v);
-      el.querySelector("b").textContent=v?(freiTeile(v)?freiText(v):p?p[1]:v):f.alle;el.classList.toggle("gew",!!v)})};
+      el.querySelector("b").textContent=v?(freiTeile(v)?freiText(v):f.monate?monText(v):p?p[1]:v):f.alle;el.classList.toggle("gew",!!v)})};
     const zeileZeigen=()=>{const z=host().querySelector(".lkZeile");if(!z)return;z.innerHTML='<span>'+esc(zeileT)+'</span>'+(LK.aktiv()?'<a role="button" tabindex="0">Filter zurücksetzen</a>':"");
       const a=z.querySelector("a");if(a)a.onclick=()=>{LK.roh="";LK.q="";LK.w={};merke();const i=host().querySelector("input");if(i)i.value="";kreuz();felderZeigen();o.neu()}};
     const kreuz=()=>{const k=host().querySelector(".lkSuche button");if(k)k.style.display=LK.roh?"":"none"};
@@ -639,12 +669,12 @@ input[type=date],input[type=time]{min-width:0;max-width:100%}
         ((o.felder||[]).length?'<div class="lkFelder">'+o.felder.map(f=>'<div class="lkFeld" role="button" tabindex="0" data-lk="'+f.k+'"><span><small>'+esc(f.t)+'</small><b></b></span><em>›</em></div>').join("")+'</div>':"")+'<div class="lkZeile"></div></div>';
       const i=h.querySelector("input");i.value=LK.roh;i.addEventListener("input",()=>{LK.roh=i.value;LK.q=norm(i.value);merke();kreuz();o.neu()});
       h.querySelector(".lkSuche button").onclick=e=>{e.preventDefault();i.value="";LK.roh="";LK.q="";merke();kreuz();o.neu();i.focus()};kreuz();
-      (o.felder||[]).forEach(f=>{h.querySelector('[data-lk="'+f.k+'"]').onclick=()=>{blatt(f.t,[["",f.alle]].concat(f.werte()||[]),LK.w[f.k]||"",w=>{if(w)LK.w[f.k]=w;else delete LK.w[f.k];merke();felderZeigen();o.neu()},f.frei)}})}
+      (o.felder||[]).forEach(f=>{h.querySelector('[data-lk="'+f.k+'"]').onclick=()=>{const nimm=w=>{if(w)LK.w[f.k]=w;else delete LK.w[f.k];merke();felderZeigen();o.neu()};if(f.monate){monatBlatt(f.t,f.monate==="alle",f.alle,(f.werte()||[]).map(x=>x[0]),LK.w[f.k]||"",nimm);return}blatt(f.t,[["",f.alle]].concat(f.werte()||[]),LK.w[f.k]||"",w=>{if(w)LK.w[f.k]=w;else delete LK.w[f.k];merke();felderZeigen();o.neu()},f.frei)}})}
       felderZeigen();zeileZeigen();return LK};
     return LK};
   const tag=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
   window.mxListenkopf.zeit=[["heute","Heute"],["woche","Diese Woche"],["naechsteW","Nächste Woche"],["monat","Dieser Monat"],["vormonat","Letzter Monat"],["naechsterM","Nächster Monat"],["jahr","Dieses Jahr"]];
-  window.mxListenkopf.freiText=freiText;
+  window.mxListenkopf.freiText=freiText;window.mxListenkopf.monatWahl=monatBlatt;   // Monat und Jahr auch ohne Filterfeld: monatWahl(titel,false,"",[datenMonate],"JJJJ-MM",w=>…), leer = aktueller Monat
   /* Liegt eine Miete im Zeitraum? Bei von/bis mit Uhrzeit minutengenau, bei den festen Knöpfen wie bisher nach Tagen */
   window.mxListenkopf.ueberlappt=function(w,vd,vu,bd,bu){const s=window.mxListenkopf.spanne(w);if(!s)return true;
     if(freiTeile(w)){const an=vd?vd+"T"+(vu||"00:00"):"",en=(bd||vd)?(bd||vd)+"T"+(bu||"23:59"):"";return an<=s[1]&&en>=s[0]}
@@ -733,7 +763,6 @@ input[type=date],input[type=time]{min-width:0;max-width:100%}
   <!-- Heute und morgen: abholen und zurück, ein Tipp öffnet Übergabe bzw. Rückgabe dieses Mietvertrags (30.10.2026, Baran wieder hier gewünscht) -->
   <!-- 31.10.2026, Baran: wie die Startseite, Heute und Morgen getrennt, Uhrzeit links, Übergabe grün, Rückgabe rot, morgen grau -->
   <!-- 01.11.2026, Baran: „Kommend“ = alles vor der Übergabe (gebucht ohne Mietvertrag und Mietverträge ohne Übergabe), nach Abholtag -->
-  <div id="bFortBox"></div>
   <div id="buWarten"></div>
   <div id="buKommend"></div>
   <!-- Die alten Heute-Listen bleiben unsichtbar bestehen (gleiche Rechnung, gleiche Knöpfe), sichtbar ist die neue Liste darüber -->
@@ -746,7 +775,6 @@ input[type=date],input[type=time]{min-width:0;max-width:100%}
 
 <!-- ================= UNTERWEGS: Auto ist beim Kunden, nach Rückgabetag; darunter das Geld (01.11.2026) ================= -->
 <section id="s_unterwegs" class="versteckt">
-  <div id="bFortBoxU"></div>
   <div id="buUnterwegs"></div>
 </section>
 
@@ -772,7 +800,7 @@ input[type=date],input[type=time]{min-width:0;max-width:100%}
   <!-- unten: <a id="nbVerw"> Entwurf verwerfen (02.11.2026) -->
   <div class="buGk">Kunde</div>
   <div class="buGr">
-    <div class="buFeld"><label for="nbName">Name <span class="pfl">*</span></label><input id="nbName" autocomplete="off" enterkeyhint="next"></div>
+    <div class="buFeld" id="nbNameF"><label for="nbName">Name <span class="pfl">*</span></label><input id="nbName" autocomplete="off" enterkeyhint="next"></div>
     <div class="buFeld"><label for="nbTel">WhatsApp <span class="pfl">*</span></label><input id="nbTel" inputmode="tel" autocomplete="off" enterkeyhint="done"></div>
   </div>
   <div class="buGk">Auto und Zeitraum</div>
@@ -799,6 +827,8 @@ input[type=date],input[type=time]{min-width:0;max-width:100%}
     <div class="buWahl" data-m="ohne"><span class="kr"></span><span><b>Ohne Anzahlung</b><i>Für Freunde und Stammkunden. Auto wird sofort geblockt.</i></span></div>
   </div>
 
+  <!-- Notiz selten gebraucht: hinter kleinem Knopf, mit Inhalt offen (09.11.2026) -->
+  <details class="mxKlein" id="nbNotizW"><summary>Notiz <em>›</em></summary><textarea id="nbNotiz" maxlength="500" aria-label="Notiz"></textarea></details>
   <a href="#" class="buVerw versteckt" id="nbVerw" style="margin:18px 0 6px">Entwurf verwerfen</a>
 </section>
 
@@ -2885,11 +2915,8 @@ function zeichneHeute(){const h=iso(new Date()),m=plusTage(h,1),l=vorgaenge().fi
       '<span class="schild '+(ueb?"gruen":"rot")+'">'+(ueb?"Übergabe":"Rückgabe")+'</span><span class="hPf">›</span></div>'};
   const hz=zeilen.filter(z=>z.d<=h),mz=zeilen.filter(z=>z.d===m);
   $("hHeuteT").textContent=kopf("Heute",h);$("hMorgenT").textContent=kopf("Morgen",m);
-  // Fortschritt (06.11.2026, Punkt 3): in Reserviert nur die Übergaben heute, in Unterwegs nur die Rückgaben heute
+  // Leisten „Übergaben/Rückgaben heute“ auf Barans Wunsch weg (09.11.2026, übersichtlich). erl braucht „Alles erledigt“.
   const erlU=alleV.filter(v=>!v._weg&&v.ueb&&String(v.ueb.datum||"").slice(0,10)===h).length,rHeute=alleV.filter(v=>!v._weg&&v.rueck&&String(v.rueck.datum||"").slice(0,10)===h),erlR=rHeute.filter(v=>{const r=mappeSchritte(v)[2];return r[2]&&!r[3]}).length,erl=erlU+erlR;   // erledigt nur, was die Karte mit ✓ zeigt; Zähler und Gesamt aus derselben Menge (N4)
-  const fortT=(t,e,g)=>g?'<div id="hFort"><div class="bal"><i style="width:'+Math.round(e/g*100)+'%"></i></div><span>'+t+': '+e+' von '+g+' erledigt'+(g-e?", noch "+(g-e):"")+'</span></div>':"";
-  $("bFortBox").innerHTML=fortT("Übergaben heute",erlU,erlU+hz.filter(z=>z.art==="ueb").length);
-  $("bFortBoxU").innerHTML=fortT("Rückgaben heute",erlR,rHeute.length+hz.filter(z=>z.art==="rueck"&&!rHeute.includes(z.v)).length);
   $("hHeute").innerHTML=(hz.length?hz.map(zeile).join(""):erl?'<div class="fertig">Alles erledigt ✓</div>':'<div class="leer">Heute keine Übergabe und keine Rückgabe.</div>');
   $("hMorgen").innerHTML=mz.length?mz.map(zeile).join(""):'<div class="leer">Morgen ('+esc(de(m).slice(0,6))+') keine Übergabe und keine Rückgabe.</div>';
   document.querySelectorAll("#hHeute .hz[data-anf],#hMorgen .hz[data-anf]").forEach(e=>{const a=anfH.find(x=>x.id===e.dataset.anf);if(a)e.onclick=()=>{if(!NEU&&ungespeichert()&&!confirm("Deine Änderungen am offenen Mietvertrag gelten noch nicht. Trotzdem weiter?"))return;leeren();uebernehmeAnfrage(a);zeige("vertrag")};
@@ -2927,7 +2954,7 @@ var NAV_REITER=["heute","unterwegs","abgeschlossen","vertraege"];
 // Rücksprung aus einem Link (06.11.2026): ?von=Anfragen|Geld|<Name> (kein Datum) oder vom Kalender her. Gilt, solange man auf der ersten Ansicht steht.
 // ?von= im Format JJJJ-MM-TT ist dagegen das Abholdatum (Kalender-Links).
 const START_SUCHE=location.search,istDatum=s=>/^\d{4}-\d{2}-\d{2}/.test(String(s||""));
-var LINK_VON=(()=>{const q=new URLSearchParams(START_SUCHE),v=q.get("von"),ZIEL={Anfragen:"mietix-anfragen/",Geld:"mietix-geld/",Kalender:"mietix-belegung/",Start:"mietix-zentrale/"};
+var LINK_VON=(()=>{const q=new URLSearchParams(START_SUCHE),v=q.get("von"),ZIEL={Anfragen:"mietix-anfragen/",Geld:"mietix-geld/",Kalender:"mietix-belegung/",Start:"mietix-zentrale/",Kunden:"mietix-zentrale/kunden.html",Autos:"mietix-autos/"};
   if(v&&!istDatum(v))return{t:v,href:ZIEL[v]?"https://barankohler.github.io/"+ZIEL[v]:""};
   let r="";try{r=new URL(document.referrer).pathname}catch(e){}
   if(START_SUCHE&&/\/mietix-belegung\//.test(r))return{t:"Kalender",href:"https://barankohler.github.io/mietix-belegung/"};
@@ -2947,7 +2974,7 @@ function navMerk(s){if(NAV_POP)return;if(NAV_WEG){NAV_WEG.s=s;return}
     if(NAV_REITER.includes(s)||NAV[n-2]===s){NAV_RUECK=true;navWeg(s);history.go((NAV_REITER.includes(s)?-(n-1):-1)-skip);return}
     if(ist==="neu"&&["iban","reserviert","buchung"].includes(s)){NAV[n-1]=s;history.replaceState(navStand(s,NAV),"");return}   // gespeichert: Zurück führt nicht ins leere Formular
     NAV=NAV.concat([s]);history.pushState(navStand(s,NAV),"")}catch(e){}}
-function nbEditBild(){return JSON.stringify([NB_AUTO].concat(["nbName","nbTel","nbVonD","nbBisD","nbVonU","nbBisU","nbPreis","nbKm","nbRab"].map(i=>$(i).value)))}
+function nbEditBild(){return JSON.stringify([NB_AUTO].concat(["nbName","nbTel","nbVonD","nbBisD","nbVonU","nbBisU","nbPreis","nbKm","nbRab","nbNotiz"].map(i=>$(i).value)))}
 function navErlaubt(s){return !(SICHT==="neu"&&NB_EDIT&&s!=="neu"&&NB_EDIT_BILD!==null&&nbEditBild()!==NB_EDIT_BILD)||confirm("Änderungen an der Buchung verwerfen?")}
 addEventListener("popstate",e=>{const st=e.state||{mxS:BU_REITER,nav:[BU_REITER]};
   if(NAV_WEG){const z=NAV_WEG.s;NAV_WEG=null;NAV=(st.nav||[st.mxS]).slice();
@@ -3460,20 +3487,24 @@ document.querySelectorAll(".buZurueck").forEach(a=>a.onclick=e=>{e.preventDefaul
 let NB_ANFRAGE=null;   // Buchung aus einer Anfrage: die Anfrage wird zur Buchung, keine zweite (1.11.2026, ein Formular für alle Wege)
 let NB_MODUS="anfordern",NB_PREIS_HAND=false,NB_KM_HAND=false,NB_ANZ_HAND=false,NB_SPERRE=0,NB_AUTO="";
 const NB_K="mietixEntwurfBuchung";
+// Notiz (09.11.2026): feste Herkunftstexte sind keine getippte Notiz und erscheinen nicht im Feld
+const NB_NOTIZ_STD="Buchung aus Buchungen",NB_NOTIZ_AUTO=[NB_NOTIZ_STD,"Buchung aus dem Kalender","Angebot aus dem Kalender"];
+function nbNotizVon(x){const t=String((x&&x.notiz)||"").trim();return NB_NOTIZ_AUTO.includes(t)?"":t}
+function nbNotizSetzen(t){$("nbNotiz").value=t||"";$("nbNotizW").open=!!t}
 function nbWerte(){return{pk:NB_PAKET,abg:NB_ABG,anf:NB_ANFRAGE,name:$("nbName").value,tel:$("nbTel").value,auto:NB_AUTO,von:$("nbVonD").value,bis:$("nbBisD").value,vonU:$("nbVonU").value,bisU:$("nbBisU").value,
-  preis:$("nbPreis").value,km:$("nbKm").value,rab:$("nbRab").value,ph:NB_PREIS_HAND,kh:NB_KM_HAND,ah:NB_ANZ_HAND,modus:NB_MODUS,anzB:$("nbAnzB").value,art:(($("nbArt").querySelector(".chip.an")||{}).dataset||{}).za||"",zeit:Date.now()}}
-function nbMerken(){if(NB_EDIT)return;const w=nbWerte();try{if(w.name.trim()||w.tel.trim()||w.auto||w.von)localStorage.setItem(NB_K,JSON.stringify(w));else localStorage.removeItem(NB_K)}catch(e){}}
+  preis:$("nbPreis").value,km:$("nbKm").value,rab:$("nbRab").value,ph:NB_PREIS_HAND,kh:NB_KM_HAND,ah:NB_ANZ_HAND,modus:NB_MODUS,anzB:$("nbAnzB").value,art:(($("nbArt").querySelector(".chip.an")||{}).dataset||{}).za||"",notiz:$("nbNotiz").value,zeit:Date.now()}}
+function nbMerken(){if(NB_EDIT)return;const w=nbWerte();try{if(w.name.trim()||w.tel.trim()||w.auto||w.von||w.notiz.trim())localStorage.setItem(NB_K,JSON.stringify(w));else localStorage.removeItem(NB_K)}catch(e){}}
 function nbHolen(){let w=null;try{w=JSON.parse(localStorage.getItem(NB_K)||"null")}catch(e){}if(!w||Date.now()-(w.zeit||0)>7*864e5)return false;
   NB_PAKET=w.pk||{km:0,preis:0};NB_ABG=w.abg||null;if(w.anf)NB_ANFRAGE=w.anf;$("nbName").value=w.name||"";$("nbTel").value=w.tel||"";NB_AUTO=w.auto||"";$("nbVonD").value=w.von||"";$("nbBisD").value=w.bis||"";$("nbVonU").value=w.vonU||"10:00";$("nbBisU").value=w.bisU||"10:00";
-  $("nbPreis").value=w.preis||"";$("nbKm").value=w.km||"";$("nbRab").value=w.rab||"";NB_PREIS_HAND=!!w.ph;NB_KM_HAND=!!w.kh;NB_ANZ_HAND=!!w.ah;NB_MODUS=w.modus||"anfordern";$("nbAnzB").value=w.anzB||"";zahlartChips($("nbArt"),w.art||"");return true}
-function nbLeeren(){["nbName","nbTel","nbVonD","nbBisD","nbPreis","nbKm","nbRab","nbAnzB"].forEach(i=>{$(i).value="";$(i).classList.remove("fehlt")});$("nbVonU").value="10:00";$("nbBisU").value="10:00";
+  $("nbPreis").value=w.preis||"";$("nbKm").value=w.km||"";$("nbRab").value=w.rab||"";NB_PREIS_HAND=!!w.ph;NB_KM_HAND=!!w.kh;NB_ANZ_HAND=!!w.ah;NB_MODUS=w.modus||"anfordern";$("nbAnzB").value=w.anzB||"";zahlartChips($("nbArt"),w.art||"");nbNotizSetzen(w.notiz);return true}
+function nbLeeren(){nbNotizSetzen("");["nbName","nbTel","nbVonD","nbBisD","nbPreis","nbKm","nbRab","nbAnzB"].forEach(i=>{$(i).value="";$(i).classList.remove("fehlt")});$("nbVonU").value="10:00";$("nbBisU").value="10:00";
   NB_AUTO="";NB_MODUS="anfordern";NB_PREIS_HAND=NB_KM_HAND=NB_ANZ_HAND=false;NB_PAKET={km:0,preis:0};NB_ABG=null;zahlartChips($("nbArt"),"");["nbAutoZ","nbZeitZ"].forEach(i=>$(i).classList.remove("fehlt"));try{localStorage.removeItem(NB_K)}catch(e){}}
 // Angefangene Buchung verwerfen: Rückfrage, dann in den Papierkorb, dort „Wiederherstellen“ (02.11.2026, Baran: „kann sie nicht löschen“)
 function nbEntwurfAblegen(w){let pk=[];try{pk=JSON.parse(localStorage.getItem("mietixPapierkorb")||"[]")||[]}catch(e){}
   pk.push({id:"mietixEntwurfBuchung:"+Date.now(),ablage:"mietixEntwurfBuchung",schluessel:"entwurf",eintrag:w,zeit:new Date().toISOString(),text:"Angefangene Buchung: "+([String(w.name||"").trim(),w.auto].filter(Boolean).join(", ")||"ohne Namen")});
   try{localStorage.setItem("mietixPapierkorb",JSON.stringify(pk))}catch(e){}}
 function nbVerwerfen(){let w=null;try{w=JSON.parse(localStorage.getItem(NB_K)||"null")}catch(e){}if(SICHT==="neu")w=nbWerte();
-  if(!w||!(String(w.name||"").trim()||String(w.tel||"").trim()||w.auto||w.von)){nbLeeren();if(SICHT==="neu")zeige(BU_REITER);return}
+  if(!w||!(String(w.name||"").trim()||String(w.tel||"").trim()||w.auto||w.von||String(w.notiz||"").trim())){nbLeeren();if(SICHT==="neu")zeige(BU_REITER);return}
   if(!confirm("Die angefangene Buchung"+(String(w.name||"").trim()?" von "+w.name.trim():"")+" verwerfen? Sie liegt danach im Papierkorb."))return;
   nbEntwurfAblegen(w);nbLeeren();meldung("Verworfen, liegt im Papierkorb");if(SICHT==="neu")zeige(BU_REITER);else zeichneBuchungen()}
 $("nbVerw").onclick=e=>{e.preventDefault();nbVerwerfen()};
@@ -3524,7 +3555,7 @@ function nbZeichnen(){nbRechnen();const v=$("nbVonD").value,b=$("nbBisD").value,
   [...$("nbWahl").querySelectorAll(".buWahl")].forEach(w=>w.classList.toggle("an",w.dataset.m===NB_MODUS));$("nbAnzW").classList.toggle("versteckt",NB_MODUS!=="erhalten");
   {const z=nbAnzDa();$("nbErhTxt").textContent=z?eur(z.betrag)+" € erhalten am "+de(String(z.am).slice(0,10)).slice(0,6)+(buArt(z.art)?" per "+buArt(z.art):"")+(String(Math.round(zahl($("nbAnzB").value)||0))!==String(Math.round(+z.betrag))?", Betrag geändert":""):"Auto wird sofort geblockt, Reservierungsbestätigung per WhatsApp."}
   $("nbWahlTxt").innerHTML=(p?'<em>30 % = '+eur(Math.round(p*0.3))+' €</em>. ':'<em>30 % vom Preis</em>. ')+'WhatsApp mit IBAN, das Auto wird erst nach der Zahlung geblockt.';
-  {const da=!!($("nbName").value.trim()||$("nbTel").value.trim()||NB_AUTO||$("nbVonD").value);$("nbVerw").classList.toggle("versteckt",!da||!!NB_EDIT)}
+  {const da=!!($("nbName").value.trim()||$("nbTel").value.trim()||NB_AUTO||$("nbVonD").value||$("nbNotiz").value.trim());$("nbVerw").classList.toggle("versteckt",!da||!!NB_EDIT)}
   if(SICHT==="neu")buLeiste()}
 function nbSumme(){const v=$("nbVonD").value,b=$("nbBisD").value,p=Math.round(zahl($("nbPreis").value)||0),km=Math.round(zahl($("nbKm").value)||0);
   $("bSum").innerHTML='<span><b>'+esc(NB_AUTO||"Auto fehlt")+'</b><i>'+esc(v&&b?wt2(v)+" bis "+wt2(b)+", "+buTageT(buTage(v,b)):"Zeitraum fehlt")+'</i></span>'+
@@ -3556,24 +3587,35 @@ $("nbKm").addEventListener("input",()=>{NB_KM_HAND=$("nbKm").value.trim()!=="";i
 ["nbPreis","nbKm"].forEach(i=>$(i).addEventListener("change",()=>{nbZeichnen();nbMerken()}));
 $("nbRab").addEventListener("input",()=>{rabattZuViel("nbRab");NB_PREIS_HAND=false;nbZeichnen();nbMerken()});   // wie im Kalender: neuer Rabatt rechnet den Preis neu
 ["nbName","nbTel"].forEach(i=>$(i).addEventListener("input",()=>{$(i).classList.remove("fehlt");nbMerken()}));
+$("nbNotiz").addEventListener("input",()=>{nbMerken();nbZeichnen()});
+// Kundensuche wie im Mietvertrag (09.11.2026): Antippen trägt Name und WhatsApp ein, beides bleibt änderbar. Hat der neue Kunde keine Nummer, bleibt nie die Nummer des vorigen Treffers stehen
+var NB_TEL_KUNDE="";
+(function(){const los=()=>window.mietixKunden.anhaengen($("nbName"),k=>{const t=$("nbTel");$("nbName").value=k.name;$("nbName").classList.remove("fehlt");
+  if(k.telefon)t.value=k.telefon;else if(t.value===NB_TEL_KUNDE)t.value="";NB_TEL_KUNDE=k.telefon||"";t.dispatchEvent(new Event("input",{bubbles:true}));nbZeichnen()});
+  if(window.mietixKunden)los();else window.addEventListener("mietix-kunden-bereit",los)})();   // kundensuche.js steht weiter unten
 $("nbAnzB").addEventListener("input",()=>{NB_ANZ_HAND=$("nbAnzB").value.trim()!=="";$("nbAnzB").classList.remove("fehlt");nbMerken()});
 [...$("nbWahl").querySelectorAll(".buWahl")].forEach(w=>w.onclick=()=>{NB_MODUS=w.dataset.m;nbZeichnen();nbMerken()});
 zahlartChips($("nbArt"),"");$("nbArt").onwahl=()=>nbMerken();
 $("nbDirekt").onclick=e=>{e.preventDefault();if(!buFormFrei())return;
+  // Der Mietvertrag hat kein Notizfeld: eine getippte Notiz geht nie still verloren (09.11.2026)
+  const nz=$("nbNotiz").value.trim(),an=NB_ANFRAGE?lies("mietixAnfragen",[]).find(y=>y.id===NB_ANFRAGE):null;
+  if(nz&&!(an&&String(an.notiz||"").trim()===nz)){nachSheet("Notiz kommt nicht mit","Der Mietvertrag hat kein Notizfeld.",[{t:"Hier bleiben",voll:true,f:()=>{}},{t:"Trotzdem starten",f:nbDirektLos}]);return}
+  nbDirektLos()};
+function nbDirektLos(){
   const v=$("nbVonD").value,b=$("nbBisD").value,kmS=String($("nbKm").value||"").trim(),km=kmS===""?undefined:Math.round(zahl(kmS)||0),pr=Math.round(zahl($("nbPreis").value)||0);
   const x={id:null,name:$("nbName").value.trim(),nummer:$("nbTel").value.trim(),auto:NB_AUTO,von:v,bis:b,vonU:$("nbVonU").value,bisU:$("nbBisU").value,
     angebot:NB_AUTO&&v&&b?Object.assign({auto:NB_AUTO,von:v,bis:b,vonU:$("nbVonU").value,bisU:$("nbBisU").value,preis:pr||undefined,freikm:km,rabatt:nbRab()},nbPosten(pr)):{}};
-  leeren();uebernehmeAnfrage(x);nbLeeren();zeige("vertrag")};
+  leeren();uebernehmeAnfrage(x);nbLeeren();zeige("vertrag")}
 /* Buchung ändern (02.11.2026, Baran-Lückenliste 2): dasselbe Formular, vorbefüllt; speichert nur Kunde, Auto, Zeitraum, Preis, km, Rabatt
    in dieselbe Buchung. Anzahlung, Status und Bestätigung bleiben. Ein angefangener neuer Entwurf bleibt unberührt. */
 var NB_EDIT=null,NB_EDIT_ENTWURF=null,NB_EDIT_BILD=null;
 function nbFelderLeer(){NB_EDIT_ENTWURF=localStorage.getItem(NB_K);nbLeeren();try{if(NB_EDIT_ENTWURF)localStorage.setItem(NB_K,NB_EDIT_ENTWURF)}catch(e){}}
 function nbBearbeiten(id){const x=buAnfrage(id);if(!x)return;nbFelderLeer();NB_EDIT=id;const a=x.angebot||{};
-  $("nbName").value=x.name||"";$("nbTel").value=x.nummer||"";NB_AUTO=x.auto||a.auto||"";$("nbVonD").value=x.von||a.von||"";$("nbBisD").value=x.bis||a.bis||"";
+  $("nbName").value=x.name||"";$("nbTel").value=x.nummer||"";nbNotizSetzen(nbNotizVon(x));NB_AUTO=x.auto||a.auto||"";$("nbVonD").value=x.von||a.von||"";$("nbBisD").value=x.bis||a.bis||"";
   $("nbVonU").value=x.vonU||a.vonU||"10:00";$("nbBisU").value=x.bisU||a.bisU||"10:00";
   if(a.rabatt)$("nbRab").value=String(a.rabatt).replace(".",",");nbAbgemacht(a,NB_AUTO,$("nbVonD").value,$("nbBisD").value);
   NB_EDIT_BILD=null;zeige("neu");NB_EDIT_BILD=nbEditBild();
-  try{const g=JSON.parse(sessionStorage.getItem("mietixNbEdit")||"null");if(g&&g.id===id){const w=JSON.parse(g.b);NB_AUTO=w[0];["nbName","nbTel","nbVonD","nbBisD","nbVonU","nbBisU","nbPreis","nbKm","nbRab"].forEach((i,k)=>{$(i).value=w[k+1]});NB_ABG_WART=null;if(g.h){NB_PREIS_HAND=g.h[0];NB_KM_HAND=g.h[1];NB_ABG=g.h[2]||null}nbZeichnen()}}catch(e){}}
+  try{const g=JSON.parse(sessionStorage.getItem("mietixNbEdit")||"null");if(g&&g.id===id){const w=JSON.parse(g.b);NB_AUTO=w[0];["nbName","nbTel","nbVonD","nbBisD","nbVonU","nbBisU","nbPreis","nbKm","nbRab","nbNotiz"].forEach((i,k)=>{if(w[k+1]!=null)$(i).value=w[k+1]});nbNotizSetzen($("nbNotiz").value);NB_ABG_WART=null;if(g.h){NB_PREIS_HAND=g.h[0];NB_KM_HAND=g.h[1];NB_ABG=g.h[2]||null}nbZeichnen()}}catch(e){}}
 ["input","change"].forEach(t=>document.addEventListener(t,e=>{if(NB_EDIT&&e.target.closest&&e.target.closest("#s_neu,#fNbZeit"))setTimeout(()=>{if(NB_EDIT)try{sessionStorage.setItem("mietixNbEdit",JSON.stringify({id:NB_EDIT,b:nbEditBild(),h:[NB_PREIS_HAND,NB_KM_HAND,NB_ABG]}))}catch(x){}},0)}));
 function nbEditEnde(){NB_EDIT=null;NB_EDIT_BILD=null;try{sessionStorage.removeItem("mietixNbEdit")}catch(e){}nbLeeren();try{if(NB_EDIT_ENTWURF)localStorage.setItem(NB_K,NB_EDIT_ENTWURF)}catch(e){}NB_EDIT_ENTWURF=null}
 function nbKmWert(v,b){const s=String($("nbKm").value||"").trim();return s===""?((D&&D.freiKm)||150)*buTage(v,b)+NB_PAKET.km:Math.max(0,Math.round(zahl(s)||0))}   // getippte 0 km bleiben 0 km
@@ -3585,6 +3627,7 @@ function nbAenderungSpeichern(trotz){const w=i=>String($(i).value||"").trim(),f=
   if(bR.t.length&&trotz!==true){nbZeichnen();nbBelegtFrage(NB_AUTO,bR,()=>nbAenderungSpeichern(true));return}
   const vonU=$("nbVonU").value||"10:00",bisU=$("nbBisU").value||"10:00",km=nbKmWert(v,b),r=buRechner(NB_AUTO,v,b),pt=zahl($("nbPreis").value),preis=String($("nbPreis").value).trim()!==""&&pt!==null?Math.round(pt):(r?r.preis:0);
   buAendern(id,y=>{Object.assign(y,{name:w("nbName"),nummer:w("nbTel"),auto:NB_AUTO,von:v,bis:b,vonU,bisU});
+    if(w("nbNotiz"))y.notiz=w("nbNotiz");else if(nbNotizVon(y))y.notiz=y.quelle==="buchung"?NB_NOTIZ_STD:"";   // gelöscht heißt gelöscht, unberührt bleibt der bisherige Text (09.11.2026)
     y.angebot=Object.assign({},y.angebot||{},{auto:NB_AUTO,von:v,bis:b,vonU,bisU,preis,kmInkl:Math.max(0,km-NB_PAKET.km),freikm:km,rabatt:nbRab()},nbPosten(preis));
     if(y.anzahlungAngefordert&&!(y.anzahlung&&y.anzahlung.am))y.anzahlungAngefordert.betrag=preis?Math.round(preis*0.3):y.anzahlungAngefordert.betrag;
     (y.verlauf=y.verlauf||[]).push({am:new Date().toISOString(),was:"geändert"})});
@@ -3607,7 +3650,7 @@ function nbSpeichern(trotz){if(NB_EDIT){nbAenderungSpeichern(trotz);return}if(Da
   const r=buRechner(auto,v,b),pt=zahl($("nbPreis").value),preis=String($("nbPreis").value).trim()!==""&&pt!==null?Math.round(pt):(r?r.preis:0);   // getippte 0 € bleiben 0 €
   const x={id:String(Date.now())+Math.random().toString(36).slice(2,6),tag:heute,uhr:pad(hJ.getHours())+":"+pad(hJ.getMinutes()),
     name,alter:"",ort:"",nummer:w("nbTel"),anschrift:"",geb:"",gebort:"",auto,von:v,bis:b,vonU,bisU,
-    notiz:"Buchung aus Buchungen",status:NB_MODUS==="anfordern"?"angebot":"gebucht",zusatzfahrer:"",quelle:"buchung",
+    notiz:w("nbNotiz")||NB_NOTIZ_STD,status:NB_MODUS==="anfordern"?"angebot":"gebucht",zusatzfahrer:"",quelle:"buchung",
     angebot:Object.assign({auto,von:v,bis:b,vonU,bisU,preis,kmInkl:Math.max(0,km-NB_PAKET.km),freikm:km,rabatt:nbRab(),am:hJ.toISOString()},nbPosten(preis))};
   if(NB_MODUS==="anfordern")x.anzahlungAngefordert={am:heute,betrag:preis?Math.round(preis*0.3):0};
   if(NB_MODUS==="erhalten"){const z=nbAnzDa();x.anzahlung=z?Object.assign({},z,{betrag:anzB,art:art.dataset.za,quote:anzB===Math.round(+z.betrag)?z.quote:(preis&&anzB===Math.round(preis*0.3)?30:0)}):{betrag:anzB,quote:preis&&anzB===Math.round(preis*0.3)?30:0,art:art.dataset.za,am:heute}}   // vorhandene Anzahlung: Datum bleibt, nur Getipptes ändert sie
@@ -3617,6 +3660,7 @@ function nbSpeichern(trotz){if(NB_EDIT){nbAenderungSpeichern(trotz);return}if(Da
   let modus=NB_MODUS;
   if(alt){const leer=["alter","ort","anschrift","geb","gebort","zusatzfahrer","notiz","quelle"],neu=Object.assign({},alt);
     Object.keys(x).forEach(k=>{if(leer.includes(k)&&String(alt[k]||"").trim())return;neu[k]=x[k]});
+    if(w("nbNotiz"))neu.notiz=w("nbNotiz");   // getippte Notiz gilt, ohne Eingabe bleibt die der Anfrage (09.11.2026)
     neu.id=alt.id;neu.tag=alt.tag||x.tag;neu.uhr=alt.uhr||x.uhr;neu.angebot=Object.assign({},alt.angebot||{},x.angebot);
     const bez=alt.anzahlung&&alt.anzahlung.am&&+alt.anzahlung.betrag>0;
     if(bez&&NB_MODUS!=="erhalten"){neu.anzahlung=alt.anzahlung;neu.status="gebucht";delete neu.ohneAnzahlung;modus="erhalten";
@@ -3658,13 +3702,14 @@ setTimeout(zeichneHeute,0);   // erst wenn der Abgleich-Baustein geladen ist
   if(z==="mappe"&&nr){NAV=["mappe"];MAPPE_VON=q.get("von")||""}   // aus Kunde oder Auto: einmal zurück, und die Akte steht wieder da (04.11.2026)
   const zz={kommend:"heute",reserviert:"heute",zurueck:"abgeschlossen",buchungen:"heute"}[z]||z;   // 01.11.2026: ?zeige=heute = Kommend, ?zeige=vertraege = Zurück
   if(nr&&vorgaenge().some(v=>v.nr===nr)){WAHL=nr;NEU_FREI=true}if(zz&&$("s_"+zz))zeige(zz)})();
-// Ein Formular für alle Wege (1.11.2026, Baran: „überall gleich“): ?neu=1&auto=&von=&bis=&vonU=&bisU=&anfrage=<id>
+// Ein Formular für alle Wege (1.11.2026, Baran: „überall gleich“): ?neu=1&auto=&von=&bis=&vonU=&bisU=&anfrage=<id>&name=&tel=
 // öffnet „Neue Buchung“ vorausgefüllt, aus Startseite, Kalender und Anfragen
 (()=>{const q=new URLSearchParams(location.search);if(!q.get("neu"))return;history.replaceState(null,"",location.pathname);
   setTimeout(()=>{   // nach dem Start der Seite, sonst schaltet sie wieder auf Kommend
-  {let w=null;try{w=JSON.parse(localStorage.getItem(NB_K)||"null")}catch(e){}if(w&&(String(w.name||"").trim()||String(w.tel||"").trim()||w.auto||w.von))nbEntwurfAblegen(w)}   // angefangene Buchung geht nicht verloren (05.11.2026)
+  {let w=null;try{w=JSON.parse(localStorage.getItem(NB_K)||"null")}catch(e){}if(w&&(String(w.name||"").trim()||String(w.tel||"").trim()||w.auto||w.von||String(w.notiz||"").trim()))nbEntwurfAblegen(w)}   // angefangene Buchung geht nicht verloren (05.11.2026)
   nbLeeren();const a=q.get("anfrage")?lies("mietixAnfragen",[]).find(y=>y.id===q.get("anfrage")):null,ab=(a&&a.angebot)||{};
-  if(a){NB_ANFRAGE=a.id;$("nbName").value=a.name||"";$("nbTel").value=a.nummer||""}
+  if(a){NB_ANFRAGE=a.id;$("nbName").value=a.name||"";$("nbTel").value=a.nummer||"";nbNotizSetzen(nbNotizVon(a))}
+  if(q.get("name"))$("nbName").value=q.get("name").trim();if(q.get("tel"))$("nbTel").value=q.get("tel").trim();   // aus Kunden: ?neu=1&name=&tel=&von=Kunden (09.11.2026)
   const auto=q.get("auto")||(a&&a.auto)||"",von=(istDatum(q.get("von"))?q.get("von"):"")||(a&&a.von)||"",bis=(istDatum(q.get("bis"))?q.get("bis"):"")||(a&&a.bis)||"";   // von=Anfragen ist das Zurück-Ziel, kein Datum
   if(auto&&fahrzeugListe().some(f=>f.name===auto))NB_AUTO=auto;if(von)$("nbVonD").value=von;if(bis)$("nbBisD").value=bis;
   const vu=q.get("vonU")||(a&&(a.vonU||ab.vonU)),bu=q.get("bisU")||(a&&(a.bisU||ab.bisU));if(vu)$("nbVonU").value=vu;if(bu)$("nbBisU").value=bu;
@@ -3733,8 +3778,12 @@ function alle(){
   V.forEach(v=>{if(!v||!v.name)return;const e=hol(v.name,"vertrag");if(!e)return;
     if(!e.gesperrt){["telefon","anschrift","geb","gebort","email"].forEach(f=>{if(!e[f]&&v[f])e[f]=String(v[f])});if(v.telefon)e._tels.push(ziffern(v.telefon))}
     const z=v.zahlung||{},rest=z.rest||{};
+    // Offene Endabrechnung (09.11.2026): Summe minus bezahlt, teilbezahlt zählt die Differenz, mit der Kaution verrechnet zählt als bezahlt
+    const ea=v.endabrechnung||{},kr=v.kautionRueck||{},eS=v._weg?0:zahl(ea.summe),eBz=ea.bezahlt&&ea.bezahlt.am?ea.bezahlt:null;
+    const kautNochDa=!!(z.kaut&&z.kaut.am&&!v.kautionRueck);   // Kaution liegt noch bei uns und ist nicht abgerechnet: wie im Mietvertrag noch keine Schuld (09.11.2026)
+    const nachOffen=kautNochDa||(eBz&&eBz.art==="Kaution"&&kr.verrechnet)?0:Math.max(0,Math.round(eS-(eBz?(eBz.betrag!=null?zahl(eBz.betrag):eS):kr.verrechnet?zahl(kr.einbehalt):0)));
     e.vertraege.push({nr:v.nr,auto:v.auto||"",von:v.vonD||"",bis:v.bisD||"",preis:zahl(v.gesamt||v.preis1),status:v.status||"",
-      mieteOffen:!!(v.vonD&&v.vonD<h&&((!rest.am&&zahl(rest.betrag))||(v.verlaengerungen||[]).some(y=>!y.bezahlt?+y.aufpreis>0:y.gezahlt!=null&&(+y.aufpreis||0)>y.gezahlt)))})});   // wie offenBetrag im Mietvertrag (05.11.2026)
+      mieteOffen:!!(v.vonD&&v.vonD<h&&((!rest.am&&zahl(rest.betrag))||(v.verlaengerungen||[]).some(y=>!y.bezahlt?+y.aufpreis>0:y.gezahlt!=null&&(+y.aufpreis||0)>y.gezahlt))),nachOffen})});   // wie offenBetrag im Mietvertrag (05.11.2026)
   A.forEach(a=>{if(!a||!a.name)return;const e=hol(a.name,"anfrage");if(!e)return;
     if(!e.gesperrt){if(!e.telefon&&a.nummer)e.telefon=String(a.nummer);if(!e.ort&&a.ort)e.ort=String(a.ort);if(a.nummer)e._tels.push(ziffern(a.nummer))}
     e.anfragen.push({tag:a.tag||"",auto:a.auto||"",von:a.von||"",bis:a.bis||"",status:a.status||""})});
@@ -3768,6 +3817,7 @@ function alle(){
     if(!e.ort&&e.anschrift){const t=e.anschrift.match(/\b\d{5}\s+(.+)$/);if(t)e.ort=t[1].trim()}
     const w=[];if(e.rechtsstreit)w.push("Rechtsstreit");if(e.schadenOffen)w.push("Schaden offen "+e.schadenOffen.toLocaleString("de-DE",{style:"currency",currency:"EUR"}));
     const mo=e.vertraege.filter(v=>v.mieteOffen);if(mo.length)w.push("Miete nicht bezahlt ("+mo.map(v=>v.auto).join(", ")+")");
+    const na=e.vertraege.filter(v=>v.nachOffen>0);if(na.length)w.push("Nachzahlung offen "+na.reduce((s,v)=>s+v.nachOffen,0).toLocaleString("de-DE")+" € ("+na.map(v=>v.auto).join(", ")+")");
     e.warn=w;e.alter=alter(e.geb);return e})}
 function alter(geb){if(!/^\d{4}-\d{2}-\d{2}$/.test(geb||""))return null;const g=new Date(geb),h=new Date();
   let a=h.getFullYear()-g.getFullYear();if(h.getMonth()<g.getMonth()||(h.getMonth()===g.getMonth()&&h.getDate()<g.getDate()))a--;return a>0&&a<120?a:null}
