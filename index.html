@@ -750,7 +750,7 @@ function baue(schl){
       (a.storno&&a.storno.art==="zurueck"?'<div class="fk">Rückzahlung</div><div class="fg">'+zeile("Zurückgezahlt","Datum leer: noch nicht",feld("eStB",+a.storno.betrag||0),feld("eStAm",a.storno.am,"tag"))+'</div>':"")+
       '<div class="fhin" id="eHin"></div><div class="fknoepfe"><a href="'+esc(ANFRAGE(a))+'">Buchung öffnen</a><button type="button" class="r" id="eSp">Speichern</button></div>'}
   }else{const v=lies("mietixVorgaenge",[]).find(x=>x&&x.nr===schl.slice(2));if(!v)return null;
-    const o={schl,kMiete:(v.kautionRueck||{}).verrechnet?+(v.kautionRueck||{}).miete||0:0,zurueck:v.status==="zurück"&&!!v.kautionRueck};   // zurueck: Kaution ist abgerechnet, 0 und 0 heißt dann „verschwunden“
+    const o={schl,kMiete:(v.kautionRueck||{}).verrechnet?+(v.kautionRueck||{}).miete||0:0,zurueck:v.status==="zurück",abgerechnet:!!v.kautionRueck,basis:Math.round(n0(v.gesamt)-(v.verlaengerungen||[]).reduce((q,y)=>q+(+y.aufpreis||0),0))};   // zurueck: Auto ist zurück, 0 und 0 heißt dann „nicht abgerechnet“ oder „verschwunden“ (11.11.2026, auch ohne Abrechnung)
     const z=v.zahlung||{},an=z.anz||{},re=z.rest||{},ka=z.kaut||{},kr=v.kautionRueck||{},e=v.endabrechnung||{},vl=v.verlaengerungen||[];
     const s=+e.summe||0,bz=e.bezahlt||null,mitKaution=!!(bz&&bz.art==="Kaution"&&kr.verrechnet),kEin=kr.verrechnet||kr.teil,nachOffen=mitKaution?posten(v).filter(p=>p.t==="Nachzahlung Rückgabe"&&!p.am).reduce((q,p)=>q+p.b,0):0;
     const teile=[e.mehrkm?"Mehr-km":"",e.tank?"Tank":"",e.versp?"Verspätung":"",(e.extra||[]).length?"Sonstiges":""].filter(Boolean).join(", ");
@@ -788,8 +788,10 @@ function pruefe(){let falsch=0;document.querySelectorAll("#fAendern input[inputm
   if($("eKaut")){const k=zahl($("eKaut").value)||0,ein=zahl($("eEin").value)||0,zur=zahl($("eZur").value)||0;
     const mi=(OFFEN&&OFFEN.kMiete)||0;
     // Zurückgegeben, Kaution abgerechnet, aber weder einbehalten noch zurück: sonst taucht sie in keiner Zahl auf (10.11.2026, Geld-Prüfung)
-    if(k&&OFFEN&&OFFEN.zurueck&&!Math.round(ein+zur+mi)){hin.className="fhin gelb";hin.textContent="Kaution "+eur(k)+": weder einbehalten noch zurückgegeben";return true}
+    if(k&&OFFEN&&OFFEN.zurueck&&!Math.round(ein+zur+mi)){hin.className="fhin gelb";hin.textContent="Kaution "+eur(k)+": "+(OFFEN.abgerechnet?"weder einbehalten noch zurückgegeben":"noch nicht abgerechnet, weder einbehalten noch zurückgegeben");return true}
     if(k&&ein+zur+mi&&Math.round(ein+zur+mi)!==Math.round(k)){hin.className="fhin gelb";hin.textContent="Kaution erhalten "+eur(k)+", einbehalten und zurück zusammen "+eur(ein+zur+mi)+". Bitte kurz prüfen.";return true}}
+  // Anzahlung und Rest passen nicht zum Mietpreis (11.11.2026, strenge Prüfung Punkt 5): nur Hinweis, gerechnet wird nichts von selbst
+  if($("eAnz")&&$("eRest")&&OFFEN&&OFFEN.basis>0){const a=zahl($("eAnz").value)||0,r=zahl($("eRest").value)||0;if(Math.round(a+r)!==OFFEN.basis){hin.className="fhin gelb";hin.textContent="Anzahlung und Rest ergeben "+eur(Math.round(a+r))+", der Mietpreis ohne Verlängerung ist "+eur(OFFEN.basis)+". "+(a+r>OFFEN.basis?"Das wäre zu viel bezahlt.":"Es fehlen "+eur(Math.round(OFFEN.basis-a-r))+".")+" Bitte kurz prüfen.";return true}}
   hin.className="fhin";hin.textContent="";return true}
 /* Nur Felder, die in diesem Fenster wirklich geändert wurden, werden geschrieben (10.11.2026, Geld-Prüfung, Baran: „Ja, alle beheben“).
    Verglichen wird mit dem Stand beim Öffnen. Hat ein anderes Fenster dasselbe Feld inzwischen anders gesetzt: roter Hinweis, nichts gespeichert.
@@ -2404,16 +2406,21 @@ function zahlungAbgleichen(){if(NEU)return;const v=aktuell();if(!v||$("nr").valu
   [["anz","anzB","z_anz","anzAm"],["rest","restB","z_rest","restAm"],["kaut","kautB","z_kaut","kautAm"]].forEach(([k,b,g,d])=>{const x=z[k]||{};if((x.am||"")!==($(d).value||"")||String(x.betrag==null?"":x.betrag)!==String($(b).value||"")){$(b).value=x.betrag==null?"":x.betrag;gs(g,x.art||"");$(d).value=x.am||"";ge=true;
     if(LADE&&LADE.nr===v.nr&&LADE.geld){LADE.geld.form[k]=geldAusForm()[k];LADE.geld.ge[k]={betrag:x.betrag,art:x.art,am:x.am}}}});if(ge&&!altUngesp)STAND=JSON.stringify(entwurfSchnappschuss().f)}
 function merke(v){entwurfWeg();werMerken(v);
-  const l=vorgaenge(),i=l.findIndex(x=>x.nr===v.nr);
+  const l=vorgaenge(),i=l.findIndex(x=>x.nr===v.nr),altVor=i>=0?Object.assign({},l[i]):null;
   // Alles behalten, was nicht im Formular steht: Übergabe, Rückgabe, Verlängerungen, Kaution zurück, Endabrechnung, Erinnerungen (Liste Punkt 1, 30.10.2026)
   if(i>=0){const alt=l[i];Object.keys(alt).forEach(k=>{if(v[k]===undefined)v[k]=alt[k]});if(alt.erstellt)v.erstellt=alt.erstellt;
     if(v.ueb&&v.ort&&v.ort!==alt.ort)v.ueb=Object.assign({},v.ueb,{ort:v.ort});   // Ort geändert: Übergabe zieht mit (01.11.2026)
     if(v.ort&&v.ort!==(alt.ort||ORT)){const d=protAlle()[v.nr+"|uebergabe"];if(d&&d.f&&d.f.uOrt!==v.ort)protSetzen(e=>{e[v.nr+"|uebergabe"]=Object.assign({},d,{f:Object.assign({},d.f,{uOrt:v.ort}),zeit:Date.now()})})}
-    if(alt.status==="zurück")v.status=alt.status;if(v.unterschrift&&v.unterschrift!==alt.unterschrift)v.unterUm=new Date().toISOString();if(!v.unterschrift)delete v.unterUm;l[i]=v}else{if(v.unterschrift)v.unterUm=new Date().toISOString();l.push(v)}
+    if(alt.status==="zurück")v.status=alt.status;if(v.unterschrift&&v.unterschrift!==alt.unterschrift)v.unterUm=new Date().toISOString();if(!v.unterschrift)delete v.unterUm;
+    // Verlauf auch bei Änderungen im Formular, wie auf Monat (11.11.2026, strenge Prüfung Punkt 16)
+    {const ge=STAMM_F.concat([["bisD","Rückgabe"],["bisU","Rückgabeuhr"],["preis1","Mietpreis"],["gesamt","Gesamtpreis"],["freikm","Inklusive km"]]).filter(([k])=>!sGleich(v[k],alt[k])).map(x=>x[1]);
+      if(ge.length){v.verlauf=(v.verlauf||[]).slice();v.verlauf.push({am:new Date().toISOString(),was:"Mietvertrag geändert: "+ge.join(", ")})}}
+    l[i]=v}else{if(v.unterschrift)v.unterUm=new Date().toISOString();l.push(v)}
   schreib("mietixVorgaenge",l);
   // Kundenbuch ergänzen statt ersetzen (30.10.2026): Notiz, "keine Angebote", Sperre und Schäden bleiben, leere Felder löschen nichts
   const k=kunden(),nm=window.mietixKunden&&window.mietixKunden.norm,schl=(nm&&Object.keys(k).find(n=>nm(n)===nm(v.name)))||v.name,kn=Object.assign({},k[schl]||{});
-  ["telefon","anschrift","geb","gebort","email"].forEach(f=>{if(v[f])kn[f]=v[f]});k[schl]=kn;schreib("mietixKunden",k);
+  // Nur übernehmen, was in diesem Mietvertrag neu oder geändert ist, oder was im Kundenbuch fehlt. Sonst überschreibt eine alte Nummer die neue aus Kunden (11.11.2026, strenge Prüfung Punkt 3)
+  ["telefon","anschrift","geb","gebort","email"].forEach(f=>{if(v[f]&&(!kn[f]||!altVor||!sGleich(v[f],altVor[f])))kn[f]=v[f]});k[schl]=kn;schreib("mietixKunden",k);
   lerneAuto(v.auto,{kz:v.kz,fin:v.fin,sb:v.sb,km:v.km});kundenListe();WAHL=v.nr;
   // Anfrage zieht mit: Termin und Auto wie im Mietvertrag, damit kein zweiter entsteht (05.11.2026)
   {const a=lies("mietixAnfragen",[]),x=a.find(x=>x.id===ANFRAGE)||a.find(x=>x.vertrag===v.nr);if(x){const pm=Math.round(zahl(v.preis1)||0),pp=Math.round(zahl(v.paketPreis)||0),pk=+v.paketKm||0,fk=Math.round(zahl(v.freikm)||0),alt=x.angebot||{};
@@ -2691,7 +2698,8 @@ function vertragSpeichern(){if($("haupt").textContent==="Wird gespeichert …")r
   const neu=!nrVonHand&&!vorgaenge().some(x=>x.nr===v.nr&&x.name===v.name);
   if(neu&&!navigator.onLine&&!confirm("Kein Internet: Die Nummer "+v.nr+" ist nur vorläufig.\n\nBitte am anderen Handy nicht gleichzeitig einen neuen Mietvertrag anlegen, sonst gibt es die Nummer doppelt.\n\nOK = trotzdem weiter"))return;
   const altV=vorgaenge().find(x=>x.nr===v.nr);
-  {const grund=geldZusammen(v,altV);if(grund){meldungRot(grund);return}}   // Geld frisch aus dem Speicher, nur Eigenes ändert sich (10.11.2026)
+  {const grund=geldZusammen(v,altV)||stammZusammen(v,altV);if(grund){meldungRot(grund);return}}
+  {const gp=geldPasst(v),rz=(v.zahlung||{}).rest||{};if(!gp.ok&&!rz.am&&!confirm("Anzahlung und Rest ergeben "+eur(gp.ist)+" €, der Mietpreis ist "+eur(gp.soll)+" €.\n\n"+(gp.ist>gp.soll?"Das wären "+eur(gp.ist-gp.soll)+" € zu viel.":"Es fehlen "+eur(gp.soll-gp.ist)+" €.")+"\n\nTrotzdem so speichern?"))return}   // nur Rückfrage, nichts wird umgerechnet (11.11.2026)   // Geld frisch aus dem Speicher, nur Eigenes ändert sich (10.11.2026)
   if(altV){if(altV.unterschrift&&altV.unterschrift===v.unterschrift&&altV.datum){v.datum=altV.datum;if(altV.datum!==heuteDe()&&ungespeichert())v.geaendertAm=heuteDe()}   // Datum bleibt der Tag der Unterschrift (A6, E9)
     const zr=(altV.zahlung||{}).rest||{};if(zr.art==="Kaution"&&!v.zahlung.rest.art&&v.zahlung.rest.am===zr.am)v.zahlung.rest.art="Kaution";
     // Inzwischen verlängert (anderes Gerät, Übersicht): das Formular hat noch den alten Stand. Was hier nicht angefasst wurde, kommt aus dem Gespeicherten (10.11.2026)
@@ -2734,7 +2742,13 @@ $("haupt").onclick=()=>{
   if(SICHT==="mappe"){const v=aktuell();if(MAPPE_NX&&v){if(MAPPE_NX==="vertrag")vertragLaden(v);zeige(MAPPE_NX)}else{leeren();zeige("vertrag")}return}   // nie in einen alten Mietvertrag speichern, solange ein neuer offen ist
   if(SICHT==="heute"||SICHT==="vertraege"||SICHT==="unterwegs"||SICHT==="abgeschlossen"){nbAuf();return}   // 01.11.2026 Fassung 2: „+ Neue Buchung“ öffnet direkt das Formular
   if(["buchung","neu","iban","reserviert"].includes(SICHT)){buHaupt();return}
-  if(SICHT==="vertrag"){const f=fehltNoch();if(!f.length&&PAD.padV.wert())f.push(...fehltMietvertragFertig());if(f.length){gesperrtMeldung(f);return}
+  if(SICHT==="vertrag"){let f=fehltNoch();if(!f.length&&PAD.padV.wert())f.push(...fehltMietvertragFertig());
+    // Schon unterschriebener Mietvertrag (11.11.2026, strenge Prüfung Punkt 12): Was dort schon immer fehlte, sperrt eine kleine Korrektur wie die Telefonnummer nicht.
+    // Gesperrt wird nur, wenn jemand einen vorhandenen Wert löscht. Das Fehlende steht als Hinweis da
+    {const alt=vorgaenge().find(x=>x.nr===$("nr").value.trim());if(f.length&&!NEU&&alt&&alt.unterschrift&&alt.unterschrift===PAD.padV.wert()){
+      const ZA={z_anz:"anz",z_rest:"rest",z_kaut:"kaut"},FK={modell:"auto"},DATEN=["name","anschrift","geb","gebort","telefon","kz","bisD","modell","fin","sb","mehrkm"],war=id=>ZA[id]?!!(((alt.zahlung||{})[ZA[id]]||{}).art):!DATEN.includes(id)?true:(alt[FK[id]||id]!=null&&String(alt[FK[id]||id]).trim()!==""),hart=f.filter(([id])=>war(id)),weich=f.filter(([id])=>!war(id));
+      if(hart.length){gesperrtMeldung(hart);return}if(weich.length)setTimeout(()=>meldung("Gespeichert. Es fehlt noch: "+weich.map(x=>String(x[1]).replace(/ \(.*$/,"")).join(", ")),1600);f=[]}}
+    if(f.length){gesperrtMeldung(f);return}
     if(!zusatzGesehen())return;vertragSpeichern();return}
   if(!aktuell()){meldung("Erst oben unter „Neuer Mietvertrag“ einen Mietvertrag anlegen.");return}
   if(SICHT==="uebergabe"){if(!(aktuell()||{}).ueb)padsAusEntwurf();const f=fehltProtokoll();if(f.length){gesperrtMeldung(f);return}if(!zusatzGesehen())return}
@@ -2900,6 +2914,13 @@ function geldZusammen(v,alt){if(!LADE||LADE.nr!==v.nr||!LADE.geld||!alt)return""
   GELD_F.forEach(([k,n])=>{if(eins(k,L0.form[k],v[k],L0.ge[k],jetzt[k],()=>{v[k]=alt[k]}))streit.push(n)});
   v.zahlung=v.zahlung||{};GELD_Z.forEach(([k,n])=>{const x=v.zahlung[k]=v.zahlung[k]||{};Object.keys(GELD_T).forEach(t=>{if(eins(t,(L0.form[k]||{})[t],x[t],(L0.ge[k]||{})[t],(jetzt[k]||{})[t],()=>{x[t]=(jetzt[k]||{})[t]}))streit.push(n+GELD_T[t])})});
   return streit.length?"Nicht gespeichert: "+streit.join(", ")+" inzwischen auf einem anderen Fenster geändert, bitte neu öffnen.":""}
+// Stammdaten wie beim Geld (11.11.2026, strenge Prüfung Punkt 2): ein altes Formular schreibt nur, was hier wirklich geändert wurde.
+// Wurde ein Feld inzwischen in einem anderen Fenster geändert und hier nicht, gilt der neue Stand. Beide geändert: nicht speichern, roter Hinweis
+const STAMM_F=[["name","Name"],["anschrift","Anschrift"],["geb","Geburtsdatum"],["gebort","Geburtsort"],["telefon","Telefon"],["email","E-Mail"],["kz","Kennzeichen"],["fin","FIN"],["km","km"],["vonD","Abholung"],["vonU","Abholuhr"],["mehrkm","Mehr-km-Preis"],["kfz","Fahrzeugdaten"],["sb","Selbstbeteiligung"],["auto","Auto"],["ort","Ort"]];
+const sGleich=(a,b)=>String(a==null?"":a).trim()===String(b==null?"":b).trim();
+function stammZusammen(v,alt){if(!LADE||LADE.nr!==v.nr||!LADE.stamm||!alt)return"";const L0=LADE.stamm,streit=[];
+  STAMM_F.forEach(([k,n])=>{const f0=L0[k],fN=v[k],sN=alt[k];if(sGleich(fN,f0)){if(!sGleich(sN,f0))v[k]=sN}else if(!sGleich(sN,f0)&&!sGleich(sN,fN))streit.push(n)});
+  return streit.length?"Nicht gespeichert: "+streit.join(", ")+" inzwischen in einem anderen Fenster geändert, bitte neu öffnen.":""}
 // Gespeicherten Mietvertrag ins Formular holen (ansehen, ändern, noch einmal drucken). Speichern ersetzt ihn unter derselben Nummer.
 function vertragLaden(v){entwurfAus=true;leeren();NEU=false;$("nr").value=v.nr;nrVonHand=true;WAHL=v.nr;
   ["name","anschrift","geb","gebort","telefon","email","kz","fin","km","preis1","zf","preis2","vonD","vonU","bisD","bisU","freikm","mvRab","mehrkm","paketKm","paketPreis","kfz","sb"].forEach(k=>{if(v[k]!==undefined&&v[k]!==null)$(k).value=v[k]});
@@ -2909,7 +2930,7 @@ function vertragLaden(v){entwurfAus=true;leeren();NEU=false;$("nr").value=v.nr;n
   $("vOrt").value=v.ort||(v.ueb||{}).ort||ORT;ortZeigen();
   gs("k_art",v.kautionArt||"geld");PAD.padV.setzen(v.unterschrift||"");setzeAn("avbHaken",!!v.avb||!!v.unterschrift);
   LADE={nr:v.nr,verl:(v.verlaengerungen||[]).length,preis1:v.preis1,preis2:v.preis2,bisD:v.bisD,bisU:v.bisU,freikm:v.freikm};   // Stand beim Öffnen: wird inzwischen verlängert, geht das nicht verloren
-  preisAuto=false;kmAuto=false;ABG_OFFEN=true;ABG_K=null;PAKET_FEST=$("paketKm").value?{auto:$("modell").value.trim(),preis:$("paketPreis").value}:null;{const rz=z.rest||{},rw=zahl(rz.betrag),hand=!!rz.am||(rw!==null&&Math.round(rw)!==Math.round(gesamt()-(zahl($("anzB").value)||0)));restVonHand=true;summe();restVonHand=hand}tipps();entwurfAus=false;   /* Rest folgt dem Preis, außer er ist bezahlt oder von Hand anders (09.11.2026) */$("stamm").textContent="";standMerken();LADE.geld={form:geldAusForm(),ge:geldAusV(v)};altHolen(v);
+  preisAuto=false;kmAuto=false;ABG_OFFEN=true;ABG_K=null;PAKET_FEST=$("paketKm").value?{auto:$("modell").value.trim(),preis:$("paketPreis").value}:null;{const rz=z.rest||{},rw=zahl(rz.betrag),hand=!!rz.am||(rw!==null&&Math.round(rw)!==Math.round(gesamt()-(zahl($("anzB").value)||0)));restVonHand=true;summe();restVonHand=hand}tipps();entwurfAus=false;   /* Rest folgt dem Preis, außer er ist bezahlt oder von Hand anders (09.11.2026) */$("stamm").textContent="";standMerken();LADE.geld={form:geldAusForm(),ge:geldAusV(v)};LADE.stamm=Object.fromEntries(STAMM_F.map(([k])=>[k,v[k]]));altHolen(v);
   $("vSenden").classList.remove("versteckt");$("vSenden").onclick=e=>{e.preventDefault();teilen(aktuell()||v)}}
 // Nicht gespeicherte Änderungen: Stand beim Laden/Speichern merken, beim Tippen vergleichen, in der Schrittleiste zeigen
 let STAND="";
@@ -3307,6 +3328,9 @@ function teilBlock(v){const tl=v.teilzahlungen||[],n=nachzahlung(v,undefined,tru
   return'<div class="vgGr"><div class="vgT">'+(n.summe>0?"Noch offen":"Teilzahlungen")+'</div><div class="vgL">'+zeilen+(ueb?'<div class="vgZ sum noch"><span><b>Zu viel bezahlt</b><i>bitte an den Kunden zurückzahlen</i></span><span class="r"><b>'+eur(ueb)+' €</b><a href="#" class="aend" id="mTeilUe" style="margin-left:8px">zurückgezahlt</a></span></div>':'')+(n.summe>0?'<div class="vgZ sum noch"><span><b>Noch offen</b></span><span class="r"><b>'+eur(n.summe)+' €</b></span></div>':'')+'</div>'+
     (n.summe>0?'<div class="vgK"><a href="#" id="mTeilNeu">Teilzahlung</a></div>':'')+'</div>'}
 function zaName(k){return(ZARTEN.find(a=>a[0]===k)||[,k])[1]}
+// Passen Anzahlung und Rest zum Mietpreis? (11.11.2026, strenge Prüfung Punkte 5 und 6). Eine Verlängerung außerhalb des Rests (bezahlt oder offen) wird einzeln bezahlt und gehört nicht in den Vergleich
+function geldPasst(v){if(v.kautionRueck)return{soll:0,ist:0,ok:true};   /* nach der Abrechnung mit der Kaution steckt Geld im Einbehalt, dann passt der Vergleich nicht (Nachtprüfung 11.11. A8) */
+  const z=v.zahlung||{},soll=Math.round((zahl(v.gesamt)||0)-(v.verlaengerungen||[]).filter(y=>!y.imRest).reduce((q,y)=>q+(+y.aufpreis||0),0)),ist=Math.round((zahl((z.anz||{}).betrag)||0)+(zahl((z.rest||{}).betrag)||0));return{soll,ist,ok:!(soll>0)||Math.abs(soll-ist)<1}}
 // Verlauf und Geld (10.11.2026): Mietvertrag, Anzahlung, jede Verlängerung und jede Teilzahlung der Reihe nach mit Datum, darunter was noch offen ist.
 // Antippen: Verlängerung ändern (gleiches Fenster wie bisher), Teilzahlung ändern oder löschen. Nichts Neues an den Daten, nur die Anzeige ist an einer Stelle
 function verlaufBlock(v){const vl=v.verlaengerungen||[],tl=(v.teilzahlungen||[]).filter(t=>t&&+t.betrag>0),z=v.zahlung||{},r=z.rest||{},a=z.anz||{},WT=["So","Mo","Di","Mi","Do","Fr","Sa"];
@@ -3322,7 +3346,8 @@ function verlaufBlock(v){const vl=v.verlaengerungen||[],tl=(v.teilzahlungen||[])
   L.sort((p,q)=>String(p.d).localeCompare(String(q.d))||p.s-q.s);
   const n=nachzahlung(v,undefined,true),roh=n.posten.filter(x=>x.b>0||x.t==="Von der Kaution einbehalten").reduce((q,x)=>q+x.b,0),ueb=Math.max(0,teilSum(v)-roh);
   const sum=ueb?'<div class="vlSum o"><span>Zu viel bezahlt</span><span>'+eur(ueb)+' €<a href="#" id="mTeilUe">zurückgezahlt</a></span></div>':n.summe>0?'<div class="vlSum o"><span>Noch offen</span><span>'+eur(n.summe)+' €</span></div>':'<div class="vlSum g"><span>Alles bezahlt</span><span>✓</span></div>';
-  return'<div class="vlK"><div class="vlT">Verlauf und Geld</div><div class="vlL">'+L.map(x=>x.h).join("")+sum+'</div></div>'}
+  const gp=geldPasst(v),warn=gp.ok?"":'<div class="vz" style="background:#FFF4DB;margin-top:8px"><span><b style="color:#9A6700">Bitte prüfen:</b> Anzahlung und Rest ergeben '+eur(gp.ist)+' €, der Mietpreis ist '+eur(gp.soll)+' €. '+(gp.ist>gp.soll?"Das sind "+eur(gp.ist-gp.soll)+" € zu viel.":"Es fehlen "+eur(gp.soll-gp.ist)+" €.")+'</span></div>';
+  return'<div class="vlK"><div class="vlT">Verlauf und Geld</div><div class="vlL">'+L.map(x=>x.h).join("")+sum+'</div>'+warn+'</div>'}
 let TZ_ID=null,TZ_ART="",TZ_OFFEN=0;
 function tzAuf(id){const v=aktuell();if(!v)return;const t=id?(v.teilzahlungen||[]).find(x=>x.id===id):null;TZ_ID=t?t.id:null;TZ_ART=t?t.art||"":"";
   const fertig=!!(t&&!teilAktiv(v,t));TZ_OFFEN=fertig?Infinity:nachzahlung(v,undefined,true).summe+(t?Math.round(+t.betrag||0):0);   // beim Ändern zählt die eigene Zahlung nicht als schon bezahlt; abgeschlossene lassen sich korrigieren
@@ -3346,7 +3371,7 @@ function zeichneMappe(){const v=aktuell();if(!v){zeige("vertraege");return}
   // Anrufen, WhatsApp, Verlängert, Erinnern, Bezahlt: dieselben Knöpfe und Abläufe wie vorher in der Karte, jetzt nur hier (06.11.2026 abends, Baran)
   {const mk=$("mKn"),t=document.createElement("div");t.innerHTML=buVKarte(v,{nurNeben:true});t.querySelectorAll("[data-verl],[data-ueb],[data-bez]").forEach(x=>x.remove());const nb=t.innerHTML;   // Verlängern und die Schritte stehen hier schon
     mk.innerHTML=nb?'<div data-nr="'+esc(v.nr)+'"><div class="buKn">'+nb+'</div></div>':"";if(nb){buVerbinden(mk,[v],[],zeichneMappe);mk.firstChild.onclick=null}}
-  $("mDruck").innerHTML=druckReihe(v)+'<a href="#" class="mWa" id="mWa">Mietvertrag per WhatsApp an den Kunden senden</a>'+(v.status==="zurück"?'<div class="nkBlock" id="mDanke"><span class="nkLabel">Danke-Nachricht an den Kunden</span>'+nkPaar()+'</div>':'')+(werText(v)?'<div class="hinweis" style="text-align:center;margin-top:10px">'+esc(werText(v))+'</div>':'');
+  $("mDruck").innerHTML=druckReihe(v)+'<a href="#" class="mWa" id="mWa">Mietvertrag per WhatsApp an den Kunden senden</a>'+(v.status==="zurück"?'<div class="nkBlock" id="mDanke"><span class="nkLabel">Danke-Nachricht an den Kunden'+(v.bedankt?' <b style="color:#1E8E4E">✓ gesendet '+de(v.bedankt).slice(0,6)+'</b>':'')+'</span>'+nkPaar()+'</div>':'')+(werText(v)?'<div class="hinweis" style="text-align:center;margin-top:10px">'+esc(werText(v))+'</div>':'');
   const md=$("mDanke");if(md)nkVerbinden(md,v.telefon,()=>DANKE(v),()=>aendere(x=>{x.bedankt=iso(new Date())}));
   $("mDruck").querySelectorAll("[data-dr]").forEach(d=>d.onclick=e=>{e.preventDefault();druckeDoc(v,d.dataset.dr)});
   $("mWa").onclick=e=>{e.preventDefault();teilen(v)};
@@ -3468,7 +3493,7 @@ function nachSheet(titel,unter,aktionen){$("nach").innerHTML='<h3>'+esc(titel)+'
   const zm=zurMappe();$("nachZu").onclick=e=>{e.preventDefault();zu();if(zm)zeige("mappe")};$("nachBg").onclick=zu}
 function teilenBlatt(v){v=aktuell()||v;$("nach").innerHTML='<h3>Teilen</h3><div class="unter">'+esc(v.nr+"  "+v.name+", "+v.auto)+'</div>'+druckReihe(v)+
     '<div class="knopf wa" id="tWa">Mietvertrag per WhatsApp an den Kunden</div>'+
-    ((v.endabrechnung||{}).summe?'<div class="knopf wa" id="tEnd">Endabrechnung ('+eur(v.endabrechnung.summe)+' €) per WhatsApp</div>':'')+(v.status==="zurück"?'<div class="nkBlock" id="tDanke"><span class="nkLabel">Danke-Nachricht an den Kunden</span>'+nkPaar()+'</div>':'')+'<a href="#" class="zu" id="nachZu">Schließen</a>';
+    ((v.endabrechnung||{}).summe?'<div class="knopf wa" id="tEnd">Endabrechnung ('+eur(v.endabrechnung.summe)+' €) per WhatsApp</div>':'')+(v.status==="zurück"?'<div class="nkBlock" id="tDanke"><span class="nkLabel">Danke-Nachricht an den Kunden'+(v.bedankt?' <b style="color:#1E8E4E">✓ gesendet '+de(v.bedankt).slice(0,6)+'</b>':'')+'</span>'+nkPaar()+'</div>':'')+'<a href="#" class="zu" id="nachZu">Schließen</a>';
   $("nach").classList.remove("versteckt");$("nachBg").classList.remove("versteckt");ebAuf("nach");
   const zu=nachZu;
   $("nach").querySelectorAll("[data-dr]").forEach(d=>d.onclick=e=>{e.preventDefault();druckeDoc(v,d.dataset.dr)});
@@ -3513,7 +3538,7 @@ function uZahlZeichnen(){const v=aktuell(),z=(v&&v.zahlung)||{},teile=[];if(!v){
   const kNull=kautNull(kaut),kVor=(()=>{if(zahl(kaut.betrag)!==null&&String(kaut.betrag).trim()!=="")return zahl(kaut.betrag);const p=autoPreis(v.auto);return p&&p.kaution?zahl(p.kaution)||p.kaution:null})();
   if(mitGeld(v.kautionArt))teile.push(["kaut",kNull?"Kaution 0 €":kaut.am?"Kaution "+eur(zahl(kaut.betrag)||0)+" €":"Kaution",kaut]);
   $("uZahlKarte").classList.toggle("versteckt",!teile.length);
-  $("uZahlen").innerHTML=teile.map(([k,t,x,dazu])=>'<div class="zeile" style="margin-top:6px"><b>'+t+(k==="kaut"&&kNull?' ✓ keine Kaution <a href="#" data-zweg="kaut" style="font-weight:700;color:var(--rot)">ändern</a>':x.am?' ✓ erhalten'+(x.art?', '+art(x.art):'')+' am '+de(x.am)+esc(dazu||"")+' <a href="#" data-zweg="'+k+'" style="font-weight:700;color:var(--rot)">ändern</a>':' erhalten?')+'</b>'+(k==="kaut"&&!x.am&&!kNull?'<label style="margin-top:8px">Betrag € (auch 0 möglich)</label><input id="uKautB" inputmode="decimal" autocomplete="off" value="'+esc(KAUT_TIPP[v.nr]!=null?KAUT_TIPP[v.nr]:kVor===null?"":eur(kVor))+'">':'')+'<div data-zw="'+k+'"></div></div>').join("");
+  $("uZahlen").innerHTML=teile.map(([k,t,x,dazu])=>'<div class="zeile" style="margin-top:6px"><b>'+t+(k==="kaut"&&kNull?' ✓ keine Kaution <a href="#" data-zweg="kaut" style="font-weight:700;color:var(--rot)">ändern</a>':x.am?' ✓ erhalten'+(x.art?', '+art(x.art):'')+' am '+de(x.am)+esc(dazu||"")+' <a href="#" data-zweg="'+k+'" style="font-weight:700;color:var(--rot)">ändern</a>':' erhalten?')+'</b>'+(k==="kaut"&&!x.am&&!kNull?'<label style="margin-top:8px">Betrag €'+(String(kaut.betrag==null?"":kaut.betrag).trim()===""&&kVor!==null?" (Vorschlag aus der Preisliste, bitte prüfen, auch 0 möglich)":" (auch 0 möglich)")+'</label><input id="uKautB" inputmode="decimal" autocomplete="off" value="'+esc(KAUT_TIPP[v.nr]!=null?KAUT_TIPP[v.nr]:kVor===null?"":eur(kVor))+'">':'')+'<div data-zw="'+k+'"></div></div>').join("");
   {const kb=$("uKautB");if(kb){kb.addEventListener("change",()=>kommaWarnung(kb));kb.addEventListener("input",()=>{const o=kb.value,n=o.replace(/[^\d.,]/g,"");if(n!==o)kb.value=n;KAUT_TIPP[v.nr]=kb.value;try{sessionStorage.setItem("mietixKautTipp",JSON.stringify(KAUT_TIPP))}catch(e){}});kb.addEventListener("change",kautFeldNull)}}
   teile.forEach(([k,t,x])=>{if(!x.am&&!(k==="kaut"&&kNull))zahlChips($("uZahlen").querySelector('[data-zw="'+k+'"]'),a=>{let tt=t;
       if(k==="kaut"){if(kautFeldNull())return;if(kommaWarnung($("uKautB")))return;const n=$("uKautB").value.trim();if(n===""||zahl(n)===null){meldungRot("Erst den Betrag der Kaution eintragen");$("uKautB").focus();return}tt="Kaution "+eur(zahl(n))+" €"}
@@ -4990,6 +5015,7 @@ zeigen();abgleichen();auslagernBald();
 })();
 </script><script>
 /* Fenster (30.10.2026): Knopf mit data-fenster öffnet, ✕, Tipp daneben oder Esc schließt */
+(function(){if(window.mxWieder!==undefined)return;var t="";try{t=((performance.getEntriesByType&&performance.getEntriesByType("navigation")[0])||{}).type||""}catch(e){}window.mxWieder=/^(reload|back_forward)$/.test(t);window.mxAltSchritte=0;try{var s=history.state;if(!window.mxWieder&&s&&typeof s==="object"&&!s.mxS&&!s.mxE){var n=+s.mxI||0;if(n>0||Object.keys(s).some(function(k){return k!=="mxI"})){history.replaceState({mxI:n},"");window.mxAltSchritte=n}}}catch(e){}addEventListener("popstate",function(e){if(window.mxLeise&&window.mxLeise())e.stopImmediatePropagation()},true)})();
 (function(){if(window.mxAuf)return;
   let bg=document.querySelector(".mxBg");if(!bg){bg=document.createElement("div");bg.className="mxBg";document.body.appendChild(bg)}
   // Zurück-Taste und Wischen schließen zuerst das Fenster, die Seite bleibt (04.11.2026, Baran: „wo richtig zurück ist“)
@@ -4998,19 +5024,24 @@ zeigen();abgleichen();auslagernBald();
     document.documentElement.style.overflow="";document.body.style.overflow=""};
   window.mxAuf=function(id){const f=document.getElementById(id);if(!f)return;schliessen();bg.classList.add("auf");f.classList.add("auf");
     document.documentElement.style.overflow="hidden";document.body.style.overflow="hidden";f.scrollTop=0;
-    if(!imVerlauf){try{history.pushState(Object.assign({},history.state||{},{mxF:id}),"");imVerlauf=true}catch(e){}}
+    if(!imVerlauf){if(still){pushNach=id;imVerlauf=true}else{try{history.pushState(Object.assign({},history.state||{},{mxF:id}),"");imVerlauf=true}catch(e){}}}   /* läuft gerade ein stiller Schritt zurück (Aufräumen nach dem Laden), kommt der eigene Schritt erst danach (11.11.2026) */
     snapF=f;snap=f.classList.contains("mxSchutz")?werte(f):null};
   // Fenster mit Geld (Klasse mxSchutz, 10.11.2026): Schließen durch ✕, Tipp daneben, Esc oder Zurück fragt bei Änderungen nach. Speichern schließt ohne Frage.
   let snap=null,snapF=null;
-  const werte=function(f){return[...f.querySelectorAll("input,textarea,select")].map(function(i){return i.type==="checkbox"||i.type==="radio"?i.checked:i.value}).join("~")+"|"+[...f.querySelectorAll(".an,.chip.an")].map(function(x){return x.textContent}).join("~")};
+  const werte=function(f){return[...f.querySelectorAll("input,textarea,select")].map(function(i){return i.type==="checkbox"||i.type==="radio"?i.checked:i.value}).join("~")+"|"+[...f.querySelectorAll(".an,.chip.an")].filter(function(x){return !x.closest("[data-mxkeinwert]")}).map(function(x){return x.textContent}).join("~")}   /* Auswahllisten mit data-mxkeinwert sind keine Eingabe (11.11.2026) */;
   const darfZu=function(){if(!snap||!snapF||!snapF.classList.contains("auf"))return true;if(werte(snapF)===snap)return true;if(confirm("Änderungen verwerfen?\n\nDas Getippte in diesem Fenster geht verloren.")){snap=null;return true}return false};
   window.mxGeaendertWeg=function(){snap=null};
   // ✕ nimmt den Eintrag wieder weg. Springt die Seite im selben Moment weiter, bleibt er als „überspringen“ im Verlauf stehen.
-  let still=false,skipT=null;
+  let still=false,skipT=null,putzen=null,pushNach=null;
   window.mxSkipNimm=function(){if(skipT){clearTimeout(skipT);skipT=null;return 1}return 0};   // die Seite springt selbst zurück und nimmt den Eintrag gleich mit
-  window.mxZu=function(){schliessen();if(!imVerlauf)return;imVerlauf=false;try{history.replaceState(Object.assign({},history.state||{},{mxSkip:1}),"")}catch(e){}
+  window.mxZu=function(){schliessen();if(!imVerlauf)return;imVerlauf=false;if(pushNach){pushNach=null;return}try{history.replaceState(Object.assign({},history.state||{},{mxSkip:1}),"")}catch(e){}
     skipT=setTimeout(function(){skipT=null;if(history.state&&history.state.mxSkip){still=true;history.back()}},0)};
-  addEventListener("popstate",function(e){if(still){still=false;e.stopImmediatePropagation();return}
+  /* stiller Schritt zurück: aufräumen, einen aufgeschobenen Fensterschritt nachholen, sonst nichts */
+  window.mxLeise=function(){if(!still)return false;still=false;
+      if(putzen){const p=putzen;putzen=null;try{history.replaceState(p,"")}catch(x){}}
+      if(pushNach){const f=document.getElementById(pushNach);pushNach=null;if(f&&f.classList.contains("auf")){try{history.pushState(Object.assign({},history.state||{},{mxF:f.id}),"")}catch(x){}}else imVerlauf=false}
+      return true};
+  addEventListener("popstate",function(e){if(window.mxLeise()){e.stopImmediatePropagation();return}
     if(imVerlauf){e.stopImmediatePropagation();if(!darfZu()){try{history.pushState(Object.assign({},history.state||{},{mxF:snapF&&snapF.id}),"")}catch(x){}return}imVerlauf=false;schliessen();return}
     if(e.state&&e.state.mxSkip){e.stopImmediatePropagation();history.back()}},true);
   document.addEventListener("click",function(e){const k=e.target.closest("[data-fenster]");if(k){e.preventDefault();mxAuf(k.dataset.fenster);return}
@@ -5018,7 +5049,11 @@ zeigen();abgleichen();auslagernBald();
   document.addEventListener("keydown",function(e){if(e.key==="Escape"&&darfZu())mxZu()});
   // Neu geladen, während ein Fenster offen war (zum Beispiel nach WhatsApp): das Fenster ist zu, sein Schritt steht noch im Verlauf.
   // Ohne Aufräumen täte das erste Zurück nichts (Prüfung 10.11.2026). Den Schritt still zurückgehen, die Seite merkt davon nichts.
-  try{if(history.state&&history.state.mxF&&!document.querySelector(".mxFenster.auf")&&/^(reload|back_forward)$/.test((((performance.getEntriesByType&&performance.getEntriesByType("navigation")[0])||{}).type)||"")){still=true;history.back()}}catch(e){}})();
+  try{if(history.state&&history.state.mxF&&!document.querySelector(".mxFenster.auf")&&window.mxWieder){still=true;history.back()}}catch(e){}
+  /* Neu aufgerufen (11.11.2026): die alten Schritte dieser Seite still zurückgehen, bis zu ihrem ersten Eintrag. Dann führt das erste Zurück
+     dorthin, woher man kam, statt auf einen toten Schritt oder in einen alten Zustand (Reiter, Auto, Akte). Nur ersetzen statt zurückgehen
+     ließe die alten Einträge davor stehen (Prüfung: Zurück tat nichts oder sprang in den alten Zustand). */
+  try{const n=Math.min(window.mxAltSchritte||0,history.length-1);window.mxAltSchritte=0;if(!window.mxWieder&&n>0){putzen=Object.assign({},history.state||{},{mxI:0});still=true;history.go(-n)}}catch(e){}})();
 </script><script>
 /* Schutz (1.11.2026, Baran: geht etwas nicht, roter Hinweis mit Grund; alles sofort speichern) */
 (function(){if(window.mxFehler)return;
