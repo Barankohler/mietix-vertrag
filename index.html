@@ -824,9 +824,10 @@ function nurGeaenderte(schl){const hin=$("eHin"),jetzt=werteVon(schl);if(!jetzt)
   return true}
 function speichern(){if(!pruefe())return;const w=id=>$(id)?Math.round(zahl($(id).value)||0):null,t=id=>$(id)?$(id).value:"";
   const schl=OFFEN&&OFFEN.schl;if(!schl)return;const jetzt=new Date().toISOString();
+  const fw0=feldWerte();   /* was in diesem Fenster getippt wurde, vor dem Nachziehen fremder Änderungen (12.11.2026, Prüfung) */
   if(!nurGeaenderte(schl))return;
   // Jede Geldänderung fragt „Sicher?“ mit alt und neu (11.11.2026 nachts, Prüfung B A5)
-  {const fw=feldWerte(),orig=OFFEN.orig||{},zeig=(id,x)=>/Am$/.test(id)?(istTag(x)?deJ(x):"leer"):id==="eGrund"?(String(x||"").trim()||"leer"):eur(Math.round(zahl(x)||0));
+  {const fw=fw0,orig=OFFEN.orig||{},zeig=(id,x)=>/Am$/.test(id)?(istTag(x)?deJ(x):"leer"):id==="eGrund"?(String(x||"").trim()||"leer"):eur(Math.round(zahl(x)||0));
     const z=Object.keys(fw).filter(id=>fNorm(id,fw[id])!==fNorm(id,orig[id])).map(id=>fName(id)+": "+zeig(id,orig[id])+" auf "+zeig(id,fw[id]));
     if(z.length){const x=schl.startsWith("a:")?lies("mietixAnfragen",[]).find(y=>y&&y.id===schl.slice(2)):lies("mietixVorgaenge",[]).find(y=>y&&y.nr===schl.slice(2));
       const tzOffen=!schl.startsWith("a:")&&x&&$("eRestAm")&&t("eRestAm")&&!istTag(((x.zahlung||{}).rest||{}).am)?(x.teilzahlungen||[]).filter(q=>q&&+q.betrag>0&&!q.verrechnet).reduce((q,y)=>q+Math.round(+y.betrag||0),0):0;
@@ -1514,7 +1515,7 @@ window.mxZahlung={storno,anfragePosten,geh,oeffne,verlInRest,posten,gespeichert,
   <canvas id="ugCanvas"></canvas><div class="linie"></div><div class="fuss" id="ugFuss">Handy quer halten, mit dem Finger unterschreiben, dann „Fertig“.</div></div></div>
 <div class="leiste"><div class="bSum versteckt" id="bSum"></div><div class="knoepfe"><button id="haupt">+ Neue Buchung</button><div id="bPaar" class="versteckt" style="flex:1"></div></div><div class="bUnter versteckt" id="bUnter">Name, Auto, Zeitraum und Preis sind schon drin</div><a href="#" class="bLink versteckt" id="bLink"></a></div>
 <!-- Buchungskarte antippen: Blatt von unten (06.11.2026 abends, Baran) -->
-<div class="mxFenster buBlatt" id="fBuK" role="dialog" aria-label="Buchung"><div class="buGriff"></div><div class="buShK"><b id="bkName"></b><i id="bkAuto"></i><i id="bkZr"></i></div>
+<div class="mxFenster buBlatt" id="fBuK" role="dialog" aria-label="Buchung"><div class="buGriff"></div><div class="buShK" style="position:relative;padding-right:44px"><button class="mxZu" type="button" aria-label="Schließen" style="position:absolute;right:0;top:0">✕</button><b id="bkName"></b><i id="bkAuto"></i><i id="bkZr"></i></div>
   <div class="buStand" id="bkStand"></div><div id="bkLinks" style="margin:6px 4px 4px"></div><div id="bkKnopf"></div><button type="button" class="buKl buOeff" id="bkOeff">Buchung öffnen ›</button></div>
 <!-- Fassung 2 (01.11.2026): Anzahlung da (Entwurf c4), Auto, Zeitraum und Preis der neuen Buchung -->
 <div class="mxFenster buBlatt mxSchutz" id="fDa" role="dialog" aria-label="Anzahlung da"><div class="buBlattK" style="position:relative;padding-right:44px"><b id="daTitel"></b><i id="daInfo"></i><button class="mxZu" type="button" aria-label="Schließen" style="position:absolute;right:12px;top:12px">✕</button></div>
@@ -2994,7 +2995,7 @@ function geldZusammen(v,alt){if(!LADE||LADE.nr!==v.nr||!LADE.geld||!alt)return""
 const STAMM_F=[["name","Name"],["anschrift","Anschrift"],["geb","Geburtsdatum"],["gebort","Geburtsort"],["telefon","Telefon"],["email","E-Mail"],["kz","Kennzeichen"],["fin","FIN"],["km","km"],["vonD","Abholung"],["vonU","Abholuhr"],["mehrkm","Mehr-km-Preis"],["kfz","Fahrzeugdaten"],["sb","Selbstbeteiligung"],["auto","Auto"],["ort","Ort"],
   ["bisD","Rückgabe"],["bisU","Rückgabeuhr"],["freikm","Inklusive km"],["mvRab","Rabatt"],["zf","Zusatzfahrer"],["paketKm","Kilometerpaket"],["kautionArt","Kautionsart"]];   // dazu seit 11.11.2026 nachts (Prüfung D A5): auch diese schreibt ein altes Formular nicht mehr zurück
 const STAMM_NEU=["bisD","bisU","freikm","mvRab","zf","paketKm","kautionArt"],stGleich=(k,a,b)=>k==="kautionArt"?sGleich(a||"geld",b||"geld"):sGleich(a,b);   // ohne gespeicherte Kautionsart gilt Geld, wie im Formular
-const sGleich=(a,b)=>String(a==null?"":a).trim()===String(b==null?"":b).trim();
+const sGleich=(a,b)=>{const A=String(a==null?"":a).trim(),B=String(b==null?"":b).trim();return A===B||(A+B==="10:00"&&(A===""||B===""))};   /* leere Uhrzeit = 10:00, keine Änderung (12.11.2026, Prüfung) */
 function stammZusammen(v,alt){if(!LADE||LADE.nr!==v.nr||!LADE.stamm||!alt)return"";const L0=LADE.stamm,streit=[];
   STAMM_F.forEach(([k,n])=>{const f0=L0[k],fN=v[k],sN=alt[k];if(stGleich(k,fN,f0)){if(!stGleich(k,sN,f0))v[k]=sN}else if(!stGleich(k,sN,f0)&&!stGleich(k,sN,fN))streit.push(n)});
   return streit.length?"Nicht gespeichert: "+streit.join(", ")+" inzwischen in einem anderen Fenster geändert, bitte neu öffnen.":""}
@@ -3202,7 +3203,7 @@ function verlSpeichern(){const v0=aktuell();if(!v0)return;const neu=$("verlBis")
   if(!sicherGeld(v0.name+" bis "+de(neu)+" verlängern?",["Aufpreis "+eur(auf+zfa)+" €"+(zfa?" (davon Zusatzfahrer "+eur(zfa)+" €)":""),"+"+kmText(kmPlus)+" km",(((v0.zahlung||{}).rest||{}).am&&VERL_ZAHL==="jetzt")?"Aufpreis schon bezahlt":"Aufpreis wird bei der Rückgabe kassiert"]))return;
   const v=aendere(v=>{const z=v.zahlung=v.zahlung||{},r=z.rest=z.rest||{},restBezahlt=!!r.am;
     v.verlaengerungen=(v.verlaengerungen||[]).concat([{am:iso(new Date()),bisAlt:v.bisD,uAlt:v.bisU||"",bisNeu:neu,uNeu:$("verlBisU").value,aufpreis:auf+zfa,zfAufpreis:zfa,kmVorher:v.freikm||"",kmPlus:kmPlus,kmNeu:km,
-      bezahlt:!restBezahlt||VERL_ZAHL==="jetzt",imRest:!restBezahlt}]);
+      bezahlt:!restBezahlt||VERL_ZAHL==="jetzt",imRest:!restBezahlt,restMit:restBezahlt&&VERL_ZAHL==="jetzt"}]);   /* restMit: schon bezahlt, steckt im Rest (12.11.2026) */
     v.bisD=neu;v.bisU=$("verlBisU").value||v.bisU;if(km)v.freikm=km;
     v.preis1=eur((zahl(v.preis1)||0)+auf);if(zfa)v.preis2=eur((zahl(v.preis2)||0)+zfa);v.gesamt=eur((zahl(v.preis1)||0)+(zahl(v.preis2)||0)+(zahl(v.paketPreis)||0));
     if(!restBezahlt||VERL_ZAHL==="jetzt")r.betrag=eur((zahl(r.betrag)||0)+auf+zfa)});   // offen: kommt zum Rest; schon bezahlt: Rest wächst mit
@@ -3416,7 +3417,7 @@ function teilBlock(v){const tl=v.teilzahlungen||[],n=nachzahlung(v,undefined,tru
 function zaName(k){return(ZARTEN.find(a=>a[0]===k)||[,k])[1]}
 // Passen Anzahlung und Rest zum Mietpreis? (11.11.2026, strenge Prüfung Punkte 5 und 6). Eine Verlängerung außerhalb des Rests (bezahlt oder offen) wird einzeln bezahlt und gehört nicht in den Vergleich
 function geldPasst(v){if(v.kautionRueck)return{soll:0,ist:0,ok:true};   /* nach der Abrechnung mit der Kaution steckt Geld im Einbehalt, dann passt der Vergleich nicht (Nachtprüfung 11.11. A8) */
-  const z=v.zahlung||{},soll=Math.round((zahl(v.gesamt)||0)-(v.verlaengerungen||[]).filter(y=>!y.imRest).reduce((q,y)=>q+(+y.aufpreis||0),0)),ist=Math.round((zahl((z.anz||{}).betrag)||0)+(zahl((z.rest||{}).betrag)||0));return{soll,ist,ok:!(soll>0)||Math.abs(soll-ist)<1}}
+  const z=v.zahlung||{},soll=Math.round((zahl(v.gesamt)||0)-(v.verlaengerungen||[]).filter(y=>!y.imRest&&!y.restMit).reduce((q,y)=>q+(+y.aufpreis||0),0)),ist=Math.round((zahl((z.anz||{}).betrag)||0)+(zahl((z.rest||{}).betrag)||0));return{soll,ist,ok:!(soll>0)||Math.abs(soll-ist)<1}}
 // Verlauf und Geld (10.11.2026): Mietvertrag, Anzahlung, jede Verlängerung und jede Teilzahlung der Reihe nach mit Datum, darunter was noch offen ist.
 // Antippen: Verlängerung ändern (gleiches Fenster wie bisher), Teilzahlung ändern oder löschen. Nichts Neues an den Daten, nur die Anzeige ist an einer Stelle
 function verlaufBlock(v){const vl=v.verlaengerungen||[],tl=(v.teilzahlungen||[]).filter(t=>t&&+t.betrag>0),z=v.zahlung||{},r=z.rest||{},a=z.anz||{},WT=["So","Mo","Di","Mi","Do","Fr","Sa"];
