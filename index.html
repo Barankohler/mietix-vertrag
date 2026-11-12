@@ -1700,14 +1700,17 @@ $("ugFertig").onclick=()=>{if(!UG)return;let daten="";
   if(daten){PAD[padId].setzen(daten);if(padId==="padVM"){try{localStorage.setItem("mietixUnterschriftVermieter",daten)}catch(e){}vmGemeinsam(daten);VM_AUF=false;setTimeout(()=>{vmStand();vmKarte()},100);meldung("Unterschrift gespeichert")}
     if(padId==="padV"&&typeof entwurfMerken==="function")entwurfMerken()}else meldungRot(PAD[padId]&&PAD[padId].wert()?"Nichts Neues unterschrieben, die bisherige Unterschrift bleibt.":"Nichts unterschrieben.")};   // Unterschrift landet sofort im Entwurf (30.10.2026)
 // Die 6 Regeln (09.11.2026, Baran): vor jeder Übergabe vorlesen, der Kunde unterschreibt. Wortlaut von Baran freigegeben, Regel 6 vor dem ersten Einsatz mit dem Anwalt abstimmen.
-const REGELN_STAND="09.11.2026";
+const REGELN_STAND="12.11.2026";   // Regel 6 neu, Wortlaut vom Anwalt, von Baran freigegeben (12.11.2026): immer zuerst Mietix anrufen
 const REGELN=[
   ["Nur eingetragene Fahrer.","Wer nicht im Vertrag steht, darf nicht fahren, auch nicht kurz. Sonst zahlt der Mieter den Schaden selbst."],
   ["Vorsichtig fahren.","Die ersten 10 bis 15 Minuten ruhig, bis der Motor warm ist. ESP immer anlassen. Heckantrieb und viel Leistung, besonders bei Nässe."],
   ["Keine Rennen, kein Alkohol, keine Drogen.","Kein Driften, keine Launch Control, keine Rennstrecke. GPS und Blackbox zeichnen Standort, Tempo und Fahrverhalten auf."],
   ["Sauber und voll zurück.","Nicht rauchen, keine Tiere. Nur Super Plus tanken, Rückgabe mit vollem Tank."],
   ["Sicher abstellen.","Immer abschließen, Schlüssel nie im Auto lassen. Ins Ausland nur mit unserer Zustimmung."],
-  ["Egal was passiert: Absichern, bei Verletzten 112, dann sofort Mietix anrufen: 0162 2701044.","Bevor Sie mit uns gesprochen haben, sagen Sie niemandem, wie es passiert ist, auch nicht der Polizei oder dem Unfallgegner. Geben Sie keine Schuld zu und unterschreiben Sie nichts. Sie bleiben vor Ort, die Polizei wird immer gerufen, und Ihre Personalien und Papiere geben Sie immer an."]];
+  ["Egal was passiert: Immer zuerst Mietix anrufen: 0162 2701044.","Noch vor Polizei, Abschleppdienst oder Werkstatt, damit Ihr Versicherungsschutz nicht gefährdet wird. Sagen Sie vorher niemandem, wie es passiert ist, geben Sie keine Schuld zu und unterschreiben Sie nichts. Sie bleiben vor Ort, die Polizei wird immer gerufen, und Ihre Personalien und Papiere geben Sie immer an."]];
+// Unterschriebene Blätter behalten ihren Wortlaut: Fassung je Stand (12.11.2026). Unterschrift ohne Stand stammt vom 09.11.2026.
+const REGELN_FRUEHER={"09.11.2026":REGELN.slice(0,5).concat([["Egal was passiert: Absichern, bei Verletzten 112, dann sofort Mietix anrufen: 0162 2701044.","Bevor Sie mit uns gesprochen haben, sagen Sie niemandem, wie es passiert ist, auch nicht der Polizei oder dem Unfallgegner. Geben Sie keine Schuld zu und unterschreiben Sie nichts. Sie bleiben vor Ort, die Polizei wird immer gerufen, und Ihre Personalien und Papiere geben Sie immer an."]])};
+const regelnFuer=v=>{const r=v&&v.regeln;if(!r||!r.unterschrift)return REGELN;return REGELN_FRUEHER[r.stand||"09.11.2026"]||REGELN};
 const REGELN_BESTAETIGT="Die Regeln wurden mir vor der Übergabe des Fahrzeugs vorgelesen. Ich habe sie verstanden und halte mich daran. Dieses Blatt ist Bestandteil des Mietvertrags.";
 const regelnDa=v=>!!(v&&v.regeln&&v.regeln.unterschrift);
 // Vorlese-Ansicht: ganzer Bildschirm, große Schrift, die Antworten auf Rückfragen sind nur für den Mitarbeiter und kommen nicht aufs Papier
@@ -1730,7 +1733,7 @@ async function fuelleRegeln(v){const doc=await PDFLib.PDFDocument.create(),F=awa
   let y=740;[["Mieter",v.name],["Fahrzeug",[v.auto,v.kz].filter(Boolean).join(", ")],["Zeitraum",de(v.vonD)+(v.vonU?" "+v.vonU+" Uhr":"")+" bis "+de(v.bisD)+(v.bisU?" "+v.bisU+" Uhr":"")]].forEach(([a,w])=>{schreib2(a,L,y,F,10.5,grau);schreib2(sauber(F,w),L+70,y,B,10.5);y-=16});
   y-=6;p.drawLine({start:{x:L,y},end:{x:R,y},thickness:.7,color:linie});y-=24;
   const X=L+30,BR=R-X;
-  REGELN.forEach((r,i)=>{const letzte=i===REGELN.length-1,t=umbruch(r[0],B,12.5,letzte?BR-14:BR),z=umbruch(r[1],F,11.5,letzte?BR-14:BR),h=t.length*16+z.length*15.5+3;
+  const RG=regelnFuer(v);RG.forEach((r,i)=>{const letzte=i===RG.length-1,t=umbruch(r[0],B,12.5,letzte?BR-14:BR),z=umbruch(r[1],F,11.5,letzte?BR-14:BR),h=t.length*16+z.length*15.5+3;
     if(letzte){y-=4;p.drawRectangle({x:L-8,y:y-h+6,width:R-L+16,height:h+14,borderColor:rot,borderWidth:1.4})}
     p.drawCircle({x:L+10,y:y+4,size:10.5,color:letzte?rot:PDFLib.rgb(.93,.93,.94)});
     const nr=String(i+1);schreib2(nr,L+10-B.widthOfTextAtSize(nr,11)/2,y,B,11,letzte?PDFLib.rgb(1,1,1):dunkel);
@@ -1743,7 +1746,7 @@ async function fuelleRegeln(v){const doc=await PDFLib.PDFDocument.create(),F=awa
   for(const[png,x]of[[r.unterschrift,sp[1][0]],[r.unterschriftVermieter,sp[2][0]]]){if(!png)continue;const echt=await bildEcht(png);
     if(!echt){alert("Eine Unterschrift fehlt auf diesem Gerät und kommt nicht ins PDF.\n\nBitte mit Internet die Seite neu öffnen und noch einmal drucken.");continue}
     try{const im=await doc.embedPng(await zuschneiden(echt)),f=Math.min(b/im.width,38/im.height);p.drawImage(im,{x:x+(b-im.width*f)/2,y:yL+1,width:im.width*f,height:im.height*f})}catch(e){}}
-  schreib2("Stand der Regeln: "+(r.stand||REGELN_STAND),L,36,F,8,grau);
+  schreib2("Stand der Regeln: "+(r.unterschrift?(r.stand||"09.11.2026"):REGELN_STAND),L,36,F,8,grau);
   return doc.save()}
 // Kunde unterschreibt am Stück (31.10.2026, Baran: am Mac vorbereitet, am iPad nur noch unterschreiben):
 // ein Knopf oben, dann öffnet sich ein Unterschriftsfeld nach dem anderen (Mietvertrag, Überlassung, Übergabe oder Rückgabe, Schaden)
@@ -4897,11 +4900,23 @@ async function auth(pfad,body){const r=await holeMit(URL_+"/auth/v1/"+pfad,{meth
   const j=await r.json().catch(()=>({}));if(!r.ok){const e=new Error(j.error_description||j.msg||j.message||"Anmeldung fehlgeschlagen");e.status=r.status;throw e}return j}
 function sichern(j){sitzung={token:j.access_token,neu:j.refresh_token,bis:Date.now()+(j.expires_in||3600)*1000-60000,
   email:(j.user&&j.user.email)||(sitzung&&sitzung.email)||""};merk("mietixSitzung",sitzung)}
-async function token(){if(!sitzung)return null;
-  if(Date.now()>sitzung.bis){try{sichern(await auth("token?grant_type=refresh_token",{refresh_token:sitzung.neu}))}
+/* Anmeldung über alle offenen Mietix-Fenster eines Geräts (12.11.2026, Mietvertrag 000562 ging nie hoch):
+   Jedes Fenster hielt seine eigene Kopie der Anmeldung. Erneuerte ein Fenster sie, schickte ein älteres Fenster später den
+   schon verbrauchten Schlüssel, bekam 4xx und meldete das ganze Gerät still ab. Ab jetzt gilt immer die Anmeldung im
+   localStorage, Erneuern geht nur in einem Fenster gleichzeitig, und vor dem Abmelden wird nachgesehen, ob ein anderes
+   Fenster schon erneuert hat. Wird das Gerät wirklich abgemeldet, kommt ein roter Hinweis. */
+function sitzungFrisch(){const s=lies("mietixSitzung",null);if(JSON.stringify(s)!==JSON.stringify(sitzung)){sitzung=s;if(!pwSetzen)zeigen()}}
+async function erneuern(){const alt=sitzung.neu;
+  try{sichern(await auth("token?grant_type=refresh_token",{refresh_token:alt}))}
     // Abmelden nur, wenn der Speicher die Anmeldung wirklich ablehnt, nicht bei schlechtem Netz (30.10.2026)
-    catch(e){if(e.status>=400&&e.status<500){sitzung=null;localStorage.removeItem("mietixSitzung");zeigen();return null}throw e}}
-  return sitzung.token}
+    catch(e){if(e.status>=400&&e.status<500){const s=lies("mietixSitzung",null);if(s&&s.neu&&s.neu!==alt){sitzung=s;return}   // ein anderes Fenster war schneller
+      sitzung=null;localStorage.removeItem("mietixSitzung");zeigen();
+      hinweis("Dieses Gerät wurde abgemeldet. Ab jetzt wird nichts gesichert. Bitte auf der Startseite neu anmelden.");return}
+    throw e}}
+async function token(){sitzungFrisch();if(!sitzung)return null;
+  if(Date.now()>sitzung.bis){const los=()=>{sitzungFrisch();return sitzung&&Date.now()>sitzung.bis?erneuern():null};
+    if(navigator.locks&&navigator.locks.request)await navigator.locks.request("mietix-anmeldung",los);else await los()}
+  return sitzung?sitzung.token:null}
 async function api(pfad,opt){const t=await token();if(!t)throw new Error("nicht angemeldet");
   const r=await holeMit(URL_+"/rest/v1/"+pfad,Object.assign({},opt,{headers:Object.assign({apikey:KEY,Authorization:"Bearer "+t,"Content-Type":"application/json"},(opt||{}).headers||{})}));
   if(!r.ok)throw new Error("Speicher antwortet "+r.status);const s=await r.text();return s?JSON.parse(s):null}
@@ -5077,7 +5092,7 @@ async function hochladen(k,c,h,hoch){const streit=[],gelungen=(z,ver)=>{const p=
     if(r[0])gelungen(z,r[0].geaendert);else streit.push(p)}
   return streit}
 async function abgleichen(){
-  if(!sitzung||!navigator.onLine)return;if(laeuft){nochmal=true;return}laeuft=true;const stand0=aenderungen;zeigen();
+  sitzungFrisch();if(!sitzung||!navigator.onLine)return;if(laeuft){nochmal=true;return}laeuft=true;const stand0=aenderungen;zeigen();
   const H=lies("mietixAbgleich",{}),geholt=[],kaputt=[];let warnung="";
   // Einmal je Gerät (31.10.2026, iPad mit vollem Speicher): Mietverträge, Papierkorb und Unterschriften frisch vom gemeinsamen Stand übernehmen.
   // Nur hier Liegendes, das noch nie hochging, bleibt und geht hoch. Kein Doppel in den Papierkorb.
@@ -5192,9 +5207,15 @@ function altSchutz(k,v){const keys=Object.keys(FREMD).filter(x=>x.indexOf(k+"|")
   return neu?JSON.stringify(arr):v}
 // Jede Änderung an den vier Speichern löst kurz danach einen Abgleich aus
 let warte=null;
+// Ohne Anmeldung gespeichert (12.11.2026): einmal je Seite ein roter Hinweis, damit es niemand übersieht. Nur auf der echten Seite, nicht im Test.
+let ohneGemeldet=false;
+function ohneAnmeldung(){if(ohneGemeldet||!/github\.io$/.test(location.hostname))return;ohneGemeldet=true;
+  setTimeout(()=>{const t="Nicht gesichert: Dieses Gerät ist nicht angemeldet. Was hier gespeichert wird, fehlt auf den anderen Geräten und in der Excel. Bitte auf der Startseite anmelden.";
+    if(window.mxFehler)mxFehler(t);else alert(t)},300)}
 Storage.prototype.setItem=function(k,v){if(this===localStorage&&WACHE[k]&&typeof v==="string"&&!rueckLaeuft&&!EIGEN)v=altSchutz(k,v);
   const alt=(this===localStorage&&SPEICHER[k])?localStorage.getItem(k):null;roh.call(this,k,v);if(this===localStorage&&WACHE[k])GESEHEN[k]=v;
   if(this===localStorage&&(SPEICHER[k]||k==="mietixEntwurfProtokolle")&&typeof v==="string"&&v.indexOf('"data:image/')>=0)auslagernBald();
+  if(this===localStorage&&SPEICHER[k]&&!sitzung&&!localStorage.getItem("mietixSitzung"))ohneAnmeldung();
   if(this===localStorage&&SPEICHER[k]){aenderungen++;if(!ungesichert){ungesichert=true;if(sitzung&&!pwSetzen)zeigen()}clearTimeout(warte);warte=setTimeout(abgleichen,800);if(k!=="mietixStand"&&k!=="mietixPapierkorb")sicherheitsnetz(k,alt,v)}};
 
 /* ---------- Sicherheitsnetz (28.10.2026, Baran: "Verklicken darf nichts verlieren") ----------
@@ -5390,6 +5411,7 @@ css.textContent=".abgl{background:#fff;border:1px solid #E4E4E7;border-radius:16
   "";
 document.head.appendChild(css);
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)abgleichen()});
+window.addEventListener("storage",e=>{if(e.key==="mietixSitzung"||e.key===null){sitzungFrisch();if(sitzung)abgleichen()}});   // in einem anderen Fenster an- oder abgemeldet (12.11.2026)
 window.addEventListener("online",abgleichen);window.addEventListener("offline",zeigen);   // Sync-Status sofort auf „Ohne Internet“
 setInterval(abgleichen,60000);
 zeigen();abgleichen();auslagernBald();
